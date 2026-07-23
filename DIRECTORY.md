@@ -2,7 +2,7 @@
 
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 
-_239 runnable samples across 37 directories._
+_270 runnable samples across 37 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -176,13 +176,18 @@ _239 runnable samples across 37 directories._
 - [circular_buffer](data_structures/circular_buffer.py)
 - [disjoint_set](data_structures/disjoint_set.py)
 - [fenwick_tree](data_structures/fenwick_tree.py)
+- [fenwick_tree_2d](data_structures/fenwick_tree_2d.py)
 - [graph_representations](data_structures/graph_representations.py)
 - [hash_table](data_structures/hash_table.py)
 - [linked_list](data_structures/linked_list.py)
 - [lru_cache](data_structures/lru_cache.py)
 - [min_heap](data_structures/min_heap.py)
+- [persistent_segment_tree](data_structures/persistent_segment_tree.py)
 - [segment_tree](data_structures/segment_tree.py)
+- [skip_list](data_structures/skip_list.py)
+- [sqrt_decomposition](data_structures/sqrt_decomposition.py)
 - [stack_and_queue](data_structures/stack_and_queue.py)
+- [treap](data_structures/treap.py)
 - [trie](data_structures/trie.py)
 
 ## distributed
@@ -193,8 +198,10 @@ _239 runnable samples across 37 directories._
 - [vector_clocks](distributed/vector_clocks.py)
 
 ## dynamic_programming
+- [bitmask_tsp](dynamic_programming/bitmask_tsp.py)
 - [climbing_stairs](dynamic_programming/climbing_stairs.py)
 - [coin_change](dynamic_programming/coin_change.py)
+- [convex_hull_trick](dynamic_programming/convex_hull_trick.py)
 - [edit_distance](dynamic_programming/edit_distance.py)
 - [fibonacci_dp](dynamic_programming/fibonacci_dp.py)
 - [kadane_max_subarray](dynamic_programming/kadane_max_subarray.py)
@@ -202,23 +209,36 @@ _239 runnable samples across 37 directories._
 - [longest_common_subsequence](dynamic_programming/longest_common_subsequence.py)
 - [longest_increasing_subsequence](dynamic_programming/longest_increasing_subsequence.py)
 - [matrix_chain_multiplication](dynamic_programming/matrix_chain_multiplication.py)
+- [optimal_bst](dynamic_programming/optimal_bst.py)
+- [sos_dp](dynamic_programming/sos_dp.py)
+- [tree_dp](dynamic_programming/tree_dp.py)
 - [word_break](dynamic_programming/word_break.py)
 
 ## geometry
+- [closest_pair](geometry/closest_pair.py)
 - [convex_hull_graham](geometry/convex_hull_graham.py)
 - [line_and_segment_intersection](geometry/line_and_segment_intersection.py)
+- [line_sweep_segment_intersections](geometry/line_sweep_segment_intersections.py)
 - [point_and_vector_basics](geometry/point_and_vector_basics.py)
+- [point_in_convex_polygon](geometry/point_in_convex_polygon.py)
 - [polygon_area](geometry/polygon_area.py)
+- [rotating_calipers_diameter](geometry/rotating_calipers_diameter.py)
 
 ## graphs
 - [a_star](graphs/a_star.py)
+- [articulation_points_bridges](graphs/articulation_points_bridges.py)
 - [bellman_ford](graphs/bellman_ford.py)
 - [bfs](graphs/bfs.py)
 - [dfs](graphs/dfs.py)
 - [dijkstra](graphs/dijkstra.py)
+- [dinic_max_flow](graphs/dinic_max_flow.py)
+- [edmonds_karp_max_flow](graphs/edmonds_karp_max_flow.py)
 - [floyd_warshall](graphs/floyd_warshall.py)
+- [hopcroft_karp_matching](graphs/hopcroft_karp_matching.py)
+- [kosaraju_scc](graphs/kosaraju_scc.py)
 - [kruskal_mst](graphs/kruskal_mst.py)
 - [prim_mst](graphs/prim_mst.py)
+- [tarjan_scc](graphs/tarjan_scc.py)
 - [topological_sort](graphs/topological_sort.py)
 
 ## greedy
@@ -247,11 +267,15 @@ _239 runnable samples across 37 directories._
 
 ## number_theory
 - [chinese_remainder](number_theory/chinese_remainder.py)
+- [discrete_log_bsgs](number_theory/discrete_log_bsgs.py)
 - [euler_totient](number_theory/euler_totient.py)
 - [extended_euclidean](number_theory/extended_euclidean.py)
+- [fft_polynomial_multiply](number_theory/fft_polynomial_multiply.py)
+- [gaussian_elimination_mod](number_theory/gaussian_elimination_mod.py)
 - [miller_rabin](number_theory/miller_rabin.py)
 - [modular_arithmetic](number_theory/modular_arithmetic.py)
 - [pollard_rho](number_theory/pollard_rho.py)
+- [tonelli_shanks](number_theory/tonelli_shanks.py)
 
 ## parsers
 - [json_parser](parsers/json_parser.py)
@@ -308,12 +332,19 @@ _239 runnable samples across 37 directories._
 - [timsort_runs](sorts/timsort_runs.py)
 
 ## strings
+- [aho_corasick](strings/aho_corasick.py)
+- [edit_distance_operations](strings/edit_distance_operations.py)
 - [is_anagram](strings/is_anagram.py)
 - [is_palindrome](strings/is_palindrome.py)
 - [kmp_search](strings/kmp_search.py)
+- [longest_repeated_substring](strings/longest_repeated_substring.py)
 - [longest_substring_without_repeat](strings/longest_substring_without_repeat.py)
 - [manacher](strings/manacher.py)
 - [rabin_karp](strings/rabin_karp.py)
 - [run_length_encoding](strings/run_length_encoding.py)
+- [suffix_array](strings/suffix_array.py)
+- [suffix_automaton](strings/suffix_automaton.py)
 - [valid_parentheses](strings/valid_parentheses.py)
+- [wildcard_and_regex_matching](strings/wildcard_and_regex_matching.py)
+- [z_algorithm](strings/z_algorithm.py)
 
