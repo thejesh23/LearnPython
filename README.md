@@ -50,7 +50,7 @@ Most language tutorials fall into one of two traps: they either bury you in feat
 2. **Clone the repo:**
 
    ```bash
-   git clone https://github.com/polyglot-learn/LearnPython.git
+   git clone https://github.com/thejesh23/LearnPython.git
    cd LearnPython
    ```
 
