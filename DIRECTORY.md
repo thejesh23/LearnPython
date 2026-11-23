@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_352 runnable samples across 40 directories._
+_368 runnable samples across 43 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -305,6 +305,13 @@ _352 runnable samples across 40 directories._
 - [interval_scheduling_rooms](greedy/interval_scheduling_rooms.py)
 - [jump_game](greedy/jump_game.py)
 
+## linked_lists
+- [add_two_numbers_lists](linked_lists/add_two_numbers_lists.py)
+- [linked_list_cycle](linked_lists/linked_list_cycle.py)
+- [merge_two_sorted_lists](linked_lists/merge_two_sorted_lists.py)
+- [palindrome_linked_list](linked_lists/palindrome_linked_list.py)
+- [reverse_linked_list_recursive](linked_lists/reverse_linked_list_recursive.py)
+
 ## machine_learning
 - [decision_tree](machine_learning/decision_tree.py)
 - [gradient_boosting_stumps](machine_learning/gradient_boosting_stumps.py)
@@ -327,6 +334,12 @@ _352 runnable samples across 40 directories._
 - [is_prime](maths/is_prime.py)
 - [maths_kit](maths/maths_kit/) (package)
 - [sieve_of_eratosthenes](maths/sieve_of_eratosthenes.py)
+
+## matrix
+- [matrix_shape_checks](matrix/matrix_shape_checks.py)
+- [rotate_and_transpose](matrix/rotate_and_transpose.py)
+- [set_matrix_zeroes](matrix/set_matrix_zeroes.py)
+- [spiral_order](matrix/spiral_order.py)
 
 ## number_theory
 - [chinese_remainder](number_theory/chinese_remainder.py)
@@ -436,3 +449,12 @@ _352 runnable samples across 40 directories._
 - [valid_parentheses](strings/valid_parentheses.py)
 - [wildcard_and_regex_matching](strings/wildcard_and_regex_matching.py)
 - [z_algorithm](strings/z_algorithm.py)
+
+## trees
+- [binary_tree_traversals](trees/binary_tree_traversals.py)
+- [lowest_common_ancestor](trees/lowest_common_ancestor.py)
+- [serialize_binary_tree](trees/serialize_binary_tree.py)
+- [tree_height_and_balance](trees/tree_height_and_balance.py)
+- [tree_paths_and_sums](trees/tree_paths_and_sums.py)
+- [trie_autocomplete](trees/trie_autocomplete.py)
+- [validate_bst](trees/validate_bst.py)
