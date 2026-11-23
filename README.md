@@ -86,7 +86,7 @@ Follow the numbered folders in order. Inside each folder, read the files in alph
 
 Each category holds one algorithm per file, each with a runnable `main()`:
 
-`arrays/` · `sorts/` · `searches/` · `strings/` · `maths/` · `recursion/` · `data_structures/` · `dynamic_programming/` · `graphs/` · `greedy/` · `backtracking/` · `bit_manipulation/` · `number_theory/` · `geometry/` · `ciphers/` · `crypto/` · `compression/` · `concurrency/` · `distributed/` · `machine_learning/` · `probabilistic/` · `parsers/` · `project_euler/` · `puzzles/`
+`arrays/` · `sorts/` · `searches/` · `strings/` · `maths/` · `recursion/` · `data_structures/` · `dynamic_programming/` · `graphs/` · `greedy/` · `backtracking/` · `bit_manipulation/` · `number_theory/` · `geometry/` · `ciphers/` · `crypto/` · `compression/` · `concurrency/` · `distributed/` · `machine_learning/` · `probabilistic/` · `parsers/` · `project_euler/` · `puzzles/` · `conversions/`
 
 See [DIRECTORY.md](DIRECTORY.md) for a flat index of every file.
 
