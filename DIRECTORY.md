@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_344 runnable samples across 39 directories._
+_352 runnable samples across 40 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -185,6 +185,16 @@ _344 runnable samples across 39 directories._
 - [retry_with_backoff](concurrency/retry_with_backoff.py)
 - [software_transactional_memory](concurrency/software_transactional_memory.py)
 - [worker_pool_threads](concurrency/worker_pool_threads.py)
+
+## conversions
+- [bytes_humanize](conversions/bytes_humanize.py)
+- [color_conversions](conversions/color_conversions.py)
+- [duration_formatting](conversions/duration_formatting.py)
+- [integer_to_roman](conversions/integer_to_roman.py)
+- [number_formats_table](conversions/number_formats_table.py)
+- [number_to_words](conversions/number_to_words.py)
+- [roman_to_integer](conversions/roman_to_integer.py)
+- [temperature_conversions](conversions/temperature_conversions.py)
 
 ## crypto
 - [aes_sbox](crypto/aes_sbox.py)
