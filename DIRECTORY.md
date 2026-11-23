@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_323 runnable samples across 39 directories._
+_344 runnable samples across 39 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -42,10 +42,12 @@ _323 runnable samples across 39 directories._
 - [subprocess_and_processes](advanced/subprocess_and_processes.py)
 - [testing_with_unittest](advanced/testing_with_unittest.py)
 - [thread_synchronisation](advanced/thread_synchronisation.py)
+- [toolbox_kit](advanced/toolbox_kit/) (package)
 - [typing_generics](advanced/typing_generics.py)
 - [weakrefs_and_gc](advanced/weakrefs_and_gc.py)
 
 ## arrays
+- [array_kit](arrays/array_kit/) (package)
 - [dutch_national_flag](arrays/dutch_national_flag.py)
 - [majority_element](arrays/majority_element.py)
 - [merge_intervals](arrays/merge_intervals.py)
@@ -56,6 +58,7 @@ _323 runnable samples across 39 directories._
 - [two_sum](arrays/two_sum.py)
 
 ## backtracking
+- [backtrack_kit](backtracking/backtrack_kit/) (package)
 - [n_queens](backtracking/n_queens.py)
 - [permutations_with_constraints](backtracking/permutations_with_constraints.py)
 - [subset_sum](backtracking/subset_sum.py)
@@ -147,6 +150,7 @@ _323 runnable samples across 39 directories._
 
 ## bit_manipulation
 - [bit_basics](bit_manipulation/bit_basics.py)
+- [bit_kit](bit_manipulation/bit_kit/) (package)
 - [count_set_bits](bit_manipulation/count_set_bits.py)
 - [power_of_two](bit_manipulation/power_of_two.py)
 - [single_number_xor](bit_manipulation/single_number_xor.py)
@@ -155,12 +159,14 @@ _323 runnable samples across 39 directories._
 
 ## ciphers
 - [caesar_cipher](ciphers/caesar_cipher.py)
+- [cipher_kit](ciphers/cipher_kit/) (package)
 - [vigenere_cipher](ciphers/vigenere_cipher.py)
 - [xor_cipher](ciphers/xor_cipher.py)
 
 ## compression
 - [arithmetic_coding](compression/arithmetic_coding.py)
 - [burrows_wheeler](compression/burrows_wheeler.py)
+- [compress_kit](compression/compress_kit/) (package)
 - [delta_and_varint](compression/delta_and_varint.py)
 - [huffman_codec](compression/huffman_codec.py)
 - [lz77](compression/lz77.py)
@@ -170,6 +176,7 @@ _323 runnable samples across 39 directories._
 - [actor_model](concurrency/actor_model.py)
 - [barrier_and_phaser](concurrency/barrier_and_phaser.py)
 - [circuit_breaker](concurrency/circuit_breaker.py)
+- [concurrency_kit](concurrency/concurrency_kit/) (package)
 - [deadlock_and_ordering](concurrency/deadlock_and_ordering.py)
 - [future_and_promise](concurrency/future_and_promise.py)
 - [producer_consumer_pipeline](concurrency/producer_consumer_pipeline.py)
@@ -182,6 +189,7 @@ _323 runnable samples across 39 directories._
 ## crypto
 - [aes_sbox](crypto/aes_sbox.py)
 - [commitment_scheme](crypto/commitment_scheme.py)
+- [crypto_kit](crypto/crypto_kit/) (package)
 - [diffie_hellman](crypto/diffie_hellman.py)
 - [elgamal](crypto/elgamal.py)
 - [elliptic_curve_points](crypto/elliptic_curve_points.py)
@@ -217,6 +225,7 @@ _323 runnable samples across 39 directories._
 ## distributed
 - [consistent_hashing](distributed/consistent_hashing.py)
 - [crdt_counters_and_sets](distributed/crdt_counters_and_sets.py)
+- [distributed_kit](distributed/distributed_kit/) (package)
 - [raft_leader_election](distributed/raft_leader_election.py)
 - [two_phase_commit](distributed/two_phase_commit.py)
 - [vector_clocks](distributed/vector_clocks.py)
@@ -243,6 +252,7 @@ _323 runnable samples across 39 directories._
 ## geometry
 - [closest_pair](geometry/closest_pair.py)
 - [convex_hull_graham](geometry/convex_hull_graham.py)
+- [geometry_kit](geometry/geometry_kit/) (package)
 - [line_and_segment_intersection](geometry/line_and_segment_intersection.py)
 - [line_sweep_segment_intersections](geometry/line_sweep_segment_intersections.py)
 - [point_and_vector_basics](geometry/point_and_vector_basics.py)
@@ -280,6 +290,7 @@ _323 runnable samples across 39 directories._
 ## greedy
 - [activity_selection](greedy/activity_selection.py)
 - [fractional_knapsack](greedy/fractional_knapsack.py)
+- [greedy_kit](greedy/greedy_kit/) (package)
 - [huffman_encoding](greedy/huffman_encoding.py)
 - [interval_scheduling_rooms](greedy/interval_scheduling_rooms.py)
 - [jump_game](greedy/jump_game.py)
@@ -291,6 +302,7 @@ _323 runnable samples across 39 directories._
 - [knn_classifier](machine_learning/knn_classifier.py)
 - [linear_regression](machine_learning/linear_regression.py)
 - [logistic_regression](machine_learning/logistic_regression.py)
+- [ml_kit](machine_learning/ml_kit/) (package)
 - [naive_bayes](machine_learning/naive_bayes.py)
 - [neural_net_backprop](machine_learning/neural_net_backprop.py)
 - [pca](machine_learning/pca.py)
@@ -303,6 +315,7 @@ _323 runnable samples across 39 directories._
 - [gcd_and_lcm](maths/gcd_and_lcm.py)
 - [integer_square_root](maths/integer_square_root.py)
 - [is_prime](maths/is_prime.py)
+- [maths_kit](maths/maths_kit/) (package)
 - [sieve_of_eratosthenes](maths/sieve_of_eratosthenes.py)
 
 ## number_theory
@@ -314,6 +327,7 @@ _323 runnable samples across 39 directories._
 - [gaussian_elimination_mod](number_theory/gaussian_elimination_mod.py)
 - [miller_rabin](number_theory/miller_rabin.py)
 - [modular_arithmetic](number_theory/modular_arithmetic.py)
+- [nt_kit](number_theory/nt_kit/) (package)
 - [pollard_rho](number_theory/pollard_rho.py)
 - [tonelli_shanks](number_theory/tonelli_shanks.py)
 
@@ -326,6 +340,7 @@ _323 runnable samples across 39 directories._
 - [gradient_descent](numeric/gradient_descent.py)
 - [lu_decomposition](numeric/lu_decomposition.py)
 - [newton_raphson](numeric/newton_raphson.py)
+- [numeric_kit](numeric/numeric_kit/) (package)
 - [numerical_integration](numeric/numerical_integration.py)
 - [power_iteration_eigenvalues](numeric/power_iteration_eigenvalues.py)
 - [qr_decomposition](numeric/qr_decomposition.py)
@@ -334,6 +349,7 @@ _323 runnable samples across 39 directories._
 
 ## parsers
 - [json_parser](parsers/json_parser.py)
+- [parser_kit](parsers/parser_kit/) (package)
 - [recursive_descent_expr](parsers/recursive_descent_expr.py)
 - [shunting_yard](parsers/shunting_yard.py)
 - [stack_vm](parsers/stack_vm.py)
@@ -345,8 +361,10 @@ _323 runnable samples across 39 directories._
 - [minhash](probabilistic/minhash.py)
 - [monte_carlo_estimation](probabilistic/monte_carlo_estimation.py)
 - [reservoir_sampling](probabilistic/reservoir_sampling.py)
+- [sketch_kit](probabilistic/sketch_kit/) (package)
 
 ## project_euler
+- [euler_kit](project_euler/euler_kit/) (package)
 - [problem_001_multiples_of_3_or_5](project_euler/problem_001_multiples_of_3_or_5.py)
 - [problem_002_even_fibonacci](project_euler/problem_002_even_fibonacci.py)
 - [problem_003_largest_prime_factor](project_euler/problem_003_largest_prime_factor.py)
@@ -355,6 +373,7 @@ _323 runnable samples across 39 directories._
 ## puzzles
 - [fizzbuzz_variations](puzzles/fizzbuzz_variations.py)
 - [game_of_life](puzzles/game_of_life.py)
+- [puzzle_kit](puzzles/puzzle_kit/) (package)
 - [water_jug_and_bfs_puzzles](puzzles/water_jug_and_bfs_puzzles.py)
 
 ## recursion
@@ -362,6 +381,7 @@ _323 runnable samples across 39 directories._
 - [combinations_and_subsets](recursion/combinations_and_subsets.py)
 - [flatten_nested](recursion/flatten_nested.py)
 - [permutations](recursion/permutations.py)
+- [recursion_kit](recursion/recursion_kit/) (package)
 - [recursion_limits_and_tail_calls](recursion/recursion_limits_and_tail_calls.py)
 - [tower_of_hanoi](recursion/tower_of_hanoi.py)
 
@@ -400,6 +420,7 @@ _323 runnable samples across 39 directories._
 - [manacher](strings/manacher.py)
 - [rabin_karp](strings/rabin_karp.py)
 - [run_length_encoding](strings/run_length_encoding.py)
+- [string_kit](strings/string_kit/) (package)
 - [suffix_array](strings/suffix_array.py)
 - [suffix_automaton](strings/suffix_automaton.py)
 - [valid_parentheses](strings/valid_parentheses.py)
