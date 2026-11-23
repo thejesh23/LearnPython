@@ -6,8 +6,8 @@ Picking one hub scale (Celsius here) cuts that to 2 * n: each scale only needs
 Adding Rankine later is two lines, not six.
 
 The formulas are all affine (multiply, then shift), so they invert cleanly.
-Kelvin (written K, never °K) and Rankine start at absolute zero, so anything colder than -273.15 °C
-is rejected instead of silently returned.
+Kelvin (written K, never °K) and Rankine start at absolute zero, so anything
+colder than -273.15 °C is rejected instead of silently returned.
 """
 
 from enum import Enum
