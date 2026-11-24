@@ -20,8 +20,11 @@ A venv is disposable. Never commit it to git; commit the list of requirements
 instead and recreate the venv from that list.
 """
 
+import os
+import subprocess
 import sys
 import sysconfig
+import tempfile
 from pathlib import Path
 
 
@@ -42,8 +45,40 @@ def where_am_i_demo() -> None:
     print(f"pyvenv.cfg found at sys.prefix: {has_cfg}")
 
 
+def venv_python(env_dir: Path) -> Path:
+    # Windows puts executables in Scripts\, everything else in bin/.
+    if os.name == "nt":
+        return env_dir / "Scripts" / "python.exe"
+    return env_dir / "bin" / "python"
+
+
+def create_venv_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        env_dir = Path(tmp) / ".venv"
+        # --without-pip skips installing pip, which keeps this fast and offline.
+        subprocess.run([sys.executable, "-m", "venv", "--without-pip", str(env_dir)],
+                       check=True)
+        print("created .venv containing:")
+        for item in sorted(env_dir.iterdir()):
+            kind = "dir " if item.is_dir() else "file"
+            print(f"  {kind} {item.name}")
+
+        # pyvenv.cfg is how the venv's python finds the real installation.
+        cfg = (env_dir / "pyvenv.cfg").read_text()
+        keys = [line.split("=")[0].strip() for line in cfg.splitlines() if "=" in line]
+        print(f"pyvenv.cfg keys: {keys}")
+
+        # Ask the venv's own interpreter where it lives.
+        code = "import sys; print(sys.prefix != sys.base_prefix)"
+        result = subprocess.run([str(venv_python(env_dir)), "-c", code],
+                                capture_output=True, text=True, check=True)
+        print(f"the venv's python says it is in a venv: {result.stdout.strip()}")
+
+
 def main() -> None:
     where_am_i_demo()
+    print()
+    create_venv_demo()
 
 
 if __name__ == "__main__":
