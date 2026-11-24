@@ -176,11 +176,49 @@ def check_add_money() -> None:
     report("4. add_money", test_add_money, add_money)
 
 
+def describe(value: object) -> str:
+    """Say whether a value is "absent", "falsy" or "truthy".
+
+    None is "absent". Any other value that counts as false (0, "", [],
+    False, ...) is "falsy". Everything else is "truthy".
+
+    describe(None) -> "absent"
+    describe(0)    -> "falsy"
+    describe("0")  -> "truthy"    a non-empty string, whatever it says
+
+    Hint: booleans_and_none.py has this exact pattern. Test for None first.
+    """
+    raise NotImplementedError
+
+
+def test_describe(fn: Callable[..., Any]) -> None:
+    cases = [
+        (None, "absent"),
+        (0, "falsy"),
+        ("", "falsy"),
+        ([], "falsy"),
+        (0.0, "falsy"),
+        (False, "falsy"),
+        ("0", "truthy"),
+        ([0], "truthy"),
+        (-1, "truthy"),
+        ("None", "truthy"),
+    ]
+    for value, want in cases:
+        got = fn(value)
+        assert got == want, f"describe({value!r}) returned {got!r}, expected {want!r}"
+
+
+def check_describe() -> None:
+    report("5. describe", test_describe, describe)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
     check_simplify()
     check_add_money()
+    check_describe()
 
 
 if __name__ == "__main__":
