@@ -21,6 +21,7 @@ Uses:
 """
 
 import copy
+import sys
 from dataclasses import dataclass, field
 
 
@@ -208,12 +209,50 @@ def game_demo() -> None:
         print(game.step(text))
 
 
+class Adventure(Game):
+    goal = "crown"
+
+    def step(self, text: str) -> str:
+        reply = super().step(text)
+        # Winning: be back in the hall, carrying the crown.
+        if self.here.name == "hall" and self.goal in self.inventory:
+            self.over = True
+            reply += f"\nYou slip out of the front door with the {self.goal}. You win!"
+        return reply
+
+
+WALKTHROUGH = [
+    "look", "down", "take brass key", "up", "east", "take the lamp", "west",
+    "d", "take brass key", "u", "dance", "north", "up", "take crown",
+    "drop lamp", "i", "down", "south",
+]
+
+
+def walkthrough_demo() -> None:
+    game = Adventure(ROOMS)
+    print(game.describe())
+    commands = iter(WALKTHROUGH)
+    while not game.over:
+        if "--play" in sys.argv:
+            try:
+                text = input("> ")
+            except EOFError:
+                break
+        else:
+            text = next(commands, "quit")
+            print(f"> {text}")
+        print(game.step(text))
+    print(f"[{game.moves} moves]")
+
+
 def main() -> None:
     world_demo()
     print()
     parser_demo()
     print()
     game_demo()
+    print()
+    walkthrough_demo()
 
 
 if __name__ == "__main__":
