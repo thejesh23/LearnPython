@@ -20,6 +20,7 @@ for this chapter are in basics/15_typing/.
 from collections.abc import Callable
 from typing import Any
 from typing import Literal
+from typing import TypedDict
 from typing import get_overloads
 
 
@@ -264,12 +265,61 @@ def check_registry() -> None:
     report("5. Registry[T]", test_registry, Registry)
 
 
+# --- Exercise 6 -------------------------------------------------------------
+
+def type_errors(data: dict[str, object], schema: type) -> list[str]:
+    """List the ways `data` does not match a TypedDict class `schema`.
+
+    A TypedDict is only a hint; nothing checks real data at runtime. Write
+    that check: typing.get_type_hints(schema) gives {field: type} in field
+    order. Every field type is a plain class such as str, int or float.
+    For each field, in order:
+        missing from data         "missing: title"
+        isinstance fails          "year: expected int, got str"
+    then for each key of data that is not a field, in data order:
+                                  "unexpected: color"
+    Valid data gives [].
+    """
+    raise NotImplementedError
+
+
+class Movie(TypedDict):
+    """Given: a schema to check against."""
+
+    title: str
+    year: int
+    rating: float
+
+
+def test_type_errors(impl: Callable[[dict[str, object], type], list[str]]) -> None:
+    good = {"title": "Up", "year": 2009, "rating": 8.3}
+    assert impl(good, Movie) == [], f"valid data gave {impl(good, Movie)}"
+    got = impl({"title": "Up", "year": "2009"}, Movie)
+    expected = ["year: expected int, got str", "missing: rating"]
+    assert got == expected, f"expected {expected}, got {got}"
+    got = impl({**good, "color": "red", "3d": True}, Movie)
+    expected = ["unexpected: color", "unexpected: 3d"]
+    assert got == expected, f"expected {expected}, got {got}"
+
+    class Point(TypedDict):
+        x: int
+        y: int
+
+    got = impl({}, Point)
+    assert got == ["missing: x", "missing: y"], f"an empty dict gave {got}"
+
+
+def check_type_errors() -> None:
+    report("6. type_errors", test_type_errors, type_errors)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
     check_double()
     check_compose()
     check_registry()
+    check_type_errors()
 
 
 if __name__ == "__main__":
