@@ -21,6 +21,7 @@ import cProfile
 import io
 import pstats
 import random
+import timeit
 
 
 def make_words(count: int, seed: int = 7) -> list[str]:
@@ -99,10 +100,41 @@ def tottime_vs_cumtime_demo() -> None:
     print(f"{top_row[0]:>9}  {'(four timing columns)':<35}{top_row[-1]}")
 
 
+def unique_words_fast(words: list[str]) -> list[str]:
+    # A set answers "have I seen this?" in O(1); the list keeps the order.
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for word in words:
+        clean = normalize(word)
+        if clean not in seen:
+            seen.add(clean)
+            ordered.append(clean)
+    return ordered
+
+
+def fix_hotspot_demo() -> None:
+    # Step 1: a faster wrong answer is worthless, so check correctness first.
+    print(f"same result: {unique_words_fast(WORDS) == unique_words_slow(WORDS)}")
+
+    # Step 2: profile again. is_new is gone; nothing is HOT any more.
+    with cProfile.Profile() as profile:
+        unique_words_fast(WORDS)
+    print_table(profile_rows(profile))
+
+    # Step 3: confirm the win with a plain timing, outside the profiler
+    # (profiling itself slows every call down).
+    slow = min(timeit.repeat(lambda: unique_words_slow(WORDS), number=1, repeat=3))
+    fast = min(timeit.repeat(lambda: unique_words_fast(WORDS), number=1, repeat=3))
+    print(f"fast version is faster: {fast < slow}")
+    print(f"... by more than 10x: {slow / fast > 10}")
+
+
 def main() -> None:
     profile_demo()
     print()
     tottime_vs_cumtime_demo()
+    print()
+    fix_hotspot_demo()
 
 
 if __name__ == "__main__":
