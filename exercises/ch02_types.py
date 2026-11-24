@@ -213,12 +213,49 @@ def check_describe() -> None:
     report("5. describe", test_describe, describe)
 
 
+def to_int(text: str) -> int | None:
+    """Convert text to an int, or return None when it is not a whole number.
+
+    Spaces around the number are fine; anything else is not.
+
+    to_int("42")    -> 42
+    to_int(" -7 ")  -> -7
+    to_int("seven") -> None
+    to_int("3.5")   -> None
+
+    Hint: int() raises ValueError on bad input; catch it.
+    """
+    raise NotImplementedError
+
+
+def test_to_int(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("42", 42),
+        (" -7 ", -7),
+        ("0", 0),
+        ("seven", None),
+        ("", None),
+        ("3.5", None),
+        ("12abc", None),
+    ]
+    for text, want in cases:
+        got = fn(text)
+        assert got == want and type(got) is type(want), (
+            f"to_int({text!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_to_int() -> None:
+    report("6. to_int", test_to_int, to_int)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
     check_simplify()
     check_add_money()
     check_describe()
+    check_to_int()
 
 
 if __name__ == "__main__":
