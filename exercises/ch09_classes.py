@@ -273,11 +273,73 @@ def check_version() -> None:
     report("4. Version.from_string", test_version, Version)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+class Employee:
+    """Given, complete: a simple employee. Manager below builds on it."""
+
+    def __init__(self, name: str, salary: float) -> None:
+        self.name = name
+        self.salary = salary
+
+    def describe(self) -> str:
+        return f"{self.name} earns {self.salary:,.0f}"
+
+    def give_raise(self, percent: float) -> None:
+        self.salary *= 1 + percent / 100
+
+
+class Manager(Employee):
+    """An Employee who also leads a team.
+
+    - Manager(name, salary) calls super().__init__ and starts with an empty
+      list in self.reports.
+    - add_report(employee) appends an Employee to self.reports.
+    - describe() builds on super().describe() instead of repeating it:
+          "Ana earns 90,000 and manages 2: Bo, Cy"
+      and with nobody to manage: "Ana earns 90,000 and manages 0: nobody".
+    - give_raise is inherited from Employee; do not write it again.
+    """
+
+    def __init__(self, name: str, salary: float) -> None:
+        raise NotImplementedError
+
+    def add_report(self, employee: Employee) -> None:
+        raise NotImplementedError
+
+    def describe(self) -> str:
+        raise NotImplementedError
+
+
+def test_manager(impl: type) -> None:
+    boss = impl("Ana", 90_000)
+    assert isinstance(boss, Employee), "Manager should inherit from Employee"
+    assert (boss.name, boss.salary) == ("Ana", 90_000), "call super().__init__"
+    assert boss.reports == [], "a new manager should have an empty reports list"
+    text = boss.describe()
+    expected = "Ana earns 90,000 and manages 0: nobody"
+    assert text == expected, f"describe() gave {text!r}, expected {expected!r}"
+    boss.add_report(Employee("Bo", 50_000))
+    boss.add_report(Employee("Cy", 55_000))
+    text = boss.describe()
+    expected = "Ana earns 90,000 and manages 2: Bo, Cy"
+    assert text == expected, f"describe() gave {text!r}, expected {expected!r}"
+    boss.give_raise(10)
+    assert boss.describe().startswith("Ana earns 99,000"), "give_raise should work"
+    assert impl.give_raise is Employee.give_raise, "inherit give_raise, do not copy"
+    assert impl("Dee", 1).reports == [], "each manager needs its own reports list"
+
+
+def check_manager() -> None:
+    report("5. Manager(Employee)", test_manager, Manager)
+
+
 def main() -> None:
     check_rectangle()
     check_bank_account()
     check_vector()
     check_version()
+    check_manager()
 
 
 if __name__ == "__main__":
