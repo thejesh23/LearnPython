@@ -97,8 +97,74 @@ def check_rectangle() -> None:
     report("1. Rectangle", test_rectangle, Rectangle)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+class BankAccount:
+    """A bank account whose balance can be read but not assigned directly.
+
+    - BankAccount(owner, balance=0.0) stores the owner and starting balance.
+    - balance is a read-only @property: reading works, `acct.balance = 5`
+      raises AttributeError (a property without a setter does that for you).
+    - deposit(amount) and withdraw(amount) change the balance and return the
+      new balance. Both raise ValueError when amount <= 0, and withdraw also
+      raises ValueError when amount is more than the balance.
+
+    >>> acct = BankAccount("ana", 100)
+    >>> acct.deposit(50), acct.withdraw(30), acct.balance
+    (150, 120, 120)
+    """
+
+    def __init__(self, owner: str, balance: float = 0.0) -> None:
+        raise NotImplementedError
+
+    @property
+    def balance(self) -> float:
+        raise NotImplementedError
+
+    def deposit(self, amount: float) -> float:
+        raise NotImplementedError
+
+    def withdraw(self, amount: float) -> float:
+        raise NotImplementedError
+
+
+def test_bank_account(impl: type) -> None:
+    acct = impl("ana", 100)
+    assert acct.owner == "ana", "store the owner as an attribute"
+    assert acct.balance == 100, f"starting balance should be 100, got {acct.balance}"
+    assert acct.deposit(50) == 150, "deposit(50) should return the new balance 150"
+    assert acct.withdraw(30) == 120, "withdraw(30) should return the new balance 120"
+    assert acct.balance == 120, f"balance should now be 120, got {acct.balance}"
+    assert impl("bo").balance == 0, "the balance should default to 0"
+    for bad in (0, -5):
+        try:
+            acct.deposit(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"deposit({bad}) should raise ValueError")
+    try:
+        acct.withdraw(500)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("withdrawing more than the balance should raise")
+    assert acct.balance == 120, "a failed withdraw must not change the balance"
+    try:
+        acct.balance = 1_000_000
+    except AttributeError:
+        pass
+    else:
+        raise AssertionError("balance should be read-only (no setter)")
+
+
+def check_bank_account() -> None:
+    report("2. BankAccount", test_bank_account, BankAccount)
+
+
 def main() -> None:
     check_rectangle()
+    check_bank_account()
 
 
 if __name__ == "__main__":
