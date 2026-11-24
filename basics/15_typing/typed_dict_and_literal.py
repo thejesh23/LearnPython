@@ -15,6 +15,8 @@ to read the hints back and validate incoming data yourself.
 """
 
 import json
+from typing import NotRequired
+from typing import Required
 from typing import TypedDict
 
 
@@ -44,8 +46,41 @@ def typed_dict_demo() -> None:
     print(f"Movie.__annotations__ = {Movie.__annotations__}")
 
 
+class User(TypedDict):
+    id: int
+    name: str
+    email: NotRequired[str]  # may be absent; when present it is a str
+
+
+class SearchOptions(TypedDict, total=False):
+    # total=False flips the default: every key is optional...
+    query: Required[str]  # ...except the ones marked Required
+    limit: int
+    sort: str
+
+
+def contact_line(user: User) -> str:
+    # NotRequired means "the key may be missing", so use .get() or "in".
+    # The checker warns about user["email"] because it can raise KeyError.
+    email = user.get("email", "no email")
+    return f"#{user['id']} {user['name']} <{email}>"
+
+
+def optional_keys_demo() -> None:
+    print(contact_line({"id": 1, "name": "Ana", "email": "ana@example.com"}))
+    print(contact_line({"id": 2, "name": "Bo"}))
+
+    # The required / optional split is recorded on the class.
+    print(f"User required: {sorted(User.__required_keys__)}")
+    print(f"User optional: {sorted(User.__optional_keys__)}")
+    print(f"SearchOptions required: {sorted(SearchOptions.__required_keys__)}")
+    print(f"SearchOptions optional: {sorted(SearchOptions.__optional_keys__)}")
+
+
 def main() -> None:
     typed_dict_demo()
+    print()
+    optional_keys_demo()
 
 
 if __name__ == "__main__":
