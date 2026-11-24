@@ -19,6 +19,7 @@ for this chapter are in basics/10_async/.
 
 import asyncio
 import inspect
+from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import Any
 
@@ -96,8 +97,52 @@ def check_add_later() -> None:
     report("1. add_later", test_add_later, add_later)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+async def fetch_all(
+    fetch: Callable[[str], Awaitable[str]], names: list[str]
+) -> list[str]:
+    """Call `await fetch(name)` for every name, all at the same time.
+
+    Return the results in the same order as `names`, even though the fetches
+    may finish in a different order. asyncio.gather does both jobs.
+
+    >>> async def shout(name: str) -> str:
+    ...     return name.upper()
+    >>> asyncio.run(fetch_all(shout, ["ana", "bo"]))
+    ['ANA', 'BO']
+    """
+    raise NotImplementedError
+
+
+def test_fetch_all(impl: Callable[..., Any]) -> None:
+    running = peak = 0
+
+    async def fetch(name: str) -> str:
+        nonlocal running, peak
+        running += 1
+        peak = max(peak, running)
+        await asyncio.sleep(0.01 * (len(name) % 3))  # finish out of order
+        running -= 1
+        return name.upper()
+
+    names = ["ana", "bo", "cy", "dee", "ed"]
+    result = asyncio.run(impl(fetch, names))
+    expected = [name.upper() for name in names]
+    assert result == expected, f"expected {expected}, got {result}"
+    assert peak == len(names), (
+        f"all {len(names)} fetches should run at once, but at most {peak} did"
+    )
+    assert asyncio.run(impl(fetch, [])) == [], "no names should give []"
+
+
+def check_fetch_all() -> None:
+    report("2. fetch_all", test_fetch_all, fetch_all)
+
+
 def main() -> None:
     check_add_later()
+    check_fetch_all()
 
 
 if __name__ == "__main__":
