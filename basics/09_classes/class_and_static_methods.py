@@ -45,10 +45,40 @@ def subclass_demo() -> None:
     print(f"{tip!r}, is a Tip: {isinstance(tip, Tip)}")
 
 
+class Order:
+    count = 0  # a class attribute: one value shared by every Order
+
+    def __init__(self, total: float) -> None:
+        if not Order.is_valid_total(total):
+            raise ValueError(f"bad total: {total}")
+        self.total = total
+        Order.count += 1
+
+    @staticmethod
+    def is_valid_total(total: float) -> bool:
+        # Needs neither self nor cls: just a rule that belongs with orders.
+        return 0 < total < 10_000
+
+    @classmethod
+    def how_many(cls) -> int:
+        return cls.count
+
+
+def static_and_counter_demo() -> None:
+    Order(25.0)
+    Order(99.5)
+    print(f"orders created: {Order.how_many()}")
+    print(f"is 50 valid? {Order.is_valid_total(50)}; is -1? {Order.is_valid_total(-1)}")
+    # Static and class methods can also be called on an instance.
+    print(f"via an instance: {Order(10).how_many()}")
+
+
 def main() -> None:
     alternative_constructor_demo()
     print()
     subclass_demo()
+    print()
+    static_and_counter_demo()
 
 
 if __name__ == "__main__":
