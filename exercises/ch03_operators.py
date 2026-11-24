@@ -138,10 +138,43 @@ def check_display_name() -> None:
     report("3. display_name", test_display_name, display_name)
 
 
+def is_vowel(ch: str) -> bool:
+    """Return True when the single character ch is a vowel, in either case.
+
+    The vowels are a, e, i, o and u.
+
+    is_vowel("a") -> True
+    is_vowel("E") -> True
+    is_vowel("y") -> False
+    """
+    raise NotImplementedError
+
+
+def test_is_vowel(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("a", True),
+        ("E", True),
+        ("u", True),
+        ("O", True),
+        ("b", False),
+        ("y", False),
+        ("Z", False),
+        ("!", False),
+    ]
+    for ch, want in cases:
+        got = fn(ch)
+        assert got == want, f"is_vowel({ch!r}) returned {got!r}, expected {want!r}"
+
+
+def check_is_vowel() -> None:
+    report("4. is_vowel", test_is_vowel, is_vowel)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
     check_display_name()
+    check_is_vowel()
 
 
 if __name__ == "__main__":
