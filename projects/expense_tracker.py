@@ -151,10 +151,55 @@ def category_demo() -> None:
     tracker.close()
 
 
+def monthly_summary(tracker: Tracker) -> list[sqlite3.Row]:
+    # substr(spent_on, 1, 7) turns "2026-03-14" into the month "2026-03".
+    tracker.db.row_factory = sqlite3.Row  # rows readable by column name
+    try:
+        return tracker.db.execute("""
+            SELECT substr(spent_on, 1, 7)    AS month,
+                   COUNT(*)                  AS n,
+                   SUM(amount_cents)         AS total,
+                   CAST(AVG(amount_cents) AS INTEGER) AS average,
+                   MAX(amount_cents)         AS largest
+            FROM expenses GROUP BY month ORDER BY month
+        """).fetchall()
+    finally:
+        tracker.db.row_factory = None
+
+
+def month_by_category(tracker: Tracker, month: str) -> dict[str, int]:
+    rows = tracker.db.execute("""
+        SELECT c.name, SUM(e.amount_cents)
+        FROM expenses e JOIN categories c ON c.id = e.category_id
+        WHERE substr(e.spent_on, 1, 7) = ?
+        GROUP BY c.name
+    """, (month,))
+    return dict(rows.fetchall())
+
+
+def report_demo() -> None:
+    tracker = Tracker(":memory:")
+    for name in ["food", "rent"]:
+        tracker.add_category(name)
+    tracker.add(date(2026, 1, 1), "900", "rent")
+    tracker.add(date(2026, 1, 9), "45.10", "food")
+    tracker.add(date(2026, 2, 1), "900", "rent")
+    tracker.add(date(2026, 2, 3), "12.00", "food")
+    tracker.add(date(2026, 2, 17), "61.40", "food")
+    for row in monthly_summary(tracker):
+        print(f"{row['month']}: {row['n']} expenses, total {money(row['total'])}, "
+              f"avg {money(row['average'])}, largest {money(row['largest'])}")
+    february = month_by_category(tracker, "2026-02")
+    print(f"2026-02 by category: { {k: money(v) for k, v in february.items()} }")
+    tracker.close()
+
+
 def main() -> None:
     storage_demo()
     print()
     category_demo()
+    print()
+    report_demo()
 
 
 if __name__ == "__main__":
