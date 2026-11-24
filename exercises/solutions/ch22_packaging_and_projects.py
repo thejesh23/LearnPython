@@ -13,6 +13,7 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import re
 import runpy
 from pathlib import Path
 
@@ -46,8 +47,30 @@ def check_bump_version() -> None:
     report("1. bump_version", EXERCISES["test_bump_version"], bump_version)
 
 
+REQUIREMENT = re.compile(r"([A-Za-z0-9][A-Za-z0-9._-]*)(.*)")
+
+
+def parse_requirement(line: str) -> tuple[str, str] | None:
+    line = line.split("#", 1)[0].strip()
+    if not line:
+        return None  # blank or comment-only
+    match = REQUIREMENT.fullmatch(line)
+    if match is None:
+        raise ValueError(f"no package name at the start of {line!r}")
+    name, spec = match.groups()
+    # The PEP 503 rule pip uses to decide that two names are one package.
+    name = re.sub(r"[-_.]+", "-", name).lower()
+    return name, "".join(spec.split())  # split() + join drops every space
+
+
+def check_parse_requirement() -> None:
+    report("2. parse_requirement", EXERCISES["test_parse_requirement"],
+           parse_requirement)
+
+
 def main() -> None:
     check_bump_version()
+    check_parse_requirement()
 
 
 if __name__ == "__main__":
