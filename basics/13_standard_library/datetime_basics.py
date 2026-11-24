@@ -12,6 +12,7 @@ A "naive" datetime has no zone, so Python cannot know which moment it means.
 
 from datetime import date, datetime
 from datetime import date, datetime, timedelta
+from datetime import datetime
 
 
 def creating_demo() -> None:
@@ -46,10 +47,27 @@ def arithmetic_demo() -> None:
     # "one month later" is a calendar rule you must decide on yourself.
 
 
+def formatting_demo() -> None:
+    moment = datetime(2024, 7, 4, 9, 5)
+    # strftime = "string from time"; % codes pick the pieces.
+    print(f"{moment:%d %B %Y, %I:%M %p}")
+    print(f"{moment:%Y-%m-%d %H:%M}")
+
+    # strptime = "string parse time": the format must match exactly.
+    parsed = datetime.strptime("25/12/2023 18:30", "%d/%m/%Y %H:%M")
+    print(f"parsed: {parsed!r}")
+
+    # ISO 8601 is the unambiguous format to store and exchange.
+    text = moment.isoformat()
+    print(f"isoformat: {text}, round trip ok: {datetime.fromisoformat(text) == moment}")
+
+
 def main() -> None:
     creating_demo()
     print()
     arithmetic_demo()
+    print()
+    formatting_demo()
 
 
 if __name__ == "__main__":
