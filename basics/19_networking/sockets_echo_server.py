@@ -69,8 +69,39 @@ def echo_demo() -> None:
     print(f"server thread finished: {not thread.is_alive()}")
 
 
+def shout_lines(conn: socket.socket) -> None:
+    # makefile() wraps the socket in a buffered file, so readline() keeps
+    # reading until it sees b"\n", however the bytes were split in transit.
+    with conn.makefile("rb") as reader:
+        for line in reader:
+            reply = line.decode("utf-8").strip().upper() + "\n"
+            conn.sendall(reply.encode("utf-8"))
+
+
+def newline_framing_demo() -> None:
+    port, thread = serve_one_client(shout_lines)
+    messages = ["first message", "second", "third and last"]
+
+    with socket.create_connection(("127.0.0.1", port), timeout=5) as client:
+        # All three messages in ONE send. Without a delimiter the server could
+        # not tell where one ends and the next begins.
+        payload = "".join(m + "\n" for m in messages).encode("utf-8")
+        client.sendall(payload)
+        client.shutdown(socket.SHUT_WR)
+        with client.makefile("rb") as reader:
+            replies = [line.decode("utf-8").rstrip("\n") for line in reader]
+
+    print(f"sent {len(payload)} bytes in one sendall")
+    for sent, got in zip(messages, replies, strict=True):
+        print(f"  {sent!r:>18} -> {got!r}")
+    thread.join(timeout=5)
+    # Limitation: a message can never contain "\n" itself.
+
+
 def main() -> None:
     echo_demo()
+    print()
+    newline_framing_demo()
 
 
 if __name__ == "__main__":
