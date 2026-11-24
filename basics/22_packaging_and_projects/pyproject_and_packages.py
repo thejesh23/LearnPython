@@ -21,6 +21,7 @@ imports it without installing anything by putting its folder on `sys.path`.
 """
 
 import tempfile
+import tomllib
 from pathlib import Path
 
 
@@ -85,8 +86,45 @@ def layout_demo() -> None:
             print(f"  | {line}".rstrip())
 
 
+PYPROJECT = """\
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "greetkit"
+version = "0.1.0"
+description = "Friendly greetings"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+greet = "greetkit.cli:main"
+"""
+
+
+def pyproject_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        write_files(root, FILES | {"pyproject.toml": PYPROJECT})
+        # tomllib only reads TOML; open the file in binary mode.
+        with open(root / "pyproject.toml", "rb") as f:
+            config = tomllib.load(f)
+    project = config["project"]
+    print(f"name={project['name']} version={project['version']}")
+    print(f"needs Python {project['requires-python']}")
+    print(f"dependencies: {project['dependencies']}")
+    print(f"extras: {project['optional-dependencies']}")
+    print(f"built by: {config['build-system']['build-backend']}")
+
+
 def main() -> None:
     layout_demo()
+    print()
+    pyproject_demo()
 
 
 if __name__ == "__main__":
