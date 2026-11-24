@@ -165,11 +165,44 @@ def check_head_and_tail() -> None:
     report("4. head_and_tail", test_head_and_tail, head_and_tail)
 
 
+def life_summary(record: tuple[str, str, str, int, int]) -> str:
+    """Turn a (first, last, job, born, died) record into a sentence.
+
+    The job is not used: unpack it into `_`, the "I do not care" name.
+
+    life_summary(("Ada", "Lovelace", "mathematician", 1815, 1852))
+        -> "Ada Lovelace lived 37 years"
+
+    (The answer is simply died - born; ignore birthdays.)
+    """
+    raise NotImplementedError
+
+
+def test_life_summary(fn: Callable[..., Any]) -> None:
+    cases = [
+        (("Ada", "Lovelace", "mathematician", 1815, 1852),
+         "Ada Lovelace lived 37 years"),
+        (("Alan", "Turing", "computer scientist", 1912, 1954),
+         "Alan Turing lived 42 years"),
+        (("Grace", "Hopper", "admiral", 1906, 1992), "Grace Hopper lived 86 years"),
+    ]
+    for record, want in cases:
+        got = fn(record)
+        assert got == want, (
+            f"life_summary({record!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_life_summary() -> None:
+    report("5. life_summary", test_life_summary, life_summary)
+
+
 def main() -> None:
     check_swap()
     check_rotate_left()
     check_ends()
     check_head_and_tail()
+    check_life_summary()
 
 
 if __name__ == "__main__":
