@@ -17,6 +17,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock
+from unittest.mock import patch
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -67,10 +68,26 @@ def check_check_send_welcome() -> None:
            check_send_welcome)
 
 
+# The function under test is the one given in the exercise file.
+greeting = EXERCISES["greeting"]
+
+
+def greeting_at(hour: int) -> str:
+    # Patch the name where it is looked up: greeting() calls time.localtime.
+    with patch("time.localtime") as fake:
+        fake.return_value.tm_hour = hour
+        return greeting()
+
+
+def check_greeting_at() -> None:
+    report("4. greeting_at", EXERCISES["test_greeting_at"], greeting_at)
+
+
 def main() -> None:
     check_check_is_leap()
     check_assert_raises()
     check_check_send_welcome()
+    check_greeting_at()
 
 
 if __name__ == "__main__":
