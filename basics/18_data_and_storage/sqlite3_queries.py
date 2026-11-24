@@ -63,8 +63,36 @@ def executemany_demo() -> None:
     conn.close()
 
 
+def join_demo() -> None:
+    conn = make_library()
+    # JOIN matches each book to its author through author_id = authors.id.
+    rows = conn.execute("""
+        SELECT books.title, authors.name
+        FROM books
+        JOIN authors ON authors.id = books.author_id
+        WHERE books.year < ?
+        ORDER BY books.year
+    """, (1990,)).fetchall()
+    print("books before 1990, with author names:")
+    for title, author in rows:
+        print(f"  {title:<26} {author}")
+
+    # A plain JOIN drops authors with no books. LEFT JOIN keeps them, with
+    # NULL (None in Python) where the book columns would be.
+    rows = conn.execute("""
+        SELECT authors.name, books.title
+        FROM authors
+        LEFT JOIN books ON books.author_id = authors.id
+        WHERE books.id IS NULL
+    """).fetchall()
+    print(f"authors with no books yet (LEFT JOIN): {rows}")
+    conn.close()
+
+
 def main() -> None:
     executemany_demo()
+    print()
+    join_demo()
 
 
 if __name__ == "__main__":
