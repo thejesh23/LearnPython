@@ -18,7 +18,9 @@ for this chapter are in basics/09_classes/.
 """
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
+from typing import Self
 
 
 def verdict(error: BaseException) -> str:
@@ -221,10 +223,61 @@ def check_vector() -> None:
     report("3. Vector", test_vector, Vector)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+@dataclass(frozen=True, order=True)
+class Version:
+    """A version number like 1.10.2 that sorts the right way.
+
+    The fields and order=True are given, so versions already compare field by
+    field: Version(1, 10, 0) > Version(1, 9, 9). Add two methods:
+      - from_string(text): a @classmethod that parses "1.10.2" into
+        Version(1, 10, 2). A missing patch part means 0, so "2.0" gives
+        Version(2, 0, 0). Anything without 2 or 3 parts raises ValueError.
+        Return cls(...), not Version(...), so subclasses get their own type.
+      - __str__: str(Version(1, 10, 2)) == "1.10.2".
+    """
+
+    major: int
+    minor: int
+    patch: int = 0
+
+    @classmethod
+    def from_string(cls, text: str) -> Self:
+        raise NotImplementedError
+
+    def __str__(self) -> str:
+        raise NotImplementedError
+
+
+def test_version(impl: type) -> None:
+    v = impl.from_string("1.10.2")
+    assert v == impl(1, 10, 2), f'from_string("1.10.2") gave {v!r}'
+    assert impl.from_string("2.0") == impl(2, 0, 0), '"2.0" should mean 2.0.0'
+    assert str(v) == "1.10.2", f"str() should be '1.10.2', got {str(v)!r}"
+    assert str(impl(3, 1)) == "3.1.0", "str() should always show three parts"
+    texts = ["1.10.0", "1.9.3", "1.2", "0.9.9"]
+    ordered = [str(x) for x in sorted(impl.from_string(t) for t in texts)]
+    expected = ["0.9.9", "1.2.0", "1.9.3", "1.10.0"]
+    assert ordered == expected, f"sorted versions came out as {ordered}"
+    for bad in ("1", "1.2.3.4", "one.two"):
+        try:
+            impl.from_string(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"from_string({bad!r}) should raise ValueError")
+
+
+def check_version() -> None:
+    report("4. Version.from_string", test_version, Version)
+
+
 def main() -> None:
     check_rectangle()
     check_bank_account()
     check_vector()
+    check_version()
 
 
 if __name__ == "__main__":
