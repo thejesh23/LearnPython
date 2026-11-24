@@ -14,6 +14,7 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import runpy
+from collections.abc import Callable
 from pathlib import Path
 
 
@@ -47,9 +48,21 @@ def check_remove_short() -> None:
     report("2. remove_short", EXERCISES["test_remove_short"], remove_short)
 
 
+def make_multipliers(n: int) -> list[Callable[[int], int]]:
+    # A default value is evaluated when the lambda is *created*, so each
+    # lambda stores the k of its own loop round.
+    return [lambda x, k=k: x * k for k in range(n)]
+
+
+def check_make_multipliers() -> None:
+    report("3. make_multipliers", EXERCISES["test_make_multipliers"],
+           make_multipliers)
+
+
 def main() -> None:
     check_scoreboard()
     check_remove_short()
+    check_make_multipliers()
 
 
 if __name__ == "__main__":
