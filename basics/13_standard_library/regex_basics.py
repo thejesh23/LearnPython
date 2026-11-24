@@ -30,8 +30,20 @@ def matching_demo() -> None:
         print(f"fullmatch {candidate!r}: {bool(re.fullmatch(postcode, candidate))}")
 
 
+def groups_demo() -> None:
+    # Parentheses capture pieces of the match; (?P<name>...) names them.
+    pattern = r"(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})"
+    m = re.search(pattern, "released on 2024-03-15, patched later")
+    if m:
+        print(f"whole match: {m.group(0)}")
+        print(f"by position: {m.group(1)}, by name: {m['month']}")
+        print(f"as a dict: {m.groupdict()}")
+
+
 def main() -> None:
     matching_demo()
+    print()
+    groups_demo()
 
 
 if __name__ == "__main__":
