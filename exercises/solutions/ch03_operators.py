@@ -50,10 +50,21 @@ def check_display_name() -> None:
     report("3. display_name", EXERCISES["test_display_name"], display_name)
 
 
+def is_vowel(ch: str) -> bool:
+    # On strings, `in` is a substring test; listing both cases avoids
+    # needing any string methods.
+    return ch in "aeiouAEIOU"
+
+
+def check_is_vowel() -> None:
+    report("4. is_vowel", EXERCISES["test_is_vowel"], is_vowel)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
     check_display_name()
+    check_is_vowel()
 
 
 if __name__ == "__main__":
