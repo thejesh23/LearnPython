@@ -170,11 +170,44 @@ def check_is_vowel() -> None:
     report("4. is_vowel", test_is_vowel, is_vowel)
 
 
+def is_leap_year(year: int) -> bool:
+    """Return True for a leap year in the Gregorian calendar.
+
+    A year is a leap year when it divides by 4, except that years dividing
+    by 100 are not, except that years dividing by 400 are after all.
+
+    is_leap_year(2024) -> True
+    is_leap_year(1900) -> False    divides by 100
+    is_leap_year(2000) -> True     divides by 400
+    """
+    raise NotImplementedError
+
+
+def test_is_leap_year(fn: Callable[..., Any]) -> None:
+    cases = [
+        (2024, True),
+        (2023, False),
+        (1900, False),
+        (2000, True),
+        (2100, False),
+        (2400, True),
+        (1996, True),
+    ]
+    for year, want in cases:
+        got = fn(year)
+        assert got == want, f"is_leap_year({year}) returned {got!r}, expected {want!r}"
+
+
+def check_is_leap_year() -> None:
+    report("5. is_leap_year", test_is_leap_year, is_leap_year)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
     check_display_name()
     check_is_vowel()
+    check_is_leap_year()
 
 
 if __name__ == "__main__":
