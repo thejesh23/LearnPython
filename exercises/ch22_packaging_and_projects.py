@@ -21,7 +21,10 @@ The lessons for this chapter are in basics/22_packaging_and_projects/.
 """
 
 import re
+import tempfile
+import tomllib
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 
@@ -151,9 +154,80 @@ def check_parse_requirement() -> None:
     report("2. parse_requirement", test_parse_requirement, parse_requirement)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def read_project(path: Path) -> dict[str, Any]:
+    """Read the [project] table of a pyproject.toml file.
+
+    Return a dict with exactly these keys:
+        "name"          str
+        "version"       str
+        "dependencies"  list of str, [] if the file lists none
+        "scripts"       dict from the [project.scripts] table, {} if none
+
+    tomllib (standard library since 3.11) only reads bytes: open the file
+    with "rb" and call tomllib.load(f). If there is no [project] table, or
+    it has no name or version, raise ValueError. Broken TOML already raises
+    tomllib.TOMLDecodeError (a kind of ValueError); let it.
+    """
+    raise NotImplementedError
+
+
+FULL_PYPROJECT = """
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "greetkit"
+version = "0.3.1"
+requires-python = ">=3.12"
+dependencies = [
+    "requests>=2.31",
+    "rich",
+]
+
+[project.scripts]
+greet = "greetkit.cli:main"
+"""
+
+
+def test_read_project(impl: Callable[[Path], dict[str, Any]]) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "pyproject.toml"
+        path.write_text(FULL_PYPROJECT, encoding="utf-8")
+        got = impl(path)
+        want = {
+            "name": "greetkit", "version": "0.3.1",
+            "dependencies": ["requests>=2.31", "rich"],
+            "scripts": {"greet": "greetkit.cli:main"},
+        }
+        assert got == want, f"expected {want}, got {got}"
+
+        path.write_text('[project]\nname = "tiny"\nversion = "1.0"\n')
+        got = impl(path)
+        want = {"name": "tiny", "version": "1.0", "dependencies": [], "scripts": {}}
+        assert got == want, f"a minimal project: expected {want}, got {got}"
+
+        for text in ('[tool.black]\nline-length = 88\n', '[project]\nname = "x"\n',
+                     "[project\nname = "):
+            path.write_text(text)
+            try:
+                impl(path)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"a file holding {text!r} should raise ValueError")
+
+
+def check_read_project() -> None:
+    report("3. read_project", test_read_project, read_project)
+
+
 def main() -> None:
     check_bump_version()
     check_parse_requirement()
+    check_read_project()
 
 
 if __name__ == "__main__":
