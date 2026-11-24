@@ -73,10 +73,41 @@ def blocking_demo() -> None:
     asyncio.run(blocking_main())
 
 
+def legacy_download(name: str) -> str:
+    """A blocking function we cannot rewrite, e.g. from an older library."""
+    time.sleep(0.1)
+    return f"{name}.zip"
+
+
+async def to_thread_main() -> None:
+    ticks: list[int] = []
+    beat = asyncio.create_task(heartbeat(ticks))
+    await asyncio.sleep(0)
+
+    before = len(ticks)
+    result = await asyncio.to_thread(legacy_download, "report")
+    print(f"got {result!r}; heartbeat kept ticking: {len(ticks) > before}")
+
+    # Several blocking calls now overlap, each on its own thread.
+    start = time.perf_counter()
+    files = await asyncio.gather(
+        *(asyncio.to_thread(legacy_download, n) for n in ("a", "b", "c"))
+    )
+    elapsed = time.perf_counter() - start
+    print(f"{files} in parallel, faster than 3 x 0.1s: {elapsed < 0.25}")
+    beat.cancel()
+
+
+def to_thread_demo() -> None:
+    asyncio.run(to_thread_main())
+
+
 def main() -> None:
     timeout_block_demo()
     print()
     blocking_demo()
+    print()
+    to_thread_demo()
 
 
 if __name__ == "__main__":
