@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_485 runnable samples across 56 directories._
+_501 runnable samples across 56 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -282,6 +282,7 @@ _485 runnable samples across 56 directories._
 ## conversions
 - [bytes_humanize](conversions/bytes_humanize.py)
 - [color_conversions](conversions/color_conversions.py)
+- [convert_kit](conversions/convert_kit/) (package)
 - [duration_formatting](conversions/duration_formatting.py)
 - [integer_to_roman](conversions/integer_to_roman.py)
 - [number_formats_table](conversions/number_formats_table.py)
@@ -369,6 +370,12 @@ _485 runnable samples across 56 directories._
 - [ch14_testing](exercises/ch14_testing.py)
 - [ch15_typing](exercises/ch15_typing.py)
 - [ch16_threads_and_processes](exercises/ch16_threads_and_processes.py)
+- [ch17_os_and_command_line](exercises/ch17_os_and_command_line.py)
+- [ch18_data_and_storage](exercises/ch18_data_and_storage.py)
+- [ch19_networking](exercises/ch19_networking.py)
+- [ch20_performance](exercises/ch20_performance.py)
+- [ch21_pythonic_code](exercises/ch21_pythonic_code.py)
+- [ch22_packaging_and_projects](exercises/ch22_packaging_and_projects.py)
 
 ## exercises/solutions
 - [ch01_variables](exercises/solutions/ch01_variables.py)
@@ -387,6 +394,12 @@ _485 runnable samples across 56 directories._
 - [ch14_testing](exercises/solutions/ch14_testing.py)
 - [ch15_typing](exercises/solutions/ch15_typing.py)
 - [ch16_threads_and_processes](exercises/solutions/ch16_threads_and_processes.py)
+- [ch17_os_and_command_line](exercises/solutions/ch17_os_and_command_line.py)
+- [ch18_data_and_storage](exercises/solutions/ch18_data_and_storage.py)
+- [ch19_networking](exercises/solutions/ch19_networking.py)
+- [ch20_performance](exercises/solutions/ch20_performance.py)
+- [ch21_pythonic_code](exercises/solutions/ch21_pythonic_code.py)
+- [ch22_packaging_and_projects](exercises/solutions/ch22_packaging_and_projects.py)
 
 ## geometry
 - [closest_pair](geometry/closest_pair.py)
@@ -437,6 +450,7 @@ _485 runnable samples across 56 directories._
 ## linked_lists
 - [add_two_numbers_lists](linked_lists/add_two_numbers_lists.py)
 - [linked_list_cycle](linked_lists/linked_list_cycle.py)
+- [linked_list_kit](linked_lists/linked_list_kit/) (package)
 - [merge_two_sorted_lists](linked_lists/merge_two_sorted_lists.py)
 - [palindrome_linked_list](linked_lists/palindrome_linked_list.py)
 - [reverse_linked_list_recursive](linked_lists/reverse_linked_list_recursive.py)
@@ -465,6 +479,7 @@ _485 runnable samples across 56 directories._
 - [sieve_of_eratosthenes](maths/sieve_of_eratosthenes.py)
 
 ## matrix
+- [matrix_kit](matrix/matrix_kit/) (package)
 - [matrix_shape_checks](matrix/matrix_shape_checks.py)
 - [rotate_and_transpose](matrix/rotate_and_transpose.py)
 - [set_matrix_zeroes](matrix/set_matrix_zeroes.py)
@@ -598,6 +613,7 @@ _485 runnable samples across 56 directories._
 - [lowest_common_ancestor](trees/lowest_common_ancestor.py)
 - [serialize_binary_tree](trees/serialize_binary_tree.py)
 - [tree_height_and_balance](trees/tree_height_and_balance.py)
+- [tree_kit](trees/tree_kit/) (package)
 - [tree_paths_and_sums](trees/tree_paths_and_sums.py)
 - [trie_autocomplete](trees/trie_autocomplete.py)
 - [validate_bst](trees/validate_bst.py)
