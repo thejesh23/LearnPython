@@ -42,9 +42,20 @@ def check_rotate_left() -> None:
     report("2. rotate_left", EXERCISES["test_rotate_left"], rotate_left)
 
 
+def ends(items: list[Any]) -> tuple[Any, Any]:
+    # *_ collects the middle (possibly nothing) into a list we never use.
+    first, *_, last = items
+    return first, last
+
+
+def check_ends() -> None:
+    report("3. ends", EXERCISES["test_ends"], ends)
+
+
 def main() -> None:
     check_swap()
     check_rotate_left()
+    check_ends()
 
 
 if __name__ == "__main__":
