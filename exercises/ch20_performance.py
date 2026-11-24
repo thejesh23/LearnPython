@@ -22,6 +22,8 @@ in exercises/solutions/ch20_performance.py: try first, peek second. The
 lessons for this chapter are in basics/20_performance/.
 """
 
+import cProfile
+import pstats
 from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Iterable
@@ -262,11 +264,77 @@ def check_memoize() -> None:
     report("4. memoize", test_memoize, memoize)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def most_called(func: Callable[[], object]) -> tuple[str, int]:
+    """Profile func() and return (name, calls) of its busiest Python function.
+
+    "Busiest" means called the most times, counting recursive calls too.
+    Call counts are exact, unlike times, so they are safe to test.
+
+        profiler = cProfile.Profile()
+        profiler.runcall(func)
+        stats = pstats.Stats(profiler).get_stats_profile()
+
+    stats.func_profiles maps each function name to a record with
+    .ncalls, a string such as "100" or, for recursion, "41/1" (total
+    calls / outside calls: you want the first number), and .file_name,
+    which is "~" for built-ins written in C such as str.split. Skip
+    those: only functions written in Python count.
+    """
+    raise NotImplementedError
+
+
+def tokenize(text: str) -> list[str]:
+    return text.split()
+
+
+def normalize(word: str) -> str:
+    return word.lower().strip(".,")
+
+
+def count_words(texts: list[str]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for text in texts:
+        for word in tokenize(text):
+            key = normalize(word)
+            counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def depth(n: int) -> int:
+    return 0 if n == 0 else 1 + depth(n - 1)
+
+
+def test_most_called(impl: Callable[[Callable[[], object]], tuple[str, int]]) -> None:
+    def word_job() -> None:
+        # 20 texts, 100 words: normalize runs 100 times, tokenize 20.
+        count_words(["The cat sat.", "The cat ran, and the dog sat."] * 10)
+
+    got = impl(word_job)
+    assert tuple(got) == ("normalize", 100), f"expected ('normalize', 100), got {got}"
+
+    def recursive_job() -> None:
+        depth(40)  # 41 calls, but only 1 of them from outside
+        for word in ["a"] * 30:
+            normalize(word)
+
+    got = impl(recursive_job)
+    assert tuple(got) == ("depth", 41), (
+        f"recursive calls count too: expected ('depth', 41), got {got}"
+    )
+
+
+def check_most_called() -> None:
+    report("5. most_called", test_most_called, most_called)
+
+
 def main() -> None:
     check_has_duplicates()
     check_common_words()
     check_parse_readings()
     check_memoize()
+    check_most_called()
 
 
 if __name__ == "__main__":
