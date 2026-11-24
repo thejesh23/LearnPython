@@ -44,8 +44,54 @@ def class_decorator_demo() -> None:
     # decorators from the standard library.
 
 
+class Exporter:
+    registry: dict[str, type["Exporter"]] = {}
+
+    def __init_subclass__(cls, /, fmt: str, **kwargs: Any) -> None:
+        # Runs once for each subclass, right after its class body executes.
+        # Keyword arguments in the class line (fmt="csv") arrive here.
+        super().__init_subclass__(**kwargs)
+        cls.fmt = fmt
+        Exporter.registry[fmt] = cls
+
+    @classmethod
+    def for_format(cls, fmt: str) -> "Exporter":
+        return cls.registry[fmt]()
+
+    def export(self, rows: list[dict[str, Any]]) -> str:
+        raise NotImplementedError
+
+
+class CsvExporter(Exporter, fmt="csv"):
+    def export(self, rows: list[dict[str, Any]]) -> str:
+        header = ",".join(rows[0])
+        lines = [",".join(str(v) for v in row.values()) for row in rows]
+        return "\n".join([header, *lines])
+
+
+class MarkdownExporter(Exporter, fmt="md"):
+    def export(self, rows: list[dict[str, Any]]) -> str:
+        def row(cells: list[str]) -> str:
+            return "| " + " | ".join(cells) + " |"
+
+        lines = [row(list(rows[0])), row(["---"] * len(rows[0]))]
+        lines += [row([str(v) for v in r.values()]) for r in rows]
+        return "\n".join(lines)
+
+
+def registry_demo() -> None:
+    # Defining a subclass was enough to register it: no list to keep updated.
+    print(f"registered formats: {sorted(Exporter.registry)}")
+    rows = [{"name": "Ada", "age": 36}, {"name": "Alan", "age": 41}]
+    for fmt in ("csv", "md"):
+        print(f"--- {fmt} ---")
+        print(Exporter.for_format(fmt).export(rows))
+
+
 def main() -> None:
     class_decorator_demo()
+    print()
+    registry_demo()
 
 
 if __name__ == "__main__":
