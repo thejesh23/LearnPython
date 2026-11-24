@@ -125,12 +125,39 @@ def send_demo() -> None:
         print(f"send() before priming -> TypeError: {exc}")
 
 
+def read_records(name: str) -> Iterator[str]:
+    """Pretend to hold a resource open while yielding records from it."""
+    print(f"  open {name}")
+    try:
+        for n in range(1, 1_000_000):
+            yield f"record {n}"
+    finally:
+        # Runs when the loop ends, when an error escapes, or on close().
+        print(f"  close {name}")
+
+
+def close_demo() -> None:
+    records = read_records("data.csv")
+    for record in records:
+        print(f"  got {record}")
+        if record == "record 2":
+            break
+    # Leaving a for loop early only pauses the generator. close() raises
+    # GeneratorExit at the paused yield, so the finally block runs now
+    # instead of whenever the object happens to be garbage collected.
+    print("calling close()")
+    records.close()
+    print(f"after close, next() gives: {next(records, 'nothing, it is finished')}")
+
+
 def main() -> None:
     yield_from_demo()
     print()
     return_value_demo()
     print()
     send_demo()
+    print()
+    close_demo()
 
 
 if __name__ == "__main__":
