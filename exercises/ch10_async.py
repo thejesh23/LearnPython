@@ -19,6 +19,7 @@ for this chapter are in basics/10_async/.
 
 import asyncio
 import inspect
+from collections.abc import AsyncIterator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import Any
@@ -185,10 +186,55 @@ def check_with_timeout() -> None:
     report("3. with_timeout", test_with_timeout, with_timeout)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+async def countdown(start: int, delay: float) -> AsyncIterator[int]:
+    """Yield start, start - 1, ..., 1, waiting `delay` seconds before each.
+
+    An `async def` that contains `yield` is an async generator; the caller
+    reads it with `async for`. countdown(0, ...) yields nothing.
+
+    >>> async def collect() -> list[int]:
+    ...     return [n async for n in countdown(3, 0.01)]
+    >>> asyncio.run(collect())
+    [3, 2, 1]
+    """
+    raise NotImplementedError
+    yield 0  # never reached: it only makes this stub an async generator
+
+
+def test_countdown(impl: Callable[[int, float], Any]) -> None:
+    assert inspect.isasyncgenfunction(impl), "use yield inside the async def"
+
+    async def collect(start: int) -> list[int]:
+        return [n async for n in impl(start, 0.001)]
+
+    result = asyncio.run(collect(3))
+    assert result == [3, 2, 1], f"countdown(3) gave {result}, expected [3, 2, 1]"
+    assert asyncio.run(collect(1)) == [1], "countdown(1) should yield just 1"
+    assert asyncio.run(collect(0)) == [], "countdown(0) should yield nothing"
+
+    async def first_two() -> list[int]:
+        taken: list[int] = []
+        async for n in impl(1_000_000, 0):  # lazy: only produces what is asked
+            taken.append(n)
+            if len(taken) == 2:
+                break
+        return taken
+
+    result = asyncio.run(first_two())
+    assert result == [1_000_000, 999_999], f"taking two values gave {result}"
+
+
+def check_countdown() -> None:
+    report("4. countdown", test_countdown, countdown)
+
+
 def main() -> None:
     check_add_later()
     check_fetch_all()
     check_with_timeout()
+    check_countdown()
 
 
 if __name__ == "__main__":
