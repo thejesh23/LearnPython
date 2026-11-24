@@ -75,11 +75,28 @@ def check_countdown() -> None:
     report("4. countdown", EXERCISES["test_countdown"], countdown)
 
 
+async def bounded_map(
+    func: Callable[[int], Awaitable[int]], items: list[int], limit: int
+) -> list[int]:
+    semaphore = asyncio.Semaphore(limit)
+
+    async def run_one(item: int) -> int:
+        async with semaphore:  # waits here while `limit` calls are running
+            return await func(item)
+
+    return list(await asyncio.gather(*(run_one(item) for item in items)))
+
+
+def check_bounded_map() -> None:
+    report("5. bounded_map", EXERCISES["test_bounded_map"], bounded_map)
+
+
 def main() -> None:
     check_add_later()
     check_fetch_all()
     check_with_timeout()
     check_countdown()
+    check_bounded_map()
 
 
 if __name__ == "__main__":
