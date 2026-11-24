@@ -16,9 +16,12 @@ import csv
 import importlib.util
 import json
 import runpy
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+from typing import TextIO
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -92,12 +95,30 @@ def check_load_module() -> None:
     report("5. load_module", EXERCISES["test_load_module"], load_module)
 
 
+@contextmanager
+def atomic_write(path: Path) -> Iterator[TextIO]:
+    temp = path.with_name(path.name + ".tmp")
+    try:
+        with temp.open("w", encoding="utf-8") as f:
+            yield f  # the body of the caller's with block runs here
+        # Same folder, same filesystem: replace() swaps the files in one step.
+        temp.replace(path)
+    except BaseException:
+        temp.unlink(missing_ok=True)  # clean up, then let the error continue
+        raise
+
+
+def check_atomic_write() -> None:
+    report("6. atomic_write", EXERCISES["test_atomic_write"], atomic_write)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
     check_load_settings()
     check_csv_totals()
     check_load_module()
+    check_atomic_write()
 
 
 if __name__ == "__main__":
