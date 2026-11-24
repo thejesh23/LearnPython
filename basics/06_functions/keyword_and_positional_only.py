@@ -49,10 +49,25 @@ def positional_only_demo() -> None:
         print(f"built-in len: {exc}")
 
 
+def tag(name: str, /, text: str = "", **attributes: str) -> str:
+    # Because name is positional-only, a caller may still pass an HTML
+    # attribute called name=...: it lands in **attributes without a clash.
+    attrs = "".join(f' {key}="{value}"' for key, value in attributes.items())
+    return f"<{name}{attrs}>{text}</{name}>"
+
+
+def combined_demo() -> None:
+    print(tag("p", "hello"))
+    print(tag("input", name="email", type="text"))
+    print(tag("a", text="docs", href="https://docs.python.org"))
+
+
 def main() -> None:
     keyword_only_demo()
     print()
     positional_only_demo()
+    print()
+    combined_demo()
 
 
 if __name__ == "__main__":
