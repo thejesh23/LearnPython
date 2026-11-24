@@ -41,10 +41,13 @@ from http.server import ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError
+from urllib.error import URLError
 from urllib.parse import parse_qs
 from urllib.parse import urlencode
 from urllib.parse import urlsplit
+from urllib.request import HTTPRedirectHandler
 from urllib.request import ProxyHandler
+from urllib.request import Request
 from urllib.request import build_opener
 
 
@@ -307,12 +310,67 @@ def server_demo() -> None:
         print("server shut down")
 
 
+class NoRedirect(HTTPRedirectHandler):
+    """Refuse to follow redirects, so we can see the redirect itself."""
+
+    def redirect_request(
+        self, req: Request, fp: Any, code: int, msg: str, headers: Any, newurl: str
+    ) -> None:
+        # Returning None makes urllib raise HTTPError for the 3xx response.
+        return None
+
+
+inspector = build_opener(ProxyHandler({}), NoRedirect())
+
+
+def peek(url: str) -> str:
+    """Request a URL without following redirects; describe the answer."""
+    try:
+        with inspector.open(url, timeout=5) as response:
+            return f"{response.status}"
+    except HTTPError as exc:
+        location = exc.headers.get("Location")
+        return f"{exc.code} {exc.reason}" + (f" -> {location}" if location else "")
+
+
+def redirect_demo() -> None:
+    print("== stage 4: looking at redirects ==")
+    with tempfile.TemporaryDirectory() as tmp:
+        store = LinkStore(Path(tmp) / "links.db")
+        with running_server(store) as server:
+            base = server.base_url
+            temp = post_link(base, "https://docs.python.org/3/library/http.html")
+            perm = post_link(base, "https://peps.python.org/", permanent=True)
+            print(f"temporary link: {peek(temp)}")
+            print(f"permanent link: {peek(perm)}")
+            print(f"unknown code:   {peek(base + '/nope')}")
+
+            # The ordinary opener follows redirects. Point a short link at
+            # the server's own home page so following it stays on this machine.
+            home = post_link(base, base + "/")
+            with client.open(home, timeout=5) as response:
+                landed = urlsplit(response.url).path
+                body = response.read().decode().strip()
+            print(f"followed {urlsplit(home).path} to {landed!r}: {body!r}")
+
+            code = urlsplit(temp).path.lstrip("/")
+            link = store.lookup(code)
+            print(f"visits counted for {code}: {link.hits if link else 0}")
+
+        try:
+            client.open(base, timeout=5)
+        except URLError:
+            print("after shutdown the server refuses connections: True")
+
+
 def main() -> None:
     base62_demo()
     print()
     storage_demo()
     print()
     server_demo()
+    print()
+    redirect_demo()
 
 
 if __name__ == "__main__":
