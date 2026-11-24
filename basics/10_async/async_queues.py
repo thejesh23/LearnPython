@@ -87,10 +87,43 @@ def workers_demo() -> None:
     asyncio.run(workers_main())
 
 
+async def fast_producer(queue: asyncio.Queue[int], log: list[str]) -> int:
+    peak = 0
+    for n in range(5):
+        await queue.put(n)  # waits whenever the queue already holds maxsize
+        peak = max(peak, queue.qsize())
+        log.append(f"put {n} (size {queue.qsize()})")
+    await queue.put(-1)  # sentinel
+    return peak
+
+
+async def slow_consumer(queue: asyncio.Queue[int], log: list[str]) -> None:
+    while (n := await queue.get()) != -1:
+        log.append(f"got {n}")
+        for _ in range(3):  # slower than the producer
+            await asyncio.sleep(0)
+
+
+async def backpressure_main() -> None:
+    queue: asyncio.Queue[int] = asyncio.Queue(maxsize=2)
+    log: list[str] = []
+    peak, _ = await asyncio.gather(
+        fast_producer(queue, log), slow_consumer(queue, log)
+    )
+    print("  " + "\n  ".join(log))
+    print(f"the queue never held more than {peak} items")
+
+
+def backpressure_demo() -> None:
+    asyncio.run(backpressure_main())
+
+
 def main() -> None:
     sentinel_demo()
     print()
     workers_demo()
+    print()
+    backpressure_demo()
 
 
 if __name__ == "__main__":
