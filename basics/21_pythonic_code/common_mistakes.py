@@ -36,8 +36,34 @@ def late_binding_demo() -> None:
     print(f"partial: {[f() for f in bound]}")
 
 
+def mutating_while_iterating_demo() -> None:
+    numbers = [2, 4, 5, 6, 8]
+    for n in numbers:
+        if n % 2 == 0:
+            numbers.remove(n)  # shifts later items left; the loop skips one
+    print(f"remove evens in-loop: {numbers}   <- 4 and 8 survived")
+
+    # Fix: build a new list (or loop over a copy: `for n in numbers[:]`).
+    numbers = [2, 4, 5, 6, 8]
+    odds = [n for n in numbers if n % 2 != 0]
+    print(f"comprehension       : {odds}")
+
+    # Dicts and sets refuse outright, which is kinder.
+    ages = {"ana": 30, "ben": 17}
+    try:
+        for name in ages:
+            if ages[name] < 18:
+                del ages[name]
+    except RuntimeError as exc:
+        print(f"dict: RuntimeError: {exc}")
+    adults = {name: age for name, age in ages.items() if age >= 18}
+    print(f"dict comprehension  : {adults}")
+
+
 def main() -> None:
     late_binding_demo()
+    print()
+    mutating_while_iterating_demo()
 
 
 if __name__ == "__main__":
