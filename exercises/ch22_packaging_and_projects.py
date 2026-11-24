@@ -21,11 +21,15 @@ The lessons for this chapter are in basics/22_packaging_and_projects/.
 """
 
 import collections
+import contextlib
+import io
 import json
 import os.path
 import re
+import sys
 import tempfile
 import tomllib
+import unittest
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -275,11 +279,80 @@ def check_load_entry_point() -> None:
     report("4. load_entry_point", test_load_entry_point, load_entry_point)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def run_tests(folder: Path) -> tuple[int, int]:
+    """Find and run every test in `folder`; return (tests run, tests not passed).
+
+    This is `python -m unittest discover` as a function:
+        suite = unittest.TestLoader().discover(str(folder))
+    finds every test*.py file and collects its TestCase methods. Run the
+    suite with unittest.TextTestRunner(stream=io.StringIO()), so its report
+    goes into a string instead of the screen. The result object has
+    .testsRun, and lists .failures (an assert failed) and .errors (the test
+    crashed); count both as not passed.
+    """
+    raise NotImplementedError
+
+
+SAMPLE_TESTS = """
+import unittest
+
+from helper_lp22 import double
+
+
+class DoubleTests(unittest.TestCase):
+    def test_small(self):
+        self.assertEqual(double(2), 4)
+
+    def test_zero(self):
+        self.assertEqual(double(0), 0)
+
+    def test_wrong_on_purpose(self):
+        self.assertEqual(double(3), 7)
+
+    def test_crashes_on_purpose(self):
+        double(None)
+"""
+
+
+def test_run_tests(impl: Callable[[Path], tuple[int, int]]) -> None:
+    folders: list[str] = []
+    try:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project, empty = root / "project", root / "empty"
+            project.mkdir()
+            empty.mkdir()
+            folders += [str(project), str(empty)]
+            helper = "def double(n):\n    return n * 2\n"
+            (project / "helper_lp22.py").write_text(helper)
+            (project / "test_lp22_double.py").write_text(SAMPLE_TESTS)
+            (project / "notes.txt").write_text("not a test\n")
+            with contextlib.redirect_stderr(io.StringIO()):
+                got = tuple(impl(project))
+                assert got == (4, 2), f"4 tests, 2 not passing; got {got}"
+                (empty / "readme.txt").write_text("no tests here\n")
+                got = tuple(impl(empty))
+                assert got == (0, 0), f"a folder without tests gives (0, 0), got {got}"
+    finally:
+        # discover() put the folders on sys.path and imported modules from
+        # them; undo that so nothing leaks into the rest of this file.
+        sys.path[:] = [entry for entry in sys.path if entry not in folders]
+        for name in ("helper_lp22", "test_lp22_double"):
+            sys.modules.pop(name, None)
+
+
+def check_run_tests() -> None:
+    report("5. run_tests", test_run_tests, run_tests)
+
+
 def main() -> None:
     check_bump_version()
     check_parse_requirement()
     check_read_project()
     check_load_entry_point()
+    check_run_tests()
 
 
 if __name__ == "__main__":
