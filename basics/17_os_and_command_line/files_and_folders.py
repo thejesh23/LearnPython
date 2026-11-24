@@ -109,12 +109,44 @@ def copy_move_delete_demo() -> None:
             print("Path.rmdir on a non-empty folder -> OSError")
 
 
+def human(size: float) -> str:
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if size < 1024:
+            return f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} PB"
+
+
+def tempfile_and_disk_demo() -> None:
+    # NamedTemporaryFile: a real file with a path, deleted when closed.
+    with tempfile.NamedTemporaryFile("w+", suffix=".txt", encoding="utf-8") as f:
+        f.write("scratch data")
+        f.seek(0)
+        print(f"the {Path(f.name).suffix} temp file holds: {f.read()!r}")
+    print(f"deleted after the block: {not Path(f.name).exists()}")
+
+    # The temp folder is chosen by the OS (TMPDIR, TEMP or a default).
+    print(f"gettempdir() exists: {Path(tempfile.gettempdir()).is_dir()}")
+
+    with tempfile.TemporaryDirectory(prefix="learnpy-") as folder:
+        print(f"TemporaryDirectory name starts with: {Path(folder).name[:8]}")
+
+        # disk_usage reports the drive that holds the given path.
+        usage = shutil.disk_usage(folder)
+        print(f"that drive: {human(usage.total)} total, "
+              f"{usage.used / usage.total:.0%} used")
+        print(f"room for a 100 MB download: {usage.free > 100 * 1024**2}")
+    print(f"human(1536) = {human(1536)}, human(5 * 1024**3) = {human(5 * 1024**3)}")
+
+
 def main() -> None:
     glob_demo()
     print()
     walk_demo()
     print()
     copy_move_delete_demo()
+    print()
+    tempfile_and_disk_demo()
 
 
 if __name__ == "__main__":
