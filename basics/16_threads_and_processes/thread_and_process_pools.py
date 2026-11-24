@@ -19,8 +19,10 @@ pickling, so the functions must be defined at the top level of a module, and
 the script must start its work under `if __name__ == "__main__":`.
 """
 
+import os
 import time
 from concurrent.futures import Future
+from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 
@@ -92,12 +94,37 @@ def exceptions_demo() -> None:
             print("  map stopped at the bad item")
 
 
+def count_primes(limit: int) -> tuple[int, int]:
+    """Pure computation. Top-level, so it can be pickled and sent to a worker."""
+    count = 0
+    for n in range(2, limit):
+        if all(n % d for d in range(2, int(n**0.5) + 1)):
+            count += 1
+    return count, os.getpid()
+
+
+def process_pool_demo() -> None:
+    limits = [10_000, 20_000, 30_000]
+    # Each worker is a fresh Python process with its own interpreter, so the
+    # calls really run in parallel on separate CPU cores. Starting processes
+    # and pickling data costs time, so give each call a decent chunk of work.
+    with ProcessPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(count_primes, limits))
+
+    for limit, (count, _) in zip(limits, results):
+        print(f"  primes below {limit:>6,}: {count:,}")
+    worker_pids = {pid for _, pid in results}
+    print(f"ran outside this process: {os.getpid() not in worker_pids}")
+
+
 def main() -> None:
     map_demo()
     print()
     submit_demo()
     print()
     exceptions_demo()
+    print()
+    process_pool_demo()
 
 
 if __name__ == "__main__":
