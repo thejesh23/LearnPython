@@ -11,6 +11,7 @@ say [solved].
 """
 
 import runpy
+from decimal import Decimal
 from fractions import Fraction
 from pathlib import Path
 
@@ -55,10 +56,21 @@ def check_simplify() -> None:
     report("3. simplify", EXERCISES["test_simplify"], simplify)
 
 
+def add_money(a: str, b: str) -> str:
+    # Decimal("0.10") is exactly ten cents, and it remembers it has two
+    # decimal places. Decimal(0.1) would inherit the float's error instead.
+    return str(Decimal(a) + Decimal(b))
+
+
+def check_add_money() -> None:
+    report("4. add_money", EXERCISES["test_add_money"], add_money)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
     check_simplify()
+    check_add_money()
 
 
 if __name__ == "__main__":
