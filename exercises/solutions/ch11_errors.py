@@ -50,9 +50,26 @@ def check_parse_age() -> None:
     report("2. parse_age", EXERCISES["test_parse_age"], parse_age)
 
 
+class InsufficientFunds(Exception):
+    def __init__(self, balance: float, amount: float) -> None:
+        # The message goes to Exception.__init__, which is what str() shows.
+        super().__init__(
+            f"cannot withdraw {amount:.2f} from a balance of {balance:.2f}"
+        )
+        self.balance = balance
+        self.amount = amount
+        self.shortfall = amount - balance
+
+
+def check_insufficient_funds() -> None:
+    report("3. InsufficientFunds", EXERCISES["test_insufficient_funds"],
+           InsufficientFunds)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
+    check_insufficient_funds()
 
 
 if __name__ == "__main__":
