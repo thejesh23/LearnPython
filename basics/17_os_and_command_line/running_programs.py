@@ -46,8 +46,36 @@ def run_demo() -> None:
     print(f"input= -> {upper.stdout.strip()}")
 
 
+FAILING = "import sys; print('working...'); sys.exit('config file is missing')"
+
+
+def check_demo() -> None:
+    # By default a failing program is not an error in Python: you must look
+    # at returncode yourself, and it is easy to forget.
+    result = subprocess.run([sys.executable, "-c", FAILING],
+                            capture_output=True, text=True)
+    print(f"without check: returncode={result.returncode}, no exception raised")
+
+    # check=True turns a non-zero exit code into an exception.
+    try:
+        subprocess.run([sys.executable, "-c", FAILING],
+                       capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as exc:
+        print(f"CalledProcessError: exit code {exc.returncode}")
+        print(f"  its stdout: {exc.stdout.strip()!r}")
+        print(f"  its stderr: {exc.stderr.strip()!r}")
+
+    # A program that does not exist fails before it even starts.
+    try:
+        subprocess.run(["surely-not-a-real-program"], capture_output=True)
+    except FileNotFoundError:
+        print("unknown program -> FileNotFoundError")
+
+
 def main() -> None:
     run_demo()
+    print()
+    check_demo()
 
 
 if __name__ == "__main__":
