@@ -146,10 +146,33 @@ def check_first_index() -> None:
     report("3. first_index", test_first_index, first_index)
 
 
+def collatz_steps(n: int) -> int:
+    """Count the Collatz steps it takes for n (n >= 1) to reach 1.
+
+    One step: if n is even, halve it; if it is odd, make it 3 * n + 1.
+
+    collatz_steps(1) -> 0
+    collatz_steps(6) -> 8     6 3 10 5 16 8 4 2 1
+    """
+    raise NotImplementedError
+
+
+def test_collatz_steps(fn: Callable[..., Any]) -> None:
+    cases = [(1, 0), (2, 1), (6, 8), (7, 16), (27, 111)]
+    for n, want in cases:
+        got = fn(n)
+        assert got == want, f"collatz_steps({n}) returned {got!r}, expected {want!r}"
+
+
+def check_collatz_steps() -> None:
+    report("4. collatz_steps", test_collatz_steps, collatz_steps)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
     check_first_index()
+    check_collatz_steps()
 
 
 if __name__ == "__main__":
