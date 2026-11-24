@@ -159,10 +159,46 @@ def check_append_to() -> None:
     report("3. append_to", test_append_to, append_to)
 
 
+def by_last_name(names: list[str]) -> list[str]:
+    """Return a new list of full names sorted by their last word.
+
+    Names sharing a last name keep their original order, and the list you
+    are given must not change.
+
+    by_last_name(["Ada Lovelace", "Alan Turing", "Grace Hopper"])
+        -> ["Grace Hopper", "Ada Lovelace", "Alan Turing"]
+
+    Hint: sorted() takes a key function, and a lambda is a quick one.
+    """
+    raise NotImplementedError
+
+
+def test_by_last_name(fn: Callable[..., Any]) -> None:
+    cases = [
+        (["Ada Lovelace", "Alan Turing", "Grace Hopper"],
+         ["Grace Hopper", "Ada Lovelace", "Alan Turing"]),
+        (["Bo Smith", "Al Smith", "Cy Adams"], ["Cy Adams", "Bo Smith", "Al Smith"]),
+        (["Guido van Rossum", "Tim Peters"], ["Tim Peters", "Guido van Rossum"]),
+        ([], []),
+    ]
+    for names, want in cases:
+        before = list(names)
+        got = fn(names)
+        assert got == want, (
+            f"by_last_name({before!r}) returned {got!r}, expected {want!r}"
+        )
+        assert names == before, f"by_last_name changed its input list to {names!r}"
+
+
+def check_by_last_name() -> None:
+    report("4. by_last_name", test_by_last_name, by_last_name)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
     check_append_to()
+    check_by_last_name()
 
 
 if __name__ == "__main__":
