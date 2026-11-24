@@ -17,6 +17,8 @@ dunder_methods.py shows how to write the two methods; this file is about why
 the contract matters and what breaks when it is ignored.
 """
 
+from dataclasses import FrozenInstanceError, dataclass
+
 
 class BrokenPoint:
     """Value equality, but the default identity-based hash: breaks the rule."""
@@ -67,10 +69,42 @@ def mutable_key_demo() -> None:
         print(f"TypeError: {exc}")
 
 
+@dataclass(frozen=True)
+class Cell:
+    row: int
+    col: int
+
+
+@dataclass
+class MutableCell:
+    row: int
+    col: int
+
+
+def frozen_dataclass_demo() -> None:
+    # frozen=True generates __eq__ and a matching __hash__, and blocks changes.
+    board = {Cell(0, 0): "X", Cell(1, 1): "O"}
+    print(f"lookup with a new, equal key: {board[Cell(1, 1)]!r}")
+    print(f"unique cells: {len({Cell(0, 0), Cell(0, 0), Cell(2, 1)})}")
+    try:
+        Cell(0, 0).row = 5  # type: ignore[misc]
+    except FrozenInstanceError as exc:
+        print(f"FrozenInstanceError: {exc}")
+
+    # A plain @dataclass has __eq__ but sets __hash__ to None on purpose.
+    print(f"MutableCell.__hash__ is None: {MutableCell.__hash__ is None}")
+    try:
+        {MutableCell(0, 0)}
+    except TypeError as exc:
+        print(f"TypeError: {exc}")
+
+
 def main() -> None:
     contract_demo()
     print()
     mutable_key_demo()
+    print()
+    frozen_dataclass_demo()
 
 
 if __name__ == "__main__":
