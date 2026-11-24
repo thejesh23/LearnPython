@@ -117,12 +117,50 @@ def flags_and_errors_demo() -> None:
             print(f"    {last_line}")
 
 
+def cmd_add(args: argparse.Namespace) -> str:
+    return f"adding {args.name!r} with priority {args.priority}"
+
+
+def cmd_done(args: argparse.Namespace) -> str:
+    return f"marking task #{args.task_id} as done"
+
+
+def build_todo_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="todo", description="A tiny to-do list.")
+    subcommands = parser.add_subparsers(dest="command", required=True)
+
+    # Each subcommand gets its own little parser with its own arguments.
+    add = subcommands.add_parser("add", help="add a task")
+    add.add_argument("name")
+    add.add_argument("--priority", type=int, choices=[1, 2, 3], default=2)
+    # set_defaults attaches the function that should handle this subcommand.
+    add.set_defaults(handler=cmd_add)
+
+    done = subcommands.add_parser("done", help="finish a task")
+    done.add_argument("task_id", type=int)
+    done.set_defaults(handler=cmd_done)
+    return parser
+
+
+def subcommands_demo() -> None:
+    parser = build_todo_parser()
+    for argv in (["add", "buy milk"], ["add", "fix bike", "--priority", "1"],
+                 ["done", "4"]):
+        args = parser.parse_args(argv)
+        print(f"todo {' '.join(argv):<28} -> {args.handler(args)}")
+
+    print("\nthe top-level help lists the subcommands:")
+    print(parser.format_help())
+
+
 def main() -> None:
     sys_argv_demo()
     print()
     positional_and_optional_demo()
     print()
     flags_and_errors_demo()
+    print()
+    subcommands_demo()
 
 
 if __name__ == "__main__":
