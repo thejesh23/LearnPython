@@ -14,10 +14,12 @@ whole point of `with`.
 """
 
 import io
+import os
 import sys
 import tempfile
 from contextlib import AbstractContextManager, nullcontext
 from contextlib import ExitStack
+from contextlib import chdir
 from contextlib import closing
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -123,6 +125,19 @@ def nullcontext_demo() -> None:
               f"holds {stream.getvalue().split()}")
 
 
+def chdir_demo() -> None:
+    start = os.getcwd()
+    with tempfile.TemporaryDirectory() as tmp:
+        with chdir(tmp):
+            # Relative paths now resolve inside tmp.
+            Path("notes.txt").write_text("hi", encoding="utf-8")
+            print(f"inside: wrote notes.txt, listing = {os.listdir('.')}")
+            print(f"cwd is the temp folder: {Path.cwd() == Path(tmp).resolve()}")
+        print(f"back where we started: {os.getcwd() == start}")
+    # The working directory is shared by the whole process, so avoid chdir
+    # in threaded code; pass full paths instead when you can.
+
+
 def main() -> None:
     exit_stack_demo()
     print()
@@ -131,6 +146,8 @@ def main() -> None:
     closing_demo()
     print()
     nullcontext_demo()
+    print()
+    chdir_demo()
 
 
 if __name__ == "__main__":
