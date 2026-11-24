@@ -49,8 +49,28 @@ def contract_demo() -> None:
     print(f"Point(1, 2) in {{p}}: {Point(1, 2) in {p}}")
 
 
+def mutable_key_demo() -> None:
+    p = Point(1, 2)
+    seen = {p}
+    print(f"before: p in seen -> {p in seen}")
+
+    # Changing a field changes the hash, but the set filed p under the old
+    # one. The object is still inside, yet the set can no longer find it.
+    p.x = 100
+    print(f"after p.x = 100: p in seen -> {p in seen}")
+    print(f"but iterating finds it: {any(item is p for item in seen)}")
+
+    # This is why Python's own mutable containers refuse to be hashed.
+    try:
+        hash([1, 2])
+    except TypeError as exc:
+        print(f"TypeError: {exc}")
+
+
 def main() -> None:
     contract_demo()
+    print()
+    mutable_key_demo()
 
 
 if __name__ == "__main__":
