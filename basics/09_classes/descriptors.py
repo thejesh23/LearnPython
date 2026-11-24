@@ -141,12 +141,44 @@ def validated_field_demo() -> None:
             print(f"ValueError: {exc}")
 
 
+class Note:
+    """Only __get__ (a non-data descriptor): an instance value can shadow it."""
+
+    def __get__(self, instance: Any, owner: type) -> str:
+        return "from the descriptor"
+
+
+class Box:
+    note = Note()
+    size = Positive()  # has __set__ too (a data descriptor): always wins
+
+
+def lookup_order_demo() -> None:
+    b = Box()
+    print(f"before: b.note = {b.note!r}")
+    b.__dict__["note"] = "from the instance"
+    print(f"after shadowing: b.note = {b.note!r}")
+
+    b.__dict__["size"] = -1  # sneaking past __set__ ...
+    b.size = 3  # ... but reads and writes still go through Positive
+    print(f"b.size = {b.size}, instance dict = {vars(b)}")
+
+    # Plain functions are non-data descriptors: __get__ binds the instance.
+    p = Product("ink", 2.0, 3)
+    func = Product.__dict__["total"]
+    bound = func.__get__(p, Product)
+    print(f"{type(func).__name__}.__get__ gives a {type(bound).__name__}: "
+          f"{bound()} == {p.total()}")
+
+
 def main() -> None:
     get_demo()
     print()
     property_demo()
     print()
     validated_field_demo()
+    print()
+    lookup_order_demo()
 
 
 if __name__ == "__main__":
