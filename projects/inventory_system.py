@@ -29,8 +29,13 @@ Uses:
     14_testing             unittest: TestCase, setUp, assertRaises
 """
 
+import itertools
+from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
+from datetime import timedelta
 from decimal import Decimal
+from enum import Enum
 
 
 class InventoryError(Exception):
@@ -98,8 +103,123 @@ def products_demo() -> None:
     print(f"is an InventoryError: {isinstance(UnknownProduct('X'), InventoryError)}")
 
 
+class Kind(Enum):
+    RECEIVE = "receive"  # goods arrive from a supplier
+    SHIP = "ship"  # goods leave for a customer
+    ADJUST = "adjust"  # a correction after counting the shelf
+
+
+@dataclass(frozen=True)
+class Movement:
+    sku: str
+    kind: Kind
+    quantity: int  # signed: +3 adds three to stock, -2 removes two
+    note: str
+    at: datetime
+
+
+def fake_clock(start: datetime, step: timedelta) -> Callable[[], datetime]:
+    """A stand-in for datetime.now that moves forward `step` per call."""
+    times = (start + step * i for i in itertools.count())
+    return lambda: next(times)
+
+
+class Inventory:
+    def __init__(self, clock: Callable[[], datetime] = datetime.now) -> None:
+        self.products: dict[str, Product] = {}
+        self.ledger: list[Movement] = []
+        # The clock is passed in rather than called directly, so a demo or a
+        # test can supply a fake one and get the same timestamps every run.
+        self.clock = clock
+
+    def add_product(self, product: Product) -> None:
+        if product.sku in self.products:
+            raise InvalidProduct(f"duplicate SKU {product.sku!r}")
+        self.products[product.sku] = product
+
+    def product(self, sku: str) -> Product:
+        try:
+            return self.products[sku]
+        except KeyError:
+            # `from None` hides the KeyError: our error says it all.
+            raise UnknownProduct(sku) from None
+
+    def on_hand(self, sku: str) -> int:
+        self.product(sku)  # raises UnknownProduct for a bad SKU
+        return sum(m.quantity for m in self.ledger if m.sku == sku)
+
+    def _record(self, sku: str, kind: Kind, quantity: int, note: str) -> None:
+        self.product(sku)
+        # The first case that matches wins. A guard (`if ...`) makes a case
+        # match only when its condition is also true.
+        match kind:
+            case Kind.RECEIVE | Kind.SHIP if quantity <= 0:
+                raise ValueError(f"{kind.value} quantity must be positive")
+            case Kind.SHIP:
+                available = self.on_hand(sku)
+                if quantity > available:
+                    raise InsufficientStock(sku, quantity, available)
+                quantity = -quantity
+            case Kind.ADJUST if self.on_hand(sku) + quantity < 0:
+                raise InsufficientStock(sku, -quantity, self.on_hand(sku))
+        self.ledger.append(Movement(sku, kind, quantity, note, self.clock()))
+
+    def receive(self, sku: str, quantity: int, note: str = "") -> None:
+        self._record(sku, Kind.RECEIVE, quantity, note)
+
+    def ship(self, sku: str, quantity: int, note: str = "") -> None:
+        self._record(sku, Kind.SHIP, quantity, note)
+
+    def adjust(self, sku: str, change: int, note: str) -> None:
+        self._record(sku, Kind.ADJUST, change, note)
+
+    def history(self, sku: str) -> list[Movement]:
+        return [m for m in self.ledger if m.sku == sku]
+
+
+def sample_inventory() -> Inventory:
+    inv = Inventory(clock=fake_clock(datetime(2024, 5, 1, 9, 0), timedelta(minutes=25)))
+    for product in CATALOGUE:
+        inv.add_product(product)
+    inv.receive("MUG-01", 24, "PO-1001")
+    inv.receive("TEE-M", 12, "PO-1001")
+    inv.receive("TEE-L", 6, "PO-1001")
+    inv.receive("PEN-3", 50, "PO-1002")
+    inv.receive("BAG-01", 4, "PO-1002")
+    inv.ship("MUG-01", 15, "order 1")
+    inv.ship("TEE-L", 4, "order 2")
+    inv.ship("PEN-3", 32, "order 3")
+    inv.adjust("MUG-01", -1, "one broken in the store room")
+    inv.ship("BAG-01", 1, "order 4")
+    return inv
+
+
+def movements_demo() -> None:
+    print("== stage 2: stock movements ==")
+    inv = sample_inventory()
+    print(f"MUG-01 on hand: {inv.on_hand('MUG-01')}")
+    for m in inv.history("MUG-01"):
+        print(f"  {m.at:%Y-%m-%d %H:%M}  {m.kind.value:<8}{m.quantity:>+4}  {m.note}")
+
+    for action in [
+        lambda: inv.ship("TEE-L", 5, "order 5"),
+        lambda: inv.receive("HAT-01", 3),
+        lambda: inv.receive("TEE-M", 0),
+    ]:
+        try:
+            action()
+        except InsufficientStock as exc:
+            print(f"InsufficientStock: {exc} (could offer {exc.available})")
+        except InventoryError as exc:
+            print(f"{type(exc).__name__}: {exc}")
+        except ValueError as exc:
+            print(f"ValueError: {exc}")
+
+
 def main() -> None:
     products_demo()
+    print()
+    movements_demo()
 
 
 if __name__ == "__main__":
