@@ -20,6 +20,9 @@ in exercises/solutions/ch22_packaging_and_projects.py: try first, peek second.
 The lessons for this chapter are in basics/22_packaging_and_projects/.
 """
 
+import collections
+import json
+import os.path
 import re
 import tempfile
 import tomllib
@@ -224,10 +227,59 @@ def check_read_project() -> None:
     report("3. read_project", test_read_project, read_project)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def load_entry_point(target: str) -> Any:
+    """Find the object an entry point such as "greetkit.cli:main" names.
+
+    This is what the `greet` command pip creates does on every run: import
+    the module before the colon, then fetch the attribute after it. The
+    part after the colon may be dotted, to reach inside a class:
+        load_entry_point("json:dumps")                 ->  json.dumps
+        load_entry_point("os.path:join")               ->  os.path.join
+        load_entry_point("collections:Counter.fromkeys")
+                                     ->  collections.Counter.fromkeys
+
+    Use importlib.import_module for the module and getattr for each name
+    after the colon. A target without exactly one ":" raises ValueError; a
+    missing module or attribute raises whatever import_module or getattr
+    raise (ModuleNotFoundError, AttributeError): let those through.
+    """
+    raise NotImplementedError
+
+
+def test_load_entry_point(impl: Callable[[str], Any]) -> None:
+    cases = [
+        ("json:dumps", json.dumps),
+        ("os.path:join", os.path.join),
+        ("collections:Counter.fromkeys", collections.Counter.fromkeys),
+        ("collections:OrderedDict", collections.OrderedDict),
+    ]
+    for target, want in cases:
+        got = impl(target)
+        assert got == want, f"{target!r} should give {want!r}, got {got!r}"
+    errors = [
+        ("json", ValueError), ("json:dumps:extra", ValueError),
+        ("json:nope", AttributeError), ("no_such_module_lp22:main", ImportError),
+    ]
+    for target, kind in errors:
+        try:
+            impl(target)
+        except kind:
+            pass
+        else:
+            raise AssertionError(f"{target!r} should raise {kind.__name__}")
+
+
+def check_load_entry_point() -> None:
+    report("4. load_entry_point", test_load_entry_point, load_entry_point)
+
+
 def main() -> None:
     check_bump_version()
     check_parse_requirement()
     check_read_project()
+    check_load_entry_point()
 
 
 if __name__ == "__main__":
