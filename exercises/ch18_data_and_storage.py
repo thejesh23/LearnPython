@@ -18,6 +18,7 @@ lessons for this chapter are in basics/18_data_and_storage/.
 """
 
 import hashlib
+import struct
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
@@ -92,8 +93,52 @@ def check_sha256_file() -> None:
     report("1. sha256_file", test_sha256_file, sha256_file)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def parse_header(data: bytes) -> dict[str, int]:
+    """Read the 11-byte header at the start of an imaginary ".lpy" file.
+
+        bytes 0-3    the magic marker b"LPY1"
+        bytes 4-5    version, unsigned 16-bit, big-endian
+        bytes 6-9    record count, unsigned 32-bit, big-endian
+        byte  10     flags, unsigned 8-bit
+
+    Return {"version": ..., "count": ..., "flags": ...}. Bytes after the
+    header are the file's contents; ignore them. Raise ValueError if data
+    is shorter than 11 bytes or does not start with b"LPY1".
+
+    One struct format describes the whole header: ">4sHIB" (">" means
+    big-endian with no padding). struct.unpack_from reads from the start of
+    a longer buffer; struct.calcsize(">4sHIB") is 11.
+    """
+    raise NotImplementedError
+
+
+def test_parse_header(impl: Callable[[bytes], dict[str, int]]) -> None:
+    header = b"LPY1" + bytes([0, 2]) + (70000).to_bytes(4, "big") + bytes([5])
+    got = impl(header + b"...the records...")
+    want = {"version": 2, "count": 70000, "flags": 5}
+    assert got == want, f"expected {want}, got {got} (check the byte order)"
+    header = b"LPY1" + bytes([1, 0]) + bytes([0, 0, 0, 1]) + bytes([255])
+    got = impl(header)
+    want = {"version": 256, "count": 1, "flags": 255}
+    assert got == want, f"a header with nothing after it: expected {want}, got {got}"
+    for bad in (b"PNG\x89" + header[4:], header[:10], b""):
+        try:
+            impl(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"{bad!r} should raise ValueError")
+
+
+def check_parse_header() -> None:
+    report("2. parse_header", test_parse_header, parse_header)
+
+
 def main() -> None:
     check_sha256_file()
+    check_parse_header()
 
 
 if __name__ == "__main__":
