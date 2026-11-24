@@ -44,9 +44,23 @@ def check_unique_in_order() -> None:
            unique_in_order)
 
 
+def word_counts(text: str) -> dict[str, int]:
+    # get(word, 0) reads the count so far, treating a new word as 0.
+    # collections.Counter does the same job in one call.
+    counts: dict[str, int] = {}
+    for word in text.lower().split():
+        counts[word] = counts.get(word, 0) + 1
+    return counts
+
+
+def check_word_counts() -> None:
+    report("3. word_counts", EXERCISES["test_word_counts"], word_counts)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
+    check_word_counts()
 
 
 if __name__ == "__main__":
