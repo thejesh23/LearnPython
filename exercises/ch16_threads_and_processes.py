@@ -181,10 +181,44 @@ def check_run_all() -> None:
     report("3. run_all", test_run_all, run_all)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def fastest(tasks: dict[str, Callable[[], Any]]) -> str:
+    """Run every task at once and return the name of the first to finish.
+
+    Give the pool one worker per task, submit them all, and keep a dict
+    from each future to its name. concurrent.futures.as_completed(futures)
+    yields futures in the order they finish, so the first one it yields is
+    the winner. (Leaving the with block still waits for the others; that is
+    fine here.)
+    """
+    raise NotImplementedError
+
+
+def test_fastest(impl: Callable[[dict[str, Callable[[], Any]]], str]) -> None:
+    def sleeper(seconds: float) -> Callable[[], float]:
+        def func() -> float:
+            time.sleep(seconds)
+            return seconds
+        return func
+
+    tasks = {"tortoise": sleeper(0.2), "hare": sleeper(0.0), "dog": sleeper(0.1)}
+    got = impl(tasks)
+    assert got == "hare", f"'hare' finishes first, got {got!r}"
+    got = impl({"a": sleeper(0.1), "b": sleeper(0.25)})
+    assert got == "a", f"'a' finishes first, got {got!r}"
+    assert impl({"only": sleeper(0.0)}) == "only", "a single task wins"
+
+
+def check_fastest() -> None:
+    report("4. fastest", test_fastest, fastest)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
     check_run_all()
+    check_fastest()
 
 
 if __name__ == "__main__":
