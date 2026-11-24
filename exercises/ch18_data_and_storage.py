@@ -175,10 +175,57 @@ def check_add_user() -> None:
     report("3. add_user", test_add_user, add_user)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def top_customers(conn: sqlite3.Connection, n: int) -> list[tuple[str, float]]:
+    """Return the n customers who spent the most, as (name, total) pairs.
+
+    Tables:
+        customers(id INTEGER PRIMARY KEY, name TEXT)
+        orders(id INTEGER PRIMARY KEY, customer_id INTEGER, amount REAL)
+
+    Biggest total first; equal totals in alphabetical order of name.
+    Customers with no orders are left out. Let the database do the work in
+    one query: JOIN the tables, GROUP BY customer, SUM(amount), ORDER BY,
+    and LIMIT ? with n as a parameter.
+    """
+    raise NotImplementedError
+
+
+def test_top_customers(impl: Callable[[sqlite3.Connection, int], Any]) -> None:
+    with closing(sqlite3.connect(":memory:")) as conn:
+        conn.execute("CREATE TABLE customers (id INTEGER PRIMARY KEY, name TEXT)")
+        conn.execute(
+            "CREATE TABLE orders (id INTEGER PRIMARY KEY, customer_id INTEGER,"
+            " amount REAL)"
+        )
+        conn.executemany(
+            "INSERT INTO customers (id, name) VALUES (?, ?)",
+            [(1, "Cy"), (2, "Ada"), (3, "Bo"), (4, "Dee"), (5, "Eve")],
+        )
+        conn.executemany(
+            "INSERT INTO orders (customer_id, amount) VALUES (?, ?)",
+            [(1, 12.5), (2, 30.0), (1, 17.5), (3, 30.0), (5, 2.25), (2, 0.0)],
+        )
+        got = [tuple(row) for row in impl(conn, 3)]
+        want = [("Ada", 30.0), ("Bo", 30.0), ("Cy", 30.0)]
+        assert got == want, f"top 3: expected {want}, got {got}"
+        got = [tuple(row) for row in impl(conn, 10)]
+        want = [("Ada", 30.0), ("Bo", 30.0), ("Cy", 30.0), ("Eve", 2.25)]
+        assert got == want, f"top 10 (Dee has no orders): expected {want}, got {got}"
+        got = list(impl(conn, 0))
+        assert got == [], f"n=0 should give [], got {got}"
+
+
+def check_top_customers() -> None:
+    report("4. top_customers", test_top_customers, top_customers)
+
+
 def main() -> None:
     check_sha256_file()
     check_parse_header()
     check_add_user()
+    check_top_customers()
 
 
 if __name__ == "__main__":
