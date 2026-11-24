@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_368 runnable samples across 43 directories._
+_373 runnable samples across 44 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -147,6 +147,13 @@ _368 runnable samples across 43 directories._
 - [files_and_pathlib](basics/12_modules_io/files_and_pathlib.py)
 - [json_io](basics/12_modules_io/json_io.py)
 - [modules_and_imports](basics/12_modules_io/modules_and_imports.py)
+
+## basics/13_standard_library
+- [collections_module](basics/13_standard_library/collections_module.py)
+- [datetime_basics](basics/13_standard_library/datetime_basics.py)
+- [functools_tools](basics/13_standard_library/functools_tools.py)
+- [logging_basics](basics/13_standard_library/logging_basics.py)
+- [regex_basics](basics/13_standard_library/regex_basics.py)
 
 ## bit_manipulation
 - [bit_basics](bit_manipulation/bit_basics.py)
