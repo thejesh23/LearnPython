@@ -143,10 +143,44 @@ def check_simplify() -> None:
     report("3. simplify", test_simplify, simplify)
 
 
+def add_money(a: str, b: str) -> str:
+    """Add two amounts given as text, exactly, and return the sum as text.
+
+    A float cannot hold 0.1 exactly, so use Decimal. The result keeps the
+    decimal places of the inputs, which is how Decimal adds.
+
+    add_money("0.10", "0.20") -> "0.30"
+    add_money("19.99", "0.01") -> "20.00"
+    add_money("1", "2.5")      -> "3.5"
+
+    Hint: add `from decimal import Decimal` at the top of this file, and
+    build each Decimal from the text, not from a float.
+    """
+    raise NotImplementedError
+
+
+def test_add_money(fn: Callable[..., Any]) -> None:
+    cases = [
+        (("0.10", "0.20"), "0.30"),
+        (("19.99", "0.01"), "20.00"),
+        (("1", "2.5"), "3.5"),
+        (("-5.25", "5.25"), "0.00"),
+        (("0.1", "0.2"), "0.3"),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"add_money{args} returned {got!r}, expected {want!r}"
+
+
+def check_add_money() -> None:
+    report("4. add_money", test_add_money, add_money)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
     check_simplify()
+    check_add_money()
 
 
 if __name__ == "__main__":
