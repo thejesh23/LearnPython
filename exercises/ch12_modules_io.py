@@ -95,8 +95,47 @@ def check_count_lines() -> None:
     report("1. count_lines", test_count_lines, count_lines)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def write_scores(path: Path, scores: dict[str, int]) -> None:
+    """Write one "name: score" line per player to `path`, best score first.
+
+    Players with the same score are sorted by name. Every line ends with a
+    newline, and no players means an empty file. Create any missing parent
+    folders first (path.parent.mkdir with parents=True, exist_ok=True), and
+    write with encoding="utf-8" so names like "zoë" work everywhere.
+
+    write_scores(p, {"bo": 20, "cy": 30, "ana": 20}) writes:
+        cy: 30
+        ana: 20
+        bo: 20
+    """
+    raise NotImplementedError
+
+
+def test_write_scores(impl: Callable[[Path, dict[str, int]], None]) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        target = Path(tmp) / "reports" / "2026" / "scores.txt"
+        impl(target, {"bo": 20, "cy": 30, "ana": 20, "zoë": 5})
+        assert target.exists(), "the file (and its folders) should be created"
+        text = target.read_text(encoding="utf-8")
+        expected = "cy: 30\nana: 20\nbo: 20\nzoë: 5\n"
+        assert text == expected, f"file holds {text!r}, expected {expected!r}"
+        impl(target, {"solo": 1})
+        text = target.read_text(encoding="utf-8")
+        assert text == "solo: 1\n", f"writing again should replace the file: {text!r}"
+        impl(target, {})
+        text = target.read_text(encoding="utf-8")
+        assert text == "", f"no players should give an empty file, got {text!r}"
+
+
+def check_write_scores() -> None:
+    report("2. write_scores", test_write_scores, write_scores)
+
+
 def main() -> None:
     check_count_lines()
+    check_write_scores()
 
 
 if __name__ == "__main__":
