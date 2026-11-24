@@ -16,6 +16,7 @@ defaults they form its *signature*, which `inspect.signature` can read back.
 """
 
 import inspect
+import pydoc
 
 
 def area(width: float, height: float = 1.0) -> float:
@@ -66,10 +67,27 @@ def getdoc_demo() -> None:
         print(f"  |{line}")
 
 
+def help_demo() -> None:
+    # help(area) prints to the screen, and in a terminal it opens a pager.
+    # pydoc.render_doc builds the same text as a string, which we can print
+    # here without pausing the program. plaintext removes bold formatting.
+    text = pydoc.render_doc(area, renderer=pydoc.plaintext)
+    print(text.rstrip())
+    print("-" * 40)
+
+    # For a class, help() lists the class docstring and every method's.
+    # (Only the top part is printed; the rest is boilerplate about __dict__.)
+    class_text = pydoc.render_doc(Stack, renderer=pydoc.plaintext)
+    for line in class_text.splitlines()[2:9]:
+        print(line)
+
+
 def main() -> None:
     docstring_demo()
     print()
     getdoc_demo()
+    print()
+    help_demo()
 
 
 if __name__ == "__main__":
