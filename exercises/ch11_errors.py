@@ -260,12 +260,58 @@ def check_validate_order() -> None:
     report("5. validate_order", test_validate_order, validate_order)
 
 
+# --- Exercise 6 -------------------------------------------------------------
+
+def split_errors(group: ExceptionGroup) -> tuple[list[str], list[str]]:
+    """Return (ValueError messages, TypeError messages) from an exception group.
+
+    Raise the group inside try and handle it with `except* ValueError` and
+    `except* TypeError`. Groups can be nested, so walk into any group you
+    find and keep the messages in left-to-right order. Any other exception
+    type is not yours to handle: except* re-raises it for you.
+
+    >>> group = ExceptionGroup("bad", [ValueError("a"), TypeError("b")])
+    >>> split_errors(group)
+    (['a'], ['b'])
+    """
+    raise NotImplementedError
+
+
+def test_split_errors(impl: Callable[[ExceptionGroup], Any]) -> None:
+    flat = ExceptionGroup("x", [ValueError("a"), TypeError("b"), ValueError("c")])
+    result = impl(flat)
+    assert result == (["a", "c"], ["b"]), f"flat group gave {result}"
+    nested = ExceptionGroup("outer", [
+        ValueError("a"),
+        ExceptionGroup("inner", [TypeError("b"), ValueError("c")]),
+        TypeError("d"),
+    ])
+    result = impl(nested)
+    assert result == (["a", "c"], ["b", "d"]), f"nested group gave {result}"
+    only_types = ExceptionGroup("x", [TypeError("t")])
+    result = impl(only_types)
+    assert result == ([], ["t"]), f"a group of one TypeError gave {result}"
+    mixed = ExceptionGroup("x", [ValueError("a"), KeyError("k")])
+    try:
+        impl(mixed)
+    except ExceptionGroup as leftover:
+        assert leftover.subgroup(KeyError), "the KeyError should be re-raised"
+        assert not leftover.subgroup(ValueError), "ValueErrors are handled"
+    else:
+        raise AssertionError("an unhandled KeyError should be re-raised")
+
+
+def check_split_errors() -> None:
+    report("6. split_errors", test_split_errors, split_errors)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
     check_insufficient_funds()
     check_retry()
     check_validate_order()
+    check_split_errors()
 
 
 if __name__ == "__main__":
