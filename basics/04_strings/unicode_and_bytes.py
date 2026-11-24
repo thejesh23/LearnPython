@@ -14,6 +14,8 @@ which forces you to decide the encoding once, at the edge of your program:
 decode as data comes in, work with str inside, encode as it goes out.
 """
 
+import unicodedata
+
 
 def code_points_demo() -> None:
     # ord() gives a character's code point; chr() goes the other way.
@@ -95,6 +97,30 @@ def error_handlers_demo() -> None:
     # Prefer fixing the encoding to hiding the problem.
 
 
+def normalize_demo() -> None:
+    # "é" can be one code point, or "e" followed by a combining accent.
+    composed = "caf\u00e9"
+    decomposed = "cafe\u0301"
+    print(f"{composed} vs {decomposed}: look the same, equal? "
+          f"{composed == decomposed}")
+    print(f"lengths: {len(composed)} and {len(decomposed)}")
+    for ch in decomposed[-2:]:
+        print(f"  U+{ord(ch):04X} {unicodedata.name(ch)}")
+
+    # Normalising both to the same form makes the comparison honest.
+    # NFC composes into single code points; NFD splits them apart.
+    nfc_a = unicodedata.normalize("NFC", composed)
+    nfc_b = unicodedata.normalize("NFC", decomposed)
+    print(f"after NFC: equal? {nfc_a == nfc_b}, lengths {len(nfc_a)}, {len(nfc_b)}")
+
+    # A common trick: NFD, then drop the combining marks, to strip accents.
+    plain = "".join(
+        ch for ch in unicodedata.normalize("NFD", "Ångström café")
+        if not unicodedata.combining(ch)
+    )
+    print(f"accents stripped: {plain}")
+
+
 def main() -> None:
     code_points_demo()
     print()
@@ -103,6 +129,8 @@ def main() -> None:
     utf8_lengths_demo()
     print()
     error_handlers_demo()
+    print()
+    normalize_demo()
 
 
 if __name__ == "__main__":
