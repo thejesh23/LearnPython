@@ -24,6 +24,7 @@ not part of the standard library):
             before the code runs. `mypy yourfile.py`
 """
 
+import inspect
 import keyword
 import re
 import sys
@@ -138,12 +139,44 @@ def imports_demo() -> None:
         print(f"  {line}" if line else "")
 
 
+def shipping_cost(weight_kg: float, express: bool = False) -> float:
+    """Return the shipping cost in euros for a parcel.
+
+    The first line is a one-sentence summary ending in a period. Details,
+    arguments and edge cases go in the following paragraphs.
+
+    Args:
+        weight_kg: Parcel weight; must be positive.
+        express: Next-day delivery, which doubles the price.
+
+    Raises:
+        ValueError: If weight_kg is not positive.
+    """
+    if weight_kg <= 0:
+        raise ValueError("weight must be positive")
+    cost = 4.0 + 1.5 * weight_kg
+    return cost * 2 if express else cost
+
+
+def docstring_demo() -> None:
+    # A docstring is not a comment: it is stored on the object, so help(),
+    # editors and documentation generators can show it.
+    doc = inspect.getdoc(shipping_cost) or ""
+    print(f"summary line: {doc.splitlines()[0]}")
+    print(f"signature   : shipping_cost{inspect.signature(shipping_cost)}")
+    print(f"cost(2.0)   : {shipping_cost(2.0)}")
+    # Comments explain WHY a line is the way it is; docstrings explain WHAT
+    # a function does and how to call it. Neither should repeat the code.
+
+
 def main() -> None:
     before_after_demo()
     print()
     naming_demo()
     print()
     imports_demo()
+    print()
+    docstring_demo()
 
 
 if __name__ == "__main__":
