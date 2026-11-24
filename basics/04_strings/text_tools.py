@@ -74,10 +74,34 @@ def textwrap_demo() -> None:
     print(textwrap.dedent(block).strip())
 
 
+def translate_demo() -> None:
+    # maketrans(from, to) pairs characters by position; translate applies
+    # every swap in a single pass over the string.
+    leet = str.maketrans("aeiost", "4310$7")
+    print(f"leet speak: {'translate is fast'.translate(leet)}")
+
+    # A third argument lists characters to delete.
+    no_punct = str.maketrans("", "", ",.!?;:")
+    print(f"punctuation removed: {'Hello, world! Ready?'.translate(no_punct)}")
+
+    # A dict works too, and can map one character to a longer string.
+    escapes = str.maketrans({"<": "&lt;", ">": "&gt;", "&": "&amp;"})
+    print(f"escaped: {'a < b & b > c'.translate(escapes)}")
+
+    # Compare with chained replace(): fine for two swaps, clumsy for ten,
+    # and wrong when one swap's output feeds the next.
+    swapped = "left right".replace("left", "right").replace("right", "left")
+    print(f"chained replace: {swapped!r}   <- both became 'left'")
+    lr = str.maketrans({"L": "R", "R": "L"})
+    print(f"translate swaps safely: {'L R L'.translate(lr)!r}")
+
+
 def main() -> None:
     building_strings_demo()
     print()
     textwrap_demo()
+    print()
+    translate_demo()
 
 
 if __name__ == "__main__":
