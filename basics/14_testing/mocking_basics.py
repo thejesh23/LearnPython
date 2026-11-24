@@ -34,8 +34,34 @@ def recording_demo() -> None:
     print("assert_called_with passed")
 
 
+def fetch_with_retry(fetch, attempts: int = 3) -> str:
+    for attempt in range(1, attempts + 1):
+        try:
+            return fetch()
+        except ConnectionError:
+            print(f"  attempt {attempt} failed")
+    raise ConnectionError("gave up")
+
+
+def return_and_side_effect_demo() -> None:
+    always_ok = Mock(return_value="<html>")
+    print(f"result: {fetch_with_retry(always_ok)}")
+
+    # A list as side_effect gives one outcome per call; exceptions are raised.
+    flaky = Mock(side_effect=[ConnectionError(), ConnectionError(), "<html>"])
+    print(f"result after retries: {fetch_with_retry(flaky)}")
+
+    down = Mock(side_effect=ConnectionError())
+    try:
+        fetch_with_retry(down)
+    except ConnectionError as exc:
+        print(f"finally: {exc}")
+
+
 def main() -> None:
     recording_demo()
+    print()
+    return_and_side_effect_demo()
 
 
 if __name__ == "__main__":
