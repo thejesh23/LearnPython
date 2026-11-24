@@ -21,6 +21,7 @@ to extract. Everything is written inside a TemporaryDirectory.
 import gzip
 import io
 import random
+import shutil
 import tarfile
 import tempfile
 import zipfile
@@ -134,12 +135,34 @@ def tarfile_demo() -> None:
         print(f"nothing written outside: {not (root / 'outside.txt').exists()}")
 
 
+def make_archive_demo() -> None:
+    names = [name for name, _ in shutil.get_archive_formats()]
+    print(f"formats make_archive can write: {sorted(names)}")
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder)
+        src = make_files(root)
+        # base_name is the archive path without its extension; root_dir is
+        # the folder whose contents go in. It returns the full archive path.
+        for fmt in ("zip", "gztar"):
+            made = Path(shutil.make_archive(str(root / "backup"), fmt, root_dir=src))
+            print(f"  {fmt:<6} -> {made.name:<17} {made.stat().st_size:>5} bytes")
+
+        # unpack_archive picks the right module from the extension.
+        out = root / "restored"
+        shutil.unpack_archive(root / "backup.zip", out)
+        same = (out / "data/squares.csv").read_bytes() == (
+            src / "data/squares.csv").read_bytes()
+        print(f"restored squares.csv matches the original: {same}")
+
+
 def main() -> None:
     gzip_demo()
     print()
     zipfile_demo()
     print()
     tarfile_demo()
+    print()
+    make_archive_demo()
 
 
 if __name__ == "__main__":
