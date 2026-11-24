@@ -15,6 +15,7 @@ fiddly loops:
 
 import string
 import textwrap
+from string import Template
 
 
 def render_receipt(items: dict[str, float]) -> str:
@@ -117,6 +118,26 @@ def string_constants_demo() -> None:
     print(f"capwords: {string.capwords('the quick  brown fox')}")
 
 
+def template_demo() -> None:
+    # $name placeholders, filled in from keyword arguments or a dict.
+    greeting = Template("Hello $name, your order #$order ships ${day}day.")
+    print(greeting.substitute(name="Ada", order=42, day="Mon"))
+
+    # substitute() insists on every value; safe_substitute() leaves gaps.
+    partial = Template("Dear $name, your code is $code.")
+    try:
+        partial.substitute(name="Alan")
+    except KeyError as exc:
+        print(f"KeyError: missing {exc}")
+    print(partial.safe_substitute(name="Alan"))
+
+    # Why use Template at all, when f-strings exist? A template can come from
+    # a file or a user. It can only fill in names, never run code, unlike
+    # str.format, whose fields can reach into attributes of what you pass.
+    user_text = "Thanks, $who! ($$5 off next time)"
+    print(Template(user_text).substitute(who="Grace"))
+
+
 def main() -> None:
     building_strings_demo()
     print()
@@ -125,6 +146,8 @@ def main() -> None:
     translate_demo()
     print()
     string_constants_demo()
+    print()
+    template_demo()
 
 
 if __name__ == "__main__":
