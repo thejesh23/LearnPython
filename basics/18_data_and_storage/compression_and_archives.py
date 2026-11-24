@@ -21,6 +21,7 @@ to extract. Everything is written inside a TemporaryDirectory.
 import gzip
 import random
 import tempfile
+import zipfile
 from pathlib import Path
 
 
@@ -60,8 +61,50 @@ def gzip_demo() -> None:
               f"{len(lines)} lines inside, last: {lines[-1].strip()!r}")
 
 
+def make_files(root: Path) -> Path:
+    """Create a small folder of files to archive."""
+    src = root / "report"
+    (src / "data").mkdir(parents=True)
+    (src / "README.txt").write_text("Quarterly report\n" * 20, encoding="utf-8")
+    rows = "".join(f"{n},{n * n}\n" for n in range(300))
+    (src / "data" / "squares.csv").write_text(rows, encoding="utf-8")
+    (src / "logo.bin").write_bytes(random.Random(1).randbytes(2000))
+    return src
+
+
+def zipfile_demo() -> None:
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder)
+        src = make_files(root)
+        archive = root / "report.zip"
+        # ZIP_DEFLATED compresses; the default, ZIP_STORED, only bundles.
+        with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for path in sorted(src.rglob("*")):
+                if path.is_file():
+                    # arcname is the name inside the zip, relative and with '/'.
+                    zf.write(path, arcname=path.relative_to(src).as_posix())
+            zf.writestr("notes/generated.txt", "made without a file on disk")
+
+        with zipfile.ZipFile(archive) as zf:
+            print("members (size -> compressed size):")
+            for info in zf.infolist():
+                print(f"  {info.filename:<22} {info.file_size:>5} -> "
+                      f"{info.compress_size:>5}")
+            # Read one member straight into memory, no extraction needed.
+            third = zf.read("data/squares.csv").decode().splitlines()[2]
+            print(f"third line of squares.csv: {third!r}")
+            print(f"testzip() finds no damaged member: {zf.testzip() is None}")
+
+            # extractall: zipfile strips '..' and leading '/' from names.
+            out = root / "unzipped"
+            zf.extractall(out)
+            print(f"extracted {sum(1 for p in out.rglob('*') if p.is_file())} files")
+
+
 def main() -> None:
     gzip_demo()
+    print()
+    zipfile_demo()
 
 
 if __name__ == "__main__":
