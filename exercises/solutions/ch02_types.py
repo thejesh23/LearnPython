@@ -32,8 +32,21 @@ def check_utf8_length() -> None:
     report("1. utf8_length", EXERCISES["test_utf8_length"], utf8_length)
 
 
+def split_seconds(total: int) -> tuple[int, int, int]:
+    # Peel off the smallest unit first: divmod by 60 leaves the seconds as
+    # the remainder, then the same step on the minutes leaves the minutes.
+    minutes, seconds = divmod(total, 60)
+    hours, minutes = divmod(minutes, 60)
+    return hours, minutes, seconds
+
+
+def check_split_seconds() -> None:
+    report("2. split_seconds", EXERCISES["test_split_seconds"], split_seconds)
+
+
 def main() -> None:
     check_utf8_length()
+    check_split_seconds()
 
 
 if __name__ == "__main__":
