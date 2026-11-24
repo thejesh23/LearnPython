@@ -17,6 +17,9 @@ parts for you:
 Nothing in this file touches the network: it is all string processing.
 """
 
+from urllib.parse import quote
+from urllib.parse import quote_plus
+from urllib.parse import unquote
 from urllib.parse import urlsplit
 from urllib.parse import urlunsplit
 
@@ -38,8 +41,28 @@ def split_demo() -> None:
     print(f"no scheme: {urlsplit('shop.example/books')}")
 
 
+def quote_demo() -> None:
+    # Only a small set of ASCII characters may appear raw in a URL. Everything
+    # else is written as %XX bytes of its UTF-8 encoding.
+    name = "Crème brûlée & tea/coffee"
+    print(f"quote(name)          = {quote(name)}")
+    # By default "/" is left alone because it usually separates path parts.
+    # When the value is ONE path segment, pass safe="" so "/" is encoded too.
+    print(f"quote(name, safe='') = {quote(name, safe='')}")
+    # In query strings, spaces are traditionally written as "+".
+    print(f"quote_plus(name)     = {quote_plus(name)}")
+    print(f"unquote back         = {unquote(quote(name))}")
+
+    # Building a path from user input: encode each segment separately.
+    folder, filename = "reports 2026", "q3/q4 summary.pdf"
+    path = "/files/" + "/".join(quote(p, safe="") for p in (folder, filename))
+    print(f"safe path: {path}")
+
+
 def main() -> None:
     split_demo()
+    print()
+    quote_demo()
 
 
 if __name__ == "__main__":
