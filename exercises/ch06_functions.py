@@ -123,9 +123,46 @@ def check_make_greeting() -> None:
     report("2. make_greeting", test_make_greeting, make_greeting)
 
 
+def append_to(item: int, items: list[int] = []) -> list[int]:
+    """Append item to items and return the list.
+
+    When a list is passed in, append to that very list and return it. When
+    none is passed, start a brand-new empty list on every call.
+
+    The default above is the shared-list trap from default_arguments.py:
+    fix the signature as well as writing the body.
+
+    append_to(1)       -> [1]
+    append_to(2)       -> [2]     not [1, 2]
+    append_to(8, [7])  -> [7, 8]
+    """
+    raise NotImplementedError
+
+
+def test_append_to(fn: Callable[..., Any]) -> None:
+    first = fn(1)
+    assert first == [1], f"append_to(1) returned {first!r}, expected [1]"
+    second = fn(2)
+    assert second == [2], (
+        f"a second call append_to(2) returned {second!r}, expected [2]: "
+        "is one default list being shared between calls?"
+    )
+    mine = [7]
+    result = fn(8, mine)
+    assert mine == [7, 8] and result is mine, (
+        f"append_to(8, mine) with mine = [7] left mine as {mine!r} and "
+        f"returned {result!r}; expected it to append to mine and return it"
+    )
+
+
+def check_append_to() -> None:
+    report("3. append_to", test_append_to, append_to)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
+    check_append_to()
 
 
 if __name__ == "__main__":
