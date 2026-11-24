@@ -41,9 +41,19 @@ def check_in_range() -> None:
     report("2. in_range", EXERCISES["test_in_range"], in_range)
 
 
+def display_name(name: str, nickname: str) -> str:
+    # `a or b` is a when a is truthy, else b; an empty string is falsy.
+    return nickname or name
+
+
+def check_display_name() -> None:
+    report("3. display_name", EXERCISES["test_display_name"], display_name)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
+    check_display_name()
 
 
 if __name__ == "__main__":
