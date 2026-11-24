@@ -16,6 +16,8 @@ line by line; if the tests pass, it is a valid solution.
 import argparse
 import os
 import runpy
+import subprocess
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -73,10 +75,24 @@ def check_find_files() -> None:
     report("3. find_files", EXERCISES["test_find_files"], find_files)
 
 
+def run_python(code: str) -> tuple[int, str, str]:
+    # A list of arguments goes to the program as-is: no shell, so ; | >
+    # are just characters. check=False (the default) keeps non-zero codes.
+    result = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, timeout=10
+    )
+    return result.returncode, result.stdout, result.stderr
+
+
+def check_run_python() -> None:
+    report("4. run_python", EXERCISES["test_run_python"], run_python)
+
+
 def main() -> None:
     check_env_settings()
     check_build_parser()
     check_find_files()
+    check_run_python()
 
 
 if __name__ == "__main__":
