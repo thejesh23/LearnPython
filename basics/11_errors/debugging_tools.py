@@ -16,6 +16,7 @@ frames carefully.
 This file never actually opens pdb, because pdb waits for keyboard input.
 """
 
+import inspect
 import io
 import os
 import traceback
@@ -67,10 +68,36 @@ def traceback_tools_demo() -> None:
             print(f"  {frame.name}() line {frame.lineno}: {frame.line}")
 
 
+def who_called_me() -> str:
+    """Describe the caller of whichever function calls this helper."""
+    # stack()[0] is this helper, [1] the function asking, [2] its caller.
+    stack = inspect.stack()
+    me, caller = stack[1], stack[2]
+    line = caller.code_context[0].strip() if caller.code_context else "?"
+    return f"{me.function}() was called by {caller.function}(): {line}"
+
+
+def save_user(name: str) -> None:
+    print(f"  {who_called_me()}")
+
+
+def signup() -> None:
+    save_user("ada")
+
+
+def inspect_stack_demo() -> None:
+    print("inspect.stack():")
+    signup()
+    chain = [frame.function for frame in inspect.stack()[:3]]
+    print(f"  current call chain, innermost first: {chain}")
+
+
 def main() -> None:
     read_traceback_demo()
     print()
     traceback_tools_demo()
+    print()
+    inspect_stack_demo()
 
 
 if __name__ == "__main__":
