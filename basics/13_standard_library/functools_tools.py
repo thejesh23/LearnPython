@@ -13,6 +13,7 @@ them around, wrap them, and build new ones from old ones.
 import operator
 import time
 from functools import cache
+from functools import cached_property
 from functools import partial
 from functools import reduce
 from functools import singledispatch
@@ -87,6 +88,29 @@ def singledispatch_demo() -> None:
     # True counts as an int, because bool is a subclass of int.
 
 
+class Document:
+    def __init__(self, text: str) -> None:
+        self.text = text
+
+    @cached_property
+    def word_count(self) -> int:
+        # Runs on the first access only; the result is then stored on the
+        # instance like a normal attribute.
+        print("  (counting words...)")
+        return len(self.text.split())
+
+
+def cached_property_demo() -> None:
+    doc = Document("the quick brown fox jumps over the lazy dog")
+    print(f"first access: {doc.word_count}")
+    print(f"second access: {doc.word_count}")
+    # Unlike @property, the value does not follow later changes to self.text.
+    # Delete the attribute to force a recount.
+    doc.text += " again"
+    del doc.word_count
+    print(f"after del: {doc.word_count}")
+
+
 def main() -> None:
     cache_demo()
     print()
@@ -95,6 +119,8 @@ def main() -> None:
     reduce_demo()
     print()
     singledispatch_demo()
+    print()
+    cached_property_demo()
 
 
 if __name__ == "__main__":
