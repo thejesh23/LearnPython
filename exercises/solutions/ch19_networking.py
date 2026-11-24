@@ -13,6 +13,7 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import runpy
+import socket
 from pathlib import Path
 from urllib.parse import parse_qs
 from urllib.parse import parse_qsl
@@ -53,9 +54,27 @@ def check_add_params() -> None:
     report("2. add_params", EXERCISES["test_add_params"], add_params)
 
 
+def send_and_receive(port: int, message: str) -> str:
+    with socket.create_connection(("127.0.0.1", port), timeout=5) as conn:
+        conn.sendall(message.encode("utf-8"))
+        # Without this the server keeps waiting for more, and so do we.
+        conn.shutdown(socket.SHUT_WR)
+        chunks = []
+        while chunk := conn.recv(4096):
+            chunks.append(chunk)
+    # Decode once at the end: a character may be split across two chunks.
+    return b"".join(chunks).decode("utf-8")
+
+
+def check_send_and_receive() -> None:
+    report("3. send_and_receive", EXERCISES["test_send_and_receive"],
+           send_and_receive)
+
+
 def main() -> None:
     check_get_param()
     check_add_params()
+    check_send_and_receive()
 
 
 if __name__ == "__main__":
