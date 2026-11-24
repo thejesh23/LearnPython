@@ -15,6 +15,7 @@ import time
 from functools import cache
 from functools import partial
 from functools import reduce
+from functools import singledispatch
 
 
 @cache
@@ -63,12 +64,37 @@ def reduce_demo() -> None:
     print(f"flattened with reduce: {reduce(operator.add, nested, [])}")
 
 
+@singledispatch
+def describe(value: object) -> str:
+    return f"something else: {value!r}"
+
+
+@describe.register
+def _(value: int) -> str:
+    return f"an int; doubled it is {value * 2}"
+
+
+@describe.register
+def _(value: list) -> str:
+    return f"a list of {len(value)} items"
+
+
+def singledispatch_demo() -> None:
+    # Instead of a chain of isinstance() checks inside one function, each
+    # type gets its own small function, and new types can be added later.
+    for value in [12345, [1, 2, 3], "hi", True]:
+        print(f"{value!r:>12} -> {describe(value)}")
+    # True counts as an int, because bool is a subclass of int.
+
+
 def main() -> None:
     cache_demo()
     print()
     partial_demo()
     print()
     reduce_demo()
+    print()
+    singledispatch_demo()
 
 
 if __name__ == "__main__":
