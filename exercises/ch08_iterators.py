@@ -172,10 +172,47 @@ def check_running_total() -> None:
     report("3. running_total", test_running_total, running_total)
 
 
+def chunks(items: Iterable[Any], size: int) -> Iterator[list[Any]]:
+    """Yield lists of `size` items; the last list may be shorter.
+
+    items can be any iterable, including a one-shot generator, so slicing
+    items directly will not work.
+
+    list(chunks([1, 2, 3, 4, 5], 2)) -> [[1, 2], [3, 4], [5]]
+    list(chunks("abcdef", 3))        -> [["a", "b", "c"], ["d", "e", "f"]]
+    list(chunks([], 4))              -> []
+
+    Hint: itertools has a function made for this; it yields tuples.
+    """
+    raise NotImplementedError
+
+
+def test_chunks(fn: Callable[..., Any]) -> None:
+    cases = [
+        (([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]]),
+        (("abcdef", 3), [["a", "b", "c"], ["d", "e", "f"]]),
+        (([], 4), []),
+        (([1, 2], 5), [[1, 2]]),
+    ]
+    for args, want in cases:
+        got = list(fn(*args))
+        assert got == want, f"list(chunks{args}) gave {got!r}, expected {want!r}"
+    got = list(fn((n for n in range(7)), 3))
+    assert got == [[0, 1, 2], [3, 4, 5], [6]], (
+        f"chunks of a generator over range(7), size 3, gave {got!r}, "
+        "expected [[0, 1, 2], [3, 4, 5], [6]]"
+    )
+
+
+def check_chunks() -> None:
+    report("4. chunks", test_chunks, chunks)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
     check_running_total()
+    check_chunks()
 
 
 if __name__ == "__main__":
