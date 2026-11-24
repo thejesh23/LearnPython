@@ -18,6 +18,7 @@ thing, check the result is unchanged, profile again.
 """
 
 import cProfile
+import io
 import pstats
 import random
 
@@ -74,8 +75,34 @@ def profile_demo() -> None:
     print_table(profile_rows(profile))
 
 
+def tottime_vs_cumtime_demo() -> None:
+    with cProfile.Profile() as profile:
+        unique_words_slow(WORDS)
+    rows = profile_rows(profile)
+    by_own = max(rows, key=lambda r: r[2])[0]
+    by_cumulative = max(rows, key=lambda r: r[3])[0]
+    # The top-level function "contains" all the time, so it tops cumtime but
+    # tells you nothing. The hotspot is the row with the largest tottime.
+    print(f"largest cumtime: {by_cumulative}  (the caller of everything)")
+    print(f"largest tottime: {by_own}  (the real hotspot)")
+
+    # The real pstats report. sort_stats picks the column to sort by,
+    # strip_dirs() shortens file paths, print_stats(n) shows the top n rows.
+    report = io.StringIO()
+    stats = pstats.Stats(profile, stream=report)
+    stats.strip_dirs().sort_stats("tottime").print_stats(1)
+    lines = report.getvalue().splitlines()
+    header = next(line for line in lines if line.lstrip().startswith("ncalls"))
+    top_row = lines[lines.index(header) + 1].split()
+    # Print the header and the top row, minus the timings that vary per run.
+    print(header)
+    print(f"{top_row[0]:>9}  {'(four timing columns)':<35}{top_row[-1]}")
+
+
 def main() -> None:
     profile_demo()
+    print()
+    tottime_vs_cumtime_demo()
 
 
 if __name__ == "__main__":
