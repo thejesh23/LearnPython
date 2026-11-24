@@ -18,6 +18,7 @@ the end of its `with` block.
 """
 
 import os
+import shutil
 import tempfile
 from pathlib import Path
 
@@ -76,10 +77,44 @@ def walk_demo() -> None:
         print(f"total without hidden folders: {total} bytes")
 
 
+def copy_move_delete_demo() -> None:
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder)
+        make_project(root)
+
+        # copy2 copies contents and timestamps; the target may be a folder.
+        backup = root / "backup"
+        backup.mkdir()
+        shutil.copy2(root / "README.md", backup)
+        print(f"after copy2: {show(list(backup.iterdir()), root)}")
+
+        # copytree copies a whole folder; ignore= leaves some files out.
+        shutil.copytree(root / "src", backup / "src",
+                        ignore=shutil.ignore_patterns("*.csv"))
+        print(f"after copytree: {show(list(backup.rglob('*.*')), root)}")
+
+        # move renames when it can, or copies then deletes when it must.
+        shutil.move(root / "tests", root / "checks")
+        print(f"tests/ renamed: {(root / 'checks').exists()}, "
+              f"old name gone: {not (root / 'tests').exists()}")
+
+        # rmtree deletes a folder and everything inside it, without asking.
+        shutil.rmtree(backup)
+        print(f"backup removed: {not backup.exists()}")
+
+        # Path.rmdir only removes an empty folder, which makes it the safer choice.
+        try:
+            (root / "src").rmdir()
+        except OSError:
+            print("Path.rmdir on a non-empty folder -> OSError")
+
+
 def main() -> None:
     glob_demo()
     print()
     walk_demo()
+    print()
+    copy_move_delete_demo()
 
 
 if __name__ == "__main__":
