@@ -30,6 +30,8 @@ Uses:
 """
 
 import itertools
+import sys
+import unittest
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -252,12 +254,68 @@ def report_demo() -> None:
     print(stock_report(sample_inventory()))
 
 
+class InventoryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # setUp runs before every test, so each test gets a fresh inventory
+        # and no test can be broken by another one's changes.
+        self.inv = Inventory()
+        self.inv.add_product(Product("MUG-01", "Mug", Decimal("8.50"), 10))
+        self.inv.receive("MUG-01", 12)
+
+    def test_receive_and_ship_change_stock(self) -> None:
+        self.inv.ship("MUG-01", 5)
+        self.assertEqual(self.inv.on_hand("MUG-01"), 7)
+
+    def test_cannot_ship_more_than_on_hand(self) -> None:
+        with self.assertRaises(InsufficientStock) as ctx:
+            self.inv.ship("MUG-01", 13)
+        self.assertEqual(ctx.exception.available, 12)
+        self.assertEqual(self.inv.on_hand("MUG-01"), 12)  # nothing changed
+
+    def test_unknown_sku_raises(self) -> None:
+        with self.assertRaises(UnknownProduct):
+            self.inv.on_hand("NOPE")
+
+    def test_adjust_cannot_go_negative(self) -> None:
+        with self.assertRaises(InsufficientStock):
+            self.inv.adjust("MUG-01", -20, "miscount")
+
+    def test_ledger_explains_the_total(self) -> None:
+        self.inv.ship("MUG-01", 2)
+        self.inv.adjust("MUG-01", -1, "broken")
+        quantities = [m.quantity for m in self.inv.history("MUG-01")]
+        self.assertEqual(quantities, [12, -2, -1])
+        self.assertEqual(sum(quantities), self.inv.on_hand("MUG-01"))
+
+    def test_low_stock_lists_products_at_reorder_level(self) -> None:
+        self.inv.ship("MUG-01", 2)  # 10 left, exactly the reorder level
+        self.assertEqual([p.sku for p, _ in low_stock(self.inv)], ["MUG-01"])
+
+    def test_invalid_products_are_rejected(self) -> None:
+        # subTest reports each bad case separately if one of them fails.
+        for args in [("mug", "x", Decimal("1")), ("MUG", "x", Decimal("0"))]:
+            with self.subTest(args=args):
+                with self.assertRaises(InvalidProduct):
+                    Product(*args)
+
+
+def tests_demo() -> None:
+    print("== stage 4: the test suite ==")
+    suite = unittest.TestLoader().loadTestsFromTestCase(InventoryTests)
+    # Write to stdout (the default is stderr) so the results appear in order
+    # with the rest of the output.
+    result = unittest.TextTestRunner(stream=sys.stdout, verbosity=2).run(suite)
+    print(f"all {result.testsRun} tests passed: {result.wasSuccessful()}")
+
+
 def main() -> None:
     products_demo()
     print()
     movements_demo()
     print()
     report_demo()
+    print()
+    tests_demo()
 
 
 if __name__ == "__main__":
