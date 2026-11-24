@@ -18,6 +18,7 @@ deletes files. Loading a pickle runs code chosen by whoever made it, so:
 
 import pickle
 import tempfile
+import threading
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -55,8 +56,33 @@ def round_trip_demo() -> None:
         print(f"from the file: {task.title!r} due {task.due}")
 
 
+def unpicklable_demo() -> None:
+    # Pickle records functions and classes by *name* ("module.qualname"),
+    # so they must be importable when loading. A lambda has no usable name.
+    same = pickle.loads(pickle.dumps(len)) is len
+    print(f"len is saved as the name 'builtins.len' and found again: {same}")
+
+    with tempfile.TemporaryFile() as handle:
+        things = {
+            "lambda": (lambda x: x + 1, "has no name to import it by"),
+            "generator": ((n for n in range(3)), "its paused state is not saved"),
+            "open file": (handle, "belongs to this running process"),
+            "lock": (threading.Lock(), "belongs to this running process"),
+        }
+        for label, (thing, reason) in things.items():
+            try:
+                pickle.dumps(thing)
+            except (pickle.PicklingError, TypeError, AttributeError) as exc:
+                # The exact exception type differs between Python versions.
+                print(f"  {label:<10} {type(exc).__name__:<14} {reason}")
+    # Files, locks and network connections belong to the running process;
+    # there is nothing meaningful to write down. Save their settings instead.
+
+
 def main() -> None:
     round_trip_demo()
+    print()
+    unpicklable_demo()
 
 
 if __name__ == "__main__":
