@@ -59,8 +59,38 @@ def create_and_insert_demo() -> None:
     conn.close()
 
 
+PETS = [
+    {"name": "Rex", "species": "dog", "age": 4},
+    {"name": "Tom", "species": "cat", "age": 7},
+    {"name": "Bella", "species": "dog", "age": 2},
+    {"name": "Nemo", "species": "fish", "age": None},
+]
+
+
+def rows_demo() -> None:
+    conn = make_db()
+    # :name placeholders are filled from a dict, handy when you have one.
+    for pet in PETS:
+        conn.execute("INSERT INTO pets (name, species, age) "
+                     "VALUES (:name, :species, :age)", pet)
+    conn.commit()
+
+    # row_factory = sqlite3.Row gives rows you can index by column name.
+    conn.row_factory = sqlite3.Row
+    query = "SELECT name, age FROM pets WHERE species = ? ORDER BY age"
+    # A cursor can be looped over directly, one row at a time.
+    for row in conn.execute(query, ("dog",)):
+        print(f"  {row['name']} is {row['age']}  (keys: {row.keys()})")
+
+    row = conn.execute("SELECT * FROM pets WHERE name = ?", ("Nemo",)).fetchone()
+    print(f"as a dict: {dict(row)}")
+    conn.close()
+
+
 def main() -> None:
     create_and_insert_demo()
+    print()
+    rows_demo()
 
 
 if __name__ == "__main__":
