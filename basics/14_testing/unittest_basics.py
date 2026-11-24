@@ -84,12 +84,33 @@ def fixtures_demo() -> None:
     run(StackWithFixture)
 
 
+def is_leap(year: int) -> bool:
+    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+
+
+class LeapYears(unittest.TestCase):
+    def test_known_years(self) -> None:
+        # subTest reports each failing row separately instead of stopping
+        # at the first one. One row below is deliberately wrong.
+        cases = {2000: True, 1900: False, 2024: True, 2023: True}
+        for year, expected in cases.items():
+            with self.subTest(year=year):
+                self.assertEqual(is_leap(year), expected)
+
+
+def failure_and_subtest_demo() -> None:
+    result = run(LeapYears)
+    print(f"failures recorded: {len(result.failures)} (2023 is not a leap year)")
+
+
 def main() -> None:
     first_tests_demo()
     print()
     exceptions_demo()
     print()
     fixtures_demo()
+    print()
+    failure_and_subtest_demo()
 
 
 if __name__ == "__main__":
