@@ -19,7 +19,9 @@ Byte counts differ a little between Python versions, so the demos round them
 or compare them.
 """
 
+import linecache
 import sys
+import tracemalloc
 
 
 def deep_size(items: list[str]) -> int:
@@ -43,8 +45,31 @@ def getsizeof_demo() -> None:
           f"getsizeof('') = {sys.getsizeof('')} bytes")
 
 
+def build_index(count: int) -> dict[int, str]:
+    return {n: f"record number {n:06d}" for n in range(count)}  # the big one
+
+
+def snapshot_demo() -> None:
+    tracemalloc.start()
+    before = tracemalloc.take_snapshot()
+    index = build_index(50_000)
+    after = tracemalloc.take_snapshot()
+    current, _peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
+    print(f"{len(index):,} records, traced memory now ~{current // 2**20} MB")
+    # compare_to groups the difference by source line, biggest first.
+    top = after.compare_to(before, "lineno")[0]
+    frame = top.traceback[0]
+    print(f"biggest growth: line {frame.lineno} of {frame.filename.split('/')[-1]}")
+    print(f"  that line allocated over 1 MB: {top.size_diff > 2**20}")
+    print(f"  source: {linecache.getline(frame.filename, frame.lineno).strip()}")
+
+
 def main() -> None:
     getsizeof_demo()
+    print()
+    snapshot_demo()
 
 
 if __name__ == "__main__":
