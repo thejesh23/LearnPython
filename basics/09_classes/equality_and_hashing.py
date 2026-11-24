@@ -99,12 +99,42 @@ def frozen_dataclass_demo() -> None:
         print(f"TypeError: {exc}")
 
 
+class User:
+    """Compared and hashed by id only, so renaming is safe in a set."""
+
+    def __init__(self, user_id: int, name: str) -> None:
+        self.user_id = user_id  # treated as read-only: it is the identity
+        self.name = name  # free to change
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, User):
+            return NotImplemented
+        return self.user_id == other.user_id
+
+    def __hash__(self) -> int:
+        return hash(self.user_id)
+
+    def __repr__(self) -> str:
+        return f"User({self.user_id}, {self.name!r})"
+
+
+def identity_key_demo() -> None:
+    ada = User(1, "Ada")
+    online = {ada, User(2, "Alan")}
+    ada.name = "Ada Lovelace"  # not part of the hash, so nothing breaks
+    print(f"still found after rename: {ada in online}")
+    print(f"same id, different name counts as equal: {User(1, 'A. L.') in online}")
+    print(f"members: {sorted(online, key=lambda u: u.user_id)}")
+
+
 def main() -> None:
     contract_demo()
     print()
     mutable_key_demo()
     print()
     frozen_dataclass_demo()
+    print()
+    identity_key_demo()
 
 
 if __name__ == "__main__":
