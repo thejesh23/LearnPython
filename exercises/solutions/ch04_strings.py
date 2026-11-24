@@ -53,10 +53,22 @@ def check_is_palindrome() -> None:
     report("3. is_palindrome", EXERCISES["test_is_palindrome"], is_palindrome)
 
 
+def mask_card(number: str) -> str:
+    # "*" * n is "" when n is zero or negative, and digits[-4:] is the whole
+    # string when it is short, so short numbers need no special case.
+    digits = number.replace(" ", "")
+    return "*" * (len(digits) - 4) + digits[-4:]
+
+
+def check_mask_card() -> None:
+    report("4. mask_card", EXERCISES["test_mask_card"], mask_card)
+
+
 def main() -> None:
     check_format_price()
     check_initials()
     check_is_palindrome()
+    check_mask_card()
 
 
 if __name__ == "__main__":
