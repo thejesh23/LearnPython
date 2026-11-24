@@ -26,6 +26,7 @@ Uses:
 import random
 import re
 import statistics
+import tempfile
 from collections import Counter
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -33,6 +34,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from pathlib import Path
 
 
 # path: (how often it is requested, typical response time in seconds)
@@ -211,12 +213,68 @@ def stats_demo() -> None:
     print(f"busiest minute: {minute:%H:%M} with {count} requests")
 
 
+def bar(count: int, biggest: int, width: int = 30) -> str:
+    return "#" * max(1, round(count / biggest * width)) if count else ""
+
+
+def format_report(stats: Stats, rejected: list[str]) -> str:
+    lines = ["ACCESS LOG REPORT", "================="]
+    first, last = min(stats.per_minute), max(stats.per_minute)
+    lines += [
+        f"period        {first:%Y-%m-%d %H:%M} to {last:%H:%M} UTC",
+        f"requests      {stats.total:,}",
+        f"bad lines     {len(rejected)}",
+        f"data sent     {stats.bytes_sent / 1_000_000:.1f} MB",
+        f"error rate    {error_rate(stats):.1%}",
+        "",
+        "Status codes",
+    ]
+    biggest = max(stats.statuses.values())
+    for code, count in sorted(stats.statuses.items()):
+        lines.append(f"  {code}  {count:>5}  {bar(count, biggest)}")
+
+    lines += ["", "Slowest paths          mean     p95"]
+    for path, mean, p95 in slowest_paths(stats, n=4):
+        lines.append(f"  {path:<18} {mean:>6.3f}s {p95:>6.3f}s")
+
+    lines += ["", "Requests per minute"]
+    biggest = max(stats.per_minute.values())
+    for minute, count in sorted(stats.per_minute.items()):
+        lines.append(f"  {minute:%H:%M}  {count:>4}  {bar(count, biggest)}")
+    return "\n".join(lines)
+
+
+def analyze_file(path: Path) -> tuple[Stats, list[str]]:
+    rejected: list[str] = []
+    # Iterating over a file yields one line at a time, so even a log far
+    # bigger than memory can be analyzed: nothing here keeps every line.
+    with path.open(encoding="utf-8") as f:
+        stats = analyze(parse_lines(f, rejected))
+    return stats, rejected
+
+
+def report_demo() -> None:
+    print("== stage 4: the report ==")
+    with tempfile.TemporaryDirectory() as tmp:
+        log_file = Path(tmp) / "access.log"
+        with log_file.open("w", encoding="utf-8") as f:
+            for line in generate_log(1000):
+                f.write(line + "\n")
+            f.write("this line was cut off by a crash\n")  # real logs get messy
+        print(f"wrote {log_file.name}: {log_file.stat().st_size:,} bytes")
+        stats, rejected = analyze_file(log_file)
+    print()
+    print(format_report(stats, rejected))
+
+
 def main() -> None:
     generate_demo()
     print()
     parse_demo()
     print()
     stats_demo()
+    print()
+    report_demo()
 
 
 if __name__ == "__main__":
