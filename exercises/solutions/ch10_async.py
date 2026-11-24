@@ -14,6 +14,7 @@ line by line; if the tests pass, it is a valid solution.
 
 import asyncio
 import runpy
+from collections.abc import AsyncIterator
 from collections.abc import Awaitable, Callable
 from pathlib import Path
 
@@ -64,10 +65,21 @@ def check_with_timeout() -> None:
     report("3. with_timeout", EXERCISES["test_with_timeout"], with_timeout)
 
 
+async def countdown(start: int, delay: float) -> AsyncIterator[int]:
+    for n in range(start, 0, -1):
+        await asyncio.sleep(delay)
+        yield n  # pauses here until the async for asks for the next value
+
+
+def check_countdown() -> None:
+    report("4. countdown", EXERCISES["test_countdown"], countdown)
+
+
 def main() -> None:
     check_add_later()
     check_fetch_all()
     check_with_timeout()
+    check_countdown()
 
 
 if __name__ == "__main__":
