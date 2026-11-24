@@ -32,8 +32,18 @@ def check_is_even() -> None:
     report("1. is_even", EXERCISES["test_is_even"], is_even)
 
 
+def in_range(x: float, low: float, high: float) -> bool:
+    # A chained comparison means (low <= x) and (x <= high).
+    return low <= x <= high
+
+
+def check_in_range() -> None:
+    report("2. in_range", EXERCISES["test_in_range"], in_range)
+
+
 def main() -> None:
     check_is_even()
+    check_in_range()
 
 
 if __name__ == "__main__":
