@@ -22,7 +22,11 @@ Uses:
     17_os_and_command_line  argparse subcommands, exit codes
 """
 
+import json
+import tempfile
+from dataclasses import asdict
 from dataclasses import dataclass, field
+from pathlib import Path
 
 
 class TodoError(Exception):
@@ -91,8 +95,48 @@ def model_demo() -> None:
         print(f"TodoError: {exc}")
 
 
+def save(todos: TodoList, path: Path) -> None:
+    data = {"next_id": todos.next_id, "tasks": [asdict(t) for t in todos.tasks]}
+    # Write to a side file, then rename: a crash mid-write cannot leave a
+    # half-written todo file behind.
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, indent=2))
+    tmp.replace(path)
+
+
+def load(path: Path) -> TodoList:
+    if not path.exists():
+        return TodoList()  # first run: start empty
+    try:
+        data = json.loads(path.read_text())
+        tasks = [Task(**item) for item in data["tasks"]]
+        return TodoList(tasks, data["next_id"])
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise TodoError(f"{path.name} is damaged: {exc}") from exc
+
+
+def persistence_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "todo.json"
+        todos = load(path)
+        print(f"fresh start: {len(todos.tasks)} tasks")
+        todos.add("water plants")
+        todos.complete(todos.add("call bank").id)
+        save(todos, path)
+        print(f"saved {path.name}: {path.read_text().count('title')} tasks")
+        print(f"reloaded equal to original: {load(path) == todos}")
+
+        path.write_text("{not json")
+        try:
+            load(path)
+        except TodoError as exc:
+            print(f"TodoError: {exc}")
+
+
 def main() -> None:
     model_demo()
+    print()
+    persistence_demo()
 
 
 if __name__ == "__main__":
