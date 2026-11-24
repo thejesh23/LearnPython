@@ -145,10 +145,67 @@ def timeout_demo() -> None:
         print(f"timeout=2.0: {get_json(f'{base}/slow', timeout=2.0)}")
 
 
+FLAKY_FAILURES_LEFT = {"count": 0}
+
+
+@route("flaky")
+def flaky(parts: list[str]) -> tuple[int, Any]:
+    # Fails a set number of times, then recovers: like a server restarting.
+    if FLAKY_FAILURES_LEFT["count"] > 0:
+        FLAKY_FAILURES_LEFT["count"] -= 1
+        return 503, {"error": "service unavailable, try later"}
+    return 200, {"status": "ok"}
+
+
+@route("down")
+def down(parts: list[str]) -> tuple[int, Any]:
+    return 503, {"error": "down for maintenance"}
+
+
+def is_retryable(exc: ApiError) -> bool:
+    # No response (timeout, refused) or a server-side 5xx: might go away.
+    # A 4xx means the request itself is wrong; sending it again will not help.
+    return exc.status is None or exc.status >= 500
+
+
+def get_with_retries(
+    url: str, *, attempts: int = 4, base_delay: float = 0.05
+) -> Any:
+    for attempt in range(1, attempts + 1):
+        try:
+            return get_json(url, timeout=1.0)
+        except ApiError as exc:
+            if not is_retryable(exc) or attempt == attempts:
+                raise
+            # Exponential backoff: 0.05s, 0.1s, 0.2s, ... so a struggling
+            # server gets more breathing room each time. Real clients also add
+            # a little random "jitter" so many clients do not retry in step.
+            delay = base_delay * 2 ** (attempt - 1)
+            print(f"  attempt {attempt} failed ({exc}); waiting {delay:.2f}s")
+            time.sleep(delay)
+    raise AssertionError("unreachable")
+
+
+def retry_demo() -> None:
+    with local_api() as base:
+        FLAKY_FAILURES_LEFT["count"] = 2
+        print("flaky endpoint (fails twice):")
+        print(f"  result: {get_with_retries(f'{base}/flaky')}")
+
+        for path in ("/down", "/books/99"):
+            print(f"{path}:")
+            try:
+                get_with_retries(base + path)
+            except ApiError as exc:
+                print(f"  gave up: {exc}")
+
+
 def main() -> None:
     client_demo()
     print()
     timeout_demo()
+    print()
+    retry_demo()
 
 
 if __name__ == "__main__":
