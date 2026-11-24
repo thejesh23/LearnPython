@@ -19,7 +19,9 @@ to extract. Everything is written inside a TemporaryDirectory.
 """
 
 import gzip
+import io
 import random
+import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
@@ -101,10 +103,43 @@ def zipfile_demo() -> None:
             print(f"extracted {sum(1 for p in out.rglob('*') if p.is_file())} files")
 
 
+def tarfile_demo() -> None:
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder)
+        src = make_files(root)
+        archive = root / "report.tar.gz"
+        # "w:gz" means: write a tar, gzip the whole thing.
+        with tarfile.open(archive, "w:gz") as tf:
+            tf.add(src, arcname="report")  # adds the folder recursively
+        with tarfile.open(archive, "r:gz") as tf:
+            names = sorted(m.name for m in tf.getmembers() if m.isfile())
+            print(f"tar.gz is {archive.stat().st_size} bytes, files: {names}")
+            # filter="data" refuses links and paths that escape the folder.
+            tf.extractall(root / "untarred", filter="data")
+        print(f"extracted: {(root / 'untarred/report/README.txt').exists()}")
+
+        # Build a malicious archive whose member tries to climb out.
+        evil = root / "evil.tar"
+        with tarfile.open(evil, "w") as tf:
+            payload = b"gotcha\n"
+            info = tarfile.TarInfo("../outside.txt")
+            info.size = len(payload)
+            tf.addfile(info, io.BytesIO(payload))
+        with tarfile.open(evil) as tf:
+            try:
+                tf.extractall(root / "safe", filter="data")
+            except tarfile.FilterError as exc:
+                # The message names the full temp path, so print just the type.
+                print(f"'../outside.txt' blocked: {type(exc).__name__}")
+        print(f"nothing written outside: {not (root / 'outside.txt').exists()}")
+
+
 def main() -> None:
     gzip_demo()
     print()
     zipfile_demo()
+    print()
+    tarfile_demo()
 
 
 if __name__ == "__main__":
