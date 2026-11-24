@@ -11,6 +11,7 @@ say [solved].
 """
 
 import runpy
+from collections.abc import Callable
 from pathlib import Path
 
 
@@ -68,11 +69,30 @@ def check_by_last_name() -> None:
     report("4. by_last_name", EXERCISES["test_by_last_name"], by_last_name)
 
 
+def make_accumulator(start: float = 0) -> Callable[[float], float]:
+    # Each call of make_accumulator creates a new `total`, and the inner
+    # function closes over that one. nonlocal lets it assign to it.
+    total = start
+
+    def add(amount: float) -> float:
+        nonlocal total
+        total += amount
+        return total
+
+    return add
+
+
+def check_make_accumulator() -> None:
+    report("5. make_accumulator", EXERCISES["test_make_accumulator"],
+           make_accumulator)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
     check_append_to()
     check_by_last_name()
+    check_make_accumulator()
 
 
 if __name__ == "__main__":
