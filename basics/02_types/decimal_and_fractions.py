@@ -20,6 +20,7 @@ import math
 from decimal import Decimal
 from decimal import ROUND_HALF_EVEN
 from decimal import ROUND_HALF_UP
+from fractions import Fraction
 
 
 def float_error_demo() -> None:
@@ -96,12 +97,39 @@ def rounding_modes_demo() -> None:
     print(f"Decimal quantize = {to_cents(Decimal('2.675'))}   (Decimal, HALF_UP)")
 
 
+def fraction_demo() -> None:
+    # A Fraction is a numerator over a denominator, always kept in lowest terms.
+    half = Fraction(1, 2)
+    third = Fraction(1, 3)
+    print(f"1/2 + 1/3 = {half + third}")
+    print(f"Fraction(6, 8) = {Fraction(6, 8)}   (reduced automatically)")
+
+    # 1/3 has no exact decimal, but as a Fraction three of them make exactly 1.
+    print(f"1/3 + 1/3 + 1/3 == 1 -> {third + third + third == 1}")
+    tenth = Fraction(1, 10)
+    print(f"Fraction: 3 * 1/10 == 3/10 -> {3 * tenth == Fraction(3, 10)}")
+    print(f"float:    3 * 0.1 == 0.3   -> {3 * 0.1 == 0.3}")
+
+    # Splitting a recipe: scale 3/4 cup by 2/3 with no rounding at all.
+    scaled = Fraction(3, 4) * Fraction(2, 3)
+    print(f"3/4 cup scaled by 2/3 = {scaled} cup")
+    print(f"numerator={scaled.numerator}, denominator={scaled.denominator}")
+
+    # Convert at the edges: in from text, out to float only for display.
+    print(f"Fraction('0.125') = {Fraction('0.125')}")
+    print(f"float(Fraction(22, 7)) = {float(Fraction(22, 7)):.5f}")
+    # limit_denominator finds the nearest simple fraction to a float.
+    print(f"0.333 is close to {Fraction(0.333).limit_denominator(10)}")
+
+
 def main() -> None:
     float_error_demo()
     print()
     decimal_money_demo()
     print()
     rounding_modes_demo()
+    print()
+    fraction_demo()
 
 
 if __name__ == "__main__":
