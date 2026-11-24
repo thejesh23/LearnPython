@@ -12,9 +12,12 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import json
 import runpy
 import socket
 from pathlib import Path
+from typing import Any
+from urllib.error import HTTPError
 from urllib.parse import parse_qs
 from urllib.parse import parse_qsl
 from urllib.parse import urlencode
@@ -84,11 +87,33 @@ def check_handle_lines() -> None:
     report("4. handle_lines", EXERCISES["test_handle_lines"], handle_lines)
 
 
+OPENER = EXERCISES["OPENER"]  # the proxy-free opener from the exercise file
+
+
+def fetch_json(url: str, attempts: int = 3) -> Any:
+    for attempt in range(1, attempts + 1):
+        try:
+            with OPENER.open(url, timeout=5) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except HTTPError as error:
+            # 4xx: our request is wrong, asking again will not help.
+            # Out of attempts: give up with the last error.
+            if error.code < 500 or attempt == attempts:
+                raise
+            error.close()  # free the connection before retrying
+    raise ValueError("attempts must be at least 1")
+
+
+def check_fetch_json() -> None:
+    report("5. fetch_json", EXERCISES["test_fetch_json"], fetch_json)
+
+
 def main() -> None:
     check_get_param()
     check_add_params()
     check_send_and_receive()
     check_handle_lines()
+    check_fetch_json()
 
 
 if __name__ == "__main__":
