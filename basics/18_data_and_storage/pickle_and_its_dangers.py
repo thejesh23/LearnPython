@@ -17,6 +17,7 @@ deletes files. Loading a pickle runs code chosen by whoever made it, so:
 """
 
 import pickle
+import pickletools
 import tempfile
 import threading
 from dataclasses import dataclass
@@ -79,10 +80,37 @@ def unpicklable_demo() -> None:
     # there is nothing meaningful to write down. Save their settings instead.
 
 
+class Sneaky:
+    """An object whose pickle says: "to rebuild me, call print(...)"."""
+
+    def __reduce__(self) -> tuple:
+        # pickle stores this callable and its arguments, and loads() calls it.
+        # A real attacker would return (os.system, ("some command",)).
+        return (print, ("  !! this line was printed by pickle.loads !!",))
+
+
+def danger_demo() -> None:
+    blob = pickle.dumps(Sneaky())
+    # Disassembling shows that a pickle is a little program, not just data:
+    # push 'builtins' and 'print', look the function up, then call it (REDUCE).
+    print("the pickle's instructions:")
+    for op, arg, _ in pickletools.genops(blob):
+        if op.name not in ("PROTO", "FRAME", "MEMOIZE", "STOP"):
+            print(f"  {op.name:<18} {'' if arg is None else repr(arg)}".rstrip())
+
+    print("now loading it:")
+    result = pickle.loads(blob)  # calls print; it does not rebuild a Sneaky
+    print(f"loads returned {result!r}, not a Sneaky object")
+    # Nothing in the file name or size warns you. Checking it "looks okay"
+    # is not enough: only unpickle data that you wrote yourself.
+
+
 def main() -> None:
     round_trip_demo()
     print()
     unpicklable_demo()
+    print()
+    danger_demo()
 
 
 if __name__ == "__main__":
