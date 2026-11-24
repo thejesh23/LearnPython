@@ -17,6 +17,7 @@ import io
 import sys
 import tempfile
 from contextlib import ExitStack
+from contextlib import closing
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
@@ -64,10 +65,40 @@ def redirect_demo() -> None:
     # C library goes straight to the real stdout.
 
 
+class LegacyClient:
+    """Has close() but no __enter__/__exit__, so `with` would fail."""
+
+    def __init__(self) -> None:
+        self.closed = False
+
+    def fetch(self) -> str:
+        if self.closed:
+            raise RuntimeError("client is closed")
+        return "data"
+
+    def close(self) -> None:
+        self.closed = True
+
+
+def closing_demo() -> None:
+    try:
+        with LegacyClient():  # type: ignore[attr-defined]
+            pass
+    except TypeError as exc:
+        print(f"plain with: TypeError: {exc}")
+
+    # closing(x) calls x.close() at the end of the block, even on an error.
+    with closing(LegacyClient()) as client:
+        print(f"fetched {client.fetch()!r}")
+    print(f"closed afterwards: {client.closed}")
+
+
 def main() -> None:
     exit_stack_demo()
     print()
     redirect_demo()
+    print()
+    closing_demo()
 
 
 if __name__ == "__main__":
