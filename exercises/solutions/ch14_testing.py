@@ -16,6 +16,7 @@ import runpy
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -54,9 +55,22 @@ def check_assert_raises() -> None:
     report("2. assert_raises", EXERCISES["test_assert_raises"], assert_raises)
 
 
+def check_send_welcome(send_welcome: Callable[[str, Any], None]) -> None:
+    mailer = Mock()  # accepts any call and records it
+    send_welcome("ana@example.com", mailer)
+    # Checks the call count (exactly one) and the exact arguments together.
+    mailer.send.assert_called_once_with(to="ana@example.com", subject="Welcome!")
+
+
+def check_check_send_welcome() -> None:
+    report("3. check_send_welcome", EXERCISES["test_check_send_welcome"],
+           check_send_welcome)
+
+
 def main() -> None:
     check_check_is_leap()
     check_assert_raises()
+    check_check_send_welcome()
 
 
 if __name__ == "__main__":
