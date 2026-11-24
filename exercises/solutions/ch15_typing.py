@@ -78,11 +78,32 @@ def check_compose() -> None:
     report("4. compose[A, B, C]", EXERCISES["test_compose"], compose)
 
 
+class Registry[T]:
+    def __init__(self) -> None:
+        self._items: dict[str, T] = {}
+
+    def register(self, name: str, item: T) -> None:
+        if name in self._items:
+            raise ValueError(f"{name!r} is already registered")
+        self._items[name] = item
+
+    def get(self, name: str) -> T:
+        return self._items[name]  # a missing name raises KeyError(name)
+
+    def names(self) -> list[str]:
+        return sorted(self._items)
+
+
+def check_registry() -> None:
+    report("5. Registry[T]", EXERCISES["test_registry"], Registry)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
     check_double()
     check_compose()
+    check_registry()
 
 
 if __name__ == "__main__":
