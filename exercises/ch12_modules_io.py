@@ -22,6 +22,7 @@ import json
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 
@@ -217,11 +218,50 @@ def check_csv_totals() -> None:
     report("4. csv_totals", test_csv_totals, csv_totals)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def load_module(path: Path, name: str) -> ModuleType:
+    """Import the Python file at `path` as a module called `name`.
+
+    Plugins and config files written in Python are loaded this way. The
+    three steps, all from importlib.util:
+        spec = spec_from_file_location(name, path)
+        module = module_from_spec(spec)
+        spec.loader.exec_module(module)   # runs the file, top to bottom
+    """
+    raise NotImplementedError
+
+
+def test_load_module(impl: Callable[[Path, str], ModuleType]) -> None:
+    source = (
+        'GREETING = "hello"\n'
+        "LOADED = []\n"
+        "LOADED.append('ran once')\n"
+        "\n"
+        "def add(a, b):\n"
+        "    return a + b\n"
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "plugin.py"
+        path.write_text(source, encoding="utf-8")
+        module = impl(path, "my_plugin")
+        assert isinstance(module, ModuleType), f"return a module, got {module!r}"
+        assert module.__name__ == "my_plugin", "the module should be named my_plugin"
+        assert module.GREETING == "hello", "top-level names should be attributes"
+        assert module.add(2, 3) == 5, "functions in the file should be callable"
+        assert module.LOADED == ["ran once"], "loading should run the file once"
+
+
+def check_load_module() -> None:
+    report("5. load_module", test_load_module, load_module)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
     check_load_settings()
     check_csv_totals()
+    check_load_module()
 
 
 if __name__ == "__main__":
