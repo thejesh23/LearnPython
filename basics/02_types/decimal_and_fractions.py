@@ -18,6 +18,7 @@ goes further into float limits and precision contexts.
 
 import math
 from decimal import Decimal
+from decimal import ROUND_HALF_UP
 
 
 def float_error_demo() -> None:
@@ -43,8 +44,41 @@ def float_error_demo() -> None:
           f"{math.isclose(tiny, 0.0, abs_tol=1e-9)}")
 
 
+def to_cents(amount: Decimal) -> Decimal:
+    """Round a money amount to two decimal places, halves rounding up."""
+    return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def decimal_money_demo() -> None:
+    # Build a Decimal from a string. From a float you inherit the float's error.
+    print(f"Decimal('0.1') = {Decimal('0.1')}")
+    print(f"Decimal(0.1)   = {Decimal(0.1)}")
+
+    print(f"Decimal 0.1 + 0.2 == 0.3 -> "
+          f"{Decimal('0.1') + Decimal('0.2') == Decimal('0.3')}")
+
+    # A small invoice. Decimal keeps every digit, so totals are exact.
+    prices = [Decimal("19.99"), Decimal("5.25"), Decimal("0.10")]
+    subtotal = sum(prices, Decimal("0"))
+    print(f"subtotal = {subtotal}")
+
+    # Multiplying adds decimal places; quantize brings it back to cents.
+    discount = subtotal * Decimal("0.15")
+    print(f"15% discount, raw     = {discount}")
+    print(f"15% discount, rounded = {to_cents(discount)}")
+    print(f"amount due            = {subtotal - to_cents(discount)}")
+
+    # Mixing Decimal with float is refused, so errors cannot sneak back in.
+    try:
+        Decimal("1.10") + 0.1  # type: ignore[operator]
+    except TypeError as exc:
+        print(f"TypeError: {exc}")
+
+
 def main() -> None:
     float_error_demo()
+    print()
+    decimal_money_demo()
 
 
 if __name__ == "__main__":
