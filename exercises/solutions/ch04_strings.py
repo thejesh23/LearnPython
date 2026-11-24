@@ -43,9 +43,20 @@ def check_initials() -> None:
     report("2. initials", EXERCISES["test_initials"], initials)
 
 
+def is_palindrome(text: str) -> bool:
+    # Normalise first, then compare with the reversed copy s[::-1].
+    cleaned = text.replace(" ", "").lower()
+    return cleaned == cleaned[::-1]
+
+
+def check_is_palindrome() -> None:
+    report("3. is_palindrome", EXERCISES["test_is_palindrome"], is_palindrome)
+
+
 def main() -> None:
     check_format_price()
     check_initials()
+    check_is_palindrome()
 
 
 if __name__ == "__main__":
