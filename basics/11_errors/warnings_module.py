@@ -73,10 +73,30 @@ def filters_demo() -> None:
     print(f"'once' turned 3 identical warnings into {len(caught)}")
 
 
+def as_errors_demo() -> None:
+    # "error" raises the warning as an exception. Test suites often run with
+    # -W error so deprecated calls fail loudly before the API is removed.
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        try:
+            old_total([1.0])
+        except DeprecationWarning as exc:
+            print(f"raised as an exception: DeprecationWarning: {exc}")
+
+    # catch_warnings restored the old filters on exit, so the "error" rule
+    # is gone and the same call only warns again.
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        old_total([1.0])
+    print(f"once the block ends it is just a warning: {len(caught)} recorded")
+
+
 def main() -> None:
     warn_demo()
     print()
     filters_demo()
+    print()
+    as_errors_demo()
 
 
 if __name__ == "__main__":
