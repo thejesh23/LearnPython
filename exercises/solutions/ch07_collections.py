@@ -57,10 +57,25 @@ def check_word_counts() -> None:
     report("3. word_counts", EXERCISES["test_word_counts"], word_counts)
 
 
+def group_by_length(words: list[str]) -> dict[int, list[str]]:
+    # setdefault returns the existing list, or inserts and returns a new
+    # one, so a single line both creates and appends.
+    groups: dict[int, list[str]] = {}
+    for word in words:
+        groups.setdefault(len(word), []).append(word)
+    return groups
+
+
+def check_group_by_length() -> None:
+    report("4. group_by_length", EXERCISES["test_group_by_length"],
+           group_by_length)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
     check_word_counts()
+    check_group_by_length()
 
 
 if __name__ == "__main__":
