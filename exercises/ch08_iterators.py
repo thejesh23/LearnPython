@@ -237,12 +237,48 @@ def check_run_lengths() -> None:
     report("5. run_lengths", test_run_lengths, run_lengths)
 
 
+def interleave(*iterables: Iterable[Any]) -> Iterator[Any]:
+    """Yield one item from each iterable in turn, skipping finished ones.
+
+    list(interleave("abc", [1, 2]))  -> ["a", 1, "b", 2, "c"]
+    list(interleave([], "xy", [0]))  -> ["x", 0, "y"]
+    list(interleave())               -> []
+
+    Hint: turn each iterable into an iterator with iter(), then take turns
+    calling next() on them. next(it, default) tells you when one runs out.
+    """
+    raise NotImplementedError
+
+
+def test_interleave(fn: Callable[..., Any]) -> None:
+    cases = [
+        (("abc", [1, 2]), ["a", 1, "b", 2, "c"]),
+        (([], "xy", [0]), ["x", 0, "y"]),
+        ((), []),
+        (([1, 2, 3],), [1, 2, 3]),
+        (([None, None], [0]), [None, 0, None]),
+    ]
+    for args, want in cases:
+        got = list(fn(*args))
+        assert got == want, f"list(interleave{args}) gave {got!r}, expected {want!r}"
+    got = list(fn((n for n in range(3)), "ab"))
+    assert got == [0, "a", 1, "b", 2], (
+        f"interleave of a generator over range(3) and 'ab' gave {got!r}, "
+        "expected [0, 'a', 1, 'b', 2]"
+    )
+
+
+def check_interleave() -> None:
+    report("6. interleave", test_interleave, interleave)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
     check_running_total()
     check_chunks()
     check_run_lengths()
+    check_interleave()
 
 
 if __name__ == "__main__":
