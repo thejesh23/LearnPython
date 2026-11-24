@@ -216,10 +216,48 @@ def movements_demo() -> None:
             print(f"ValueError: {exc}")
 
 
+def low_stock(inv: Inventory) -> list[tuple[Product, int]]:
+    """Products at or below their reorder level, emptiest first."""
+    rows = [
+        (product, inv.on_hand(sku))
+        for sku, product in inv.products.items()
+        if inv.on_hand(sku) <= product.reorder_level
+    ]
+    return sorted(rows, key=lambda row: (row[1], row[0].sku))
+
+
+def stock_report(inv: Inventory) -> str:
+    lines = [f"{'SKU':<8}{'product':<18}{'on hand':>8}{'value':>10}"]
+    total = Decimal("0")
+    for sku, product in sorted(inv.products.items()):
+        qty = inv.on_hand(sku)
+        value = product.price * qty
+        total += value
+        lines.append(f"{sku:<8}{product.name:<18}{qty:>8}{value:>10.2f}")
+    lines.append(f"{'total stock value':<34}{total:>10.2f}")
+
+    lines += ["", "Reorder now:"]
+    for product, qty in low_stock(inv):
+        # Suggest enough to get back to twice the reorder level.
+        suggest = product.reorder_level * 2 - qty
+        lines.append(
+            f"  {product.sku:<8} {qty} left (level {product.reorder_level}),"
+            f" order {suggest}"
+        )
+    return "\n".join(lines)
+
+
+def report_demo() -> None:
+    print("== stage 3: reports ==")
+    print(stock_report(sample_inventory()))
+
+
 def main() -> None:
     products_demo()
     print()
     movements_demo()
+    print()
+    report_demo()
 
 
 if __name__ == "__main__":
