@@ -14,7 +14,9 @@ line by line; if the tests pass, it is a valid solution.
 
 import math
 import runpy
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -104,10 +106,33 @@ def check_vector() -> None:
     report("3. Vector", EXERCISES["test_vector"], Vector)
 
 
+@dataclass(frozen=True, order=True)
+class Version:
+    major: int
+    minor: int
+    patch: int = 0
+
+    @classmethod
+    def from_string(cls, text: str) -> Self:
+        parts = text.split(".")
+        if len(parts) not in (2, 3):
+            raise ValueError(f"expected 'major.minor[.patch]', got {text!r}")
+        # int() raises ValueError for non-numbers, which is what we want.
+        return cls(*(int(part) for part in parts))
+
+    def __str__(self) -> str:
+        return f"{self.major}.{self.minor}.{self.patch}"
+
+
+def check_version() -> None:
+    report("4. Version.from_string", EXERCISES["test_version"], Version)
+
+
 def main() -> None:
     check_rectangle()
     check_bank_account()
     check_vector()
+    check_version()
 
 
 if __name__ == "__main__":
