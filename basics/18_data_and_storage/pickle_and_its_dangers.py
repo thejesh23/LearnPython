@@ -16,6 +16,7 @@ deletes files. Loading a pickle runs code chosen by whoever made it, so:
 `shelve`, at the end, is a dict that lives on disk and pickles its values.
 """
 
+import json
 import pickle
 import pickletools
 import tempfile
@@ -105,12 +106,36 @@ def danger_demo() -> None:
     # is not enough: only unpickle data that you wrote yourself.
 
 
+def task_to_json(task: Task) -> str:
+    # JSON has no date or set, so convert them to plain types explicitly.
+    return json.dumps({"title": task.title, "due": task.due.isoformat(),
+                       "tags": sorted(task.tags)})
+
+
+def task_from_json(text: str) -> Task:
+    raw = json.loads(text)  # can only ever produce dicts, lists, str, numbers
+    return Task(raw["title"], date.fromisoformat(raw["due"]), set(raw["tags"]))
+
+
+def json_instead_demo() -> None:
+    task = Task("file taxes", date(2026, 4, 15), {"home", "money"})
+    text = task_to_json(task)
+    print(f"JSON is readable text: {text}")
+    print(f"round trip equal: {task_from_json(text) == task}")
+    sizes = len(text.encode()), len(pickle.dumps(task))
+    print(f"size: json {sizes[0]} bytes, pickle {sizes[1]} bytes")
+    # More code than pickle, but loading it can never run anything, and
+    # JavaScript, Go or a human with a text editor can read it too.
+
+
 def main() -> None:
     round_trip_demo()
     print()
     unpicklable_demo()
     print()
     danger_demo()
+    print()
+    json_instead_demo()
 
 
 if __name__ == "__main__":
