@@ -18,6 +18,7 @@ for this chapter are in basics/14_testing/.
 """
 
 import time
+import unittest
 from collections.abc import Callable
 from typing import Any
 
@@ -255,11 +256,116 @@ def check_greeting_at() -> None:
     report("4. greeting_at", test_greeting_at, greeting_at)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+class Stack:
+    """Given, complete: the stack that StackTests below should test."""
+
+    def __init__(self) -> None:
+        self._items: list[Any] = []
+
+    def push(self, item: Any) -> None:
+        self._items.append(item)
+
+    def pop(self) -> Any:
+        if not self._items:
+            raise IndexError("pop from an empty stack")
+        return self._items.pop()
+
+    def peek(self) -> Any:
+        if not self._items:
+            raise IndexError("peek at an empty stack")
+        return self._items[-1]
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+
+class StackTests(unittest.TestCase):
+    """Write test_... methods for Stack until every bug below is caught.
+
+    Get a fresh stack with self.make_stack(), never Stack() directly: the
+    checker runs your tests against the real Stack and against buggy
+    copies, and make_stack is how it swaps them in. The bugs to catch:
+      - pop returns the oldest item instead of the newest
+      - peek removes the item it shows
+      - len() does not go down after a pop
+      - pop on an empty stack returns None instead of raising IndexError
+    Useful: self.assertEqual(a, b), and `with self.assertRaises(IndexError):`.
+    Replace the stub method below with as many tests as you need.
+    """
+
+    def make_stack(self) -> Stack:
+        return Stack()
+
+    def test_push_then_pop(self) -> None:
+        raise NotImplementedError
+
+
+def test_stack_tests(impl: type) -> None:
+    class OldestFirst(Stack):
+        def pop(self) -> Any:
+            if not self._items:
+                raise IndexError("pop from an empty stack")
+            return self._items.pop(0)
+
+    class PeekRemoves(Stack):
+        def peek(self) -> Any:
+            return self.pop()
+
+    class LenCountsPushes(Stack):
+        def __init__(self) -> None:
+            super().__init__()
+            self.pushes = 0
+
+        def push(self, item: Any) -> None:
+            super().push(item)
+            self.pushes += 1
+
+        def __len__(self) -> int:
+            return self.pushes
+
+    class SilentEmptyPop(Stack):
+        def pop(self) -> Any:
+            return self._items.pop() if self._items else None
+
+    def run_with(stack_class: type) -> unittest.TestResult:
+        # Subclass the learner's TestCase so make_stack builds `stack_class`.
+        case = type("Checked", (impl,), {"make_stack": lambda self: stack_class()})
+        result = unittest.TestResult()
+        unittest.defaultTestLoader.loadTestsFromTestCase(case).run(result)
+        return result
+
+    result = run_with(Stack)
+    problems = result.errors + result.failures
+    if any("NotImplementedError" in trace for _, trace in problems):
+        raise NotImplementedError
+    assert result.testsRun > 0, "write at least one test_... method"
+    if problems:
+        last_line = problems[0][1].strip().splitlines()[-1]
+        raise AssertionError(f"a test fails on the correct Stack: {last_line}")
+    bugs = {
+        "pop returns the oldest item": OldestFirst,
+        "peek removes the item": PeekRemoves,
+        "len() ignores pops": LenCountsPushes,
+        "pop on empty returns None": SilentEmptyPop,
+    }
+    for description, buggy in bugs.items():
+        assert not run_with(buggy).wasSuccessful(), (
+            f"no test caught the bug: {description}"
+        )
+
+
+def check_stack_tests() -> None:
+    report("5. StackTests", test_stack_tests, StackTests)
+
+
 def main() -> None:
     check_check_is_leap()
     check_assert_raises()
     check_check_send_welcome()
     check_greeting_at()
+    check_stack_tests()
 
 
 if __name__ == "__main__":
