@@ -87,8 +87,52 @@ def check_safe_int() -> None:
     report("1. safe_int", test_safe_int, safe_int)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def parse_age(text: str) -> int:
+    """Parse an age between 0 and 150, raising ValueError with a clear message.
+
+    - Not a whole number: raise ValueError("age must be a whole number, got
+      'abc'") *from* the original error, so the traceback keeps the cause.
+    - Outside 0..150: raise ValueError("age out of range: 200").
+
+    >>> parse_age("30")
+    30
+    """
+    raise NotImplementedError
+
+
+def test_parse_age(impl: Callable[[str], int]) -> None:
+    for text, expected in [("30", 30), ("0", 0), ("150", 150)]:
+        got = impl(text)
+        assert got == expected, f"parse_age({text!r}) should be {expected}, got {got}"
+    try:
+        impl("abc")
+    except ValueError as exc:
+        expected = "age must be a whole number, got 'abc'"
+        assert str(exc) == expected, f"message was {str(exc)!r}, not {expected!r}"
+        assert isinstance(exc.__cause__, ValueError), (
+            "use 'raise ... from exc' so the original error is kept as the cause"
+        )
+    else:
+        raise AssertionError("parse_age('abc') should raise ValueError")
+    for text in ("-1", "151"):
+        try:
+            impl(text)
+        except ValueError as exc:
+            expected = f"age out of range: {text}"
+            assert str(exc) == expected, f"message was {str(exc)!r}, not {expected!r}"
+        else:
+            raise AssertionError(f"parse_age({text!r}) should raise ValueError")
+
+
+def check_parse_age() -> None:
+    report("2. parse_age", test_parse_age, parse_age)
+
+
 def main() -> None:
     check_safe_int()
+    check_parse_age()
 
 
 if __name__ == "__main__":
