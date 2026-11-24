@@ -40,8 +40,24 @@ def check_fizzbuzz() -> None:
     report("1. fizzbuzz", EXERCISES["test_fizzbuzz"], fizzbuzz)
 
 
+def sum_of_multiples(limit: int) -> int:
+    # range(limit) stops just below limit; `continue` skips the rest.
+    total = 0
+    for n in range(limit):
+        if n % 3 != 0 and n % 5 != 0:
+            continue
+        total += n
+    return total
+
+
+def check_sum_of_multiples() -> None:
+    report("2. sum_of_multiples", EXERCISES["test_sum_of_multiples"],
+           sum_of_multiples)
+
+
 def main() -> None:
     check_fizzbuzz()
+    check_sum_of_multiples()
 
 
 if __name__ == "__main__":
