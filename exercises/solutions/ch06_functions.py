@@ -58,10 +58,21 @@ def check_append_to() -> None:
     report("3. append_to", EXERCISES["test_append_to"], append_to)
 
 
+def by_last_name(names: list[str]) -> list[str]:
+    # sorted() returns a new list and leaves the input alone, and it is
+    # stable, so equal last names stay in their original order.
+    return sorted(names, key=lambda name: name.split()[-1])
+
+
+def check_by_last_name() -> None:
+    report("4. by_last_name", EXERCISES["test_by_last_name"], by_last_name)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
     check_append_to()
+    check_by_last_name()
 
 
 if __name__ == "__main__":
