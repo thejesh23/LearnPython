@@ -13,6 +13,7 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import runpy
+import unittest
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -83,11 +84,52 @@ def check_greeting_at() -> None:
     report("4. greeting_at", EXERCISES["test_greeting_at"], greeting_at)
 
 
+Stack = EXERCISES["Stack"]
+
+
+class StackTests(unittest.TestCase):
+    def make_stack(self) -> Stack:
+        return Stack()
+
+    # One small test per behaviour, so a failure names the broken behaviour.
+    def test_pop_returns_newest(self) -> None:
+        stack = self.make_stack()
+        stack.push(1)
+        stack.push(2)
+        self.assertEqual(stack.pop(), 2)
+        self.assertEqual(stack.pop(), 1)
+
+    def test_peek_does_not_remove(self) -> None:
+        stack = self.make_stack()
+        stack.push("a")
+        self.assertEqual(stack.peek(), "a")
+        self.assertEqual(len(stack), 1)
+        self.assertEqual(stack.pop(), "a")
+
+    def test_len_follows_push_and_pop(self) -> None:
+        stack = self.make_stack()
+        self.assertEqual(len(stack), 0)
+        stack.push(1)
+        stack.push(2)
+        stack.pop()
+        self.assertEqual(len(stack), 1)
+
+    def test_pop_empty_raises(self) -> None:
+        stack = self.make_stack()
+        with self.assertRaises(IndexError):
+            stack.pop()
+
+
+def check_stack_tests() -> None:
+    report("5. StackTests", EXERCISES["test_stack_tests"], StackTests)
+
+
 def main() -> None:
     check_check_is_leap()
     check_assert_raises()
     check_check_send_welcome()
     check_greeting_at()
+    check_stack_tests()
 
 
 if __name__ == "__main__":
