@@ -72,11 +72,22 @@ def check_chunks() -> None:
     report("4. chunks", EXERCISES["test_chunks"], chunks)
 
 
+def run_lengths(text: str) -> list[tuple[str, int]]:
+    # groupby yields (key, group) for each run of equal characters. The
+    # group is an iterator, so count it by consuming it.
+    return [(ch, len(list(group))) for ch, group in itertools.groupby(text)]
+
+
+def check_run_lengths() -> None:
+    report("5. run_lengths", EXERCISES["test_run_lengths"], run_lengths)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
     check_running_total()
     check_chunks()
+    check_run_lengths()
 
 
 if __name__ == "__main__":
