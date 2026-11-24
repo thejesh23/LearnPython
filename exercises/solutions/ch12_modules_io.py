@@ -34,8 +34,21 @@ def check_count_lines() -> None:
     report("1. count_lines", EXERCISES["test_count_lines"], count_lines)
 
 
+def write_scores(path: Path, scores: dict[str, int]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Negate the score so one ascending sort gives "best first, then by name".
+    ranked = sorted(scores.items(), key=lambda pair: (-pair[1], pair[0]))
+    lines = [f"{name}: {score}\n" for name, score in ranked]
+    path.write_text("".join(lines), encoding="utf-8")
+
+
+def check_write_scores() -> None:
+    report("2. write_scores", EXERCISES["test_write_scores"], write_scores)
+
+
 def main() -> None:
     check_count_lines()
+    check_write_scores()
 
 
 if __name__ == "__main__":
