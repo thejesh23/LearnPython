@@ -105,9 +105,39 @@ def check_rotate_left() -> None:
     report("2. rotate_left", test_rotate_left, rotate_left)
 
 
+def ends(items: list[Any]) -> tuple[Any, Any]:
+    """Return the first and last item of a list as a tuple.
+
+    The list always has at least two items.
+
+    ends([1, 2, 3, 4, 5]) -> (1, 5)
+    ends(["a", "b"])      -> ("a", "b")
+
+    Hint: a starred name can soak up everything in the middle.
+    """
+    raise NotImplementedError
+
+
+def test_ends(fn: Callable[..., Any]) -> None:
+    cases = [
+        ([1, 2, 3, 4, 5], (1, 5)),
+        (["a", "b"], ("a", "b")),
+        ([9, 0, 9], (9, 9)),
+        ([[1], [2], [3]], ([1], [3])),
+    ]
+    for items, want in cases:
+        got = fn(items)
+        assert got == want, f"ends({items!r}) returned {got!r}, expected {want!r}"
+
+
+def check_ends() -> None:
+    report("3. ends", test_ends, ends)
+
+
 def main() -> None:
     check_swap()
     check_rotate_left()
+    check_ends()
 
 
 if __name__ == "__main__":
