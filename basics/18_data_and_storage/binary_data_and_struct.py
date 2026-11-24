@@ -18,6 +18,8 @@ so a file format always says which one it uses, and so should your code.
 
 import struct
 import sys
+import tempfile
+from pathlib import Path
 
 
 def bytes_demo() -> None:
@@ -94,12 +96,66 @@ def struct_demo() -> None:
         print(f"out of range: struct.error: {exc}")
 
 
+# Our own file format, all little-endian:
+#   header:  4-byte magic b"SCOR", 2-byte version, 4-byte record count
+#   record:  4-byte player id, 4-byte float score, 8-byte name (zero padded)
+HEADER = struct.Struct("<4sHI")
+RECORD = struct.Struct("<If8s")
+MAGIC = b"SCOR"
+
+
+def write_scores(path: Path, scores: list[tuple[int, float, str]]) -> None:
+    with path.open("wb") as f:
+        f.write(HEADER.pack(MAGIC, 1, len(scores)))
+        for player_id, score, name in scores:
+            # 8s pads short names with zero bytes and cuts long ones.
+            f.write(RECORD.pack(player_id, score, name.encode("ascii")))
+
+
+def read_scores(path: Path) -> list[tuple[int, float, str]]:
+    data = path.read_bytes()
+    magic, version, count = HEADER.unpack_from(data, 0)
+    # Checking a "magic number" first catches files of the wrong type.
+    if magic != MAGIC:
+        raise ValueError(f"not a score file (magic {magic!r})")
+    if version != 1:
+        raise ValueError(f"unsupported version {version}")
+    records = []
+    for player_id, score, raw_name in RECORD.iter_unpack(data[HEADER.size:]):
+        records.append((player_id, score, raw_name.rstrip(b"\0").decode("ascii")))
+    if len(records) != count:
+        raise ValueError(f"header says {count} records, found {len(records)}")
+    return records
+
+
+def file_format_demo() -> None:
+    scores = [(1, 98.5, "ana"), (2, 87.25, "bo"), (3, 91.0, "christopher")]
+    with tempfile.TemporaryDirectory() as folder:
+        path = Path(folder) / "scores.bin"
+        write_scores(path, scores)
+        raw = path.read_bytes()
+        print(f"file size: {len(raw)} bytes = {HEADER.size} header "
+              f"+ 3 x {RECORD.size} per record")
+        print(f"header bytes: {raw[:HEADER.size].hex(' ')}")
+        for record in read_scores(path):
+            print(f"  {record}")
+        # The 8-byte name field cut 'christopher' short.
+
+        path.write_bytes(b"PNG!" + raw[4:])
+        try:
+            read_scores(path)
+        except ValueError as exc:
+            print(f"wrong file: ValueError: {exc}")
+
+
 def main() -> None:
     bytes_demo()
     print()
     endianness_demo()
     print()
     struct_demo()
+    print()
+    file_format_demo()
 
 
 if __name__ == "__main__":
