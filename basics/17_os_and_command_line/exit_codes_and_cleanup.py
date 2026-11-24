@@ -23,6 +23,8 @@ Exit codes belong to a whole process, so the demos start small child
 processes with `subprocess` and look at how they ended.
 """
 
+import os
+import signal
 import subprocess
 import sys
 
@@ -108,12 +110,67 @@ def atexit_demo() -> None:
         print(result.stdout.rstrip())
 
 
+SIGTERM_CHILD = """
+import signal, sys, time
+
+def on_term(signum, frame):
+    # Turn the signal into a normal exit so finally blocks and atexit run.
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, on_term)
+print("ready", flush=True)
+try:
+    time.sleep(10)
+finally:
+    print("cleaned up after SIGTERM", flush=True)
+"""
+
+
+def signals_demo() -> None:
+    # Ctrl+C sends SIGINT. Python's default handler raises KeyboardInterrupt
+    # in the main thread, so try/except or finally can tidy up.
+    try:
+        signal.raise_signal(signal.SIGINT)  # what pressing Ctrl+C would do
+    except KeyboardInterrupt:
+        print("SIGINT arrived as KeyboardInterrupt")
+
+    # A handler function replaces the default behaviour.
+    received: list[str] = []
+
+    def on_interrupt(signum: int, frame: object) -> None:
+        received.append(signal.Signals(signum).name)
+
+    previous = signal.signal(signal.SIGINT, on_interrupt)
+    try:
+        signal.raise_signal(signal.SIGINT)
+    finally:
+        signal.signal(signal.SIGINT, previous)  # always put the old one back
+    print(f"custom handler received: {received}, no exception raised")
+
+    if os.name != "posix":
+        print("(the SIGTERM part of this demo needs Linux or macOS; skipped)")
+        return
+    # SIGTERM is the polite "please stop" from `kill`, systemd or Docker.
+    # By default it ends a Python program at once, with no cleanup.
+    child = subprocess.Popen([sys.executable, "-c", SIGTERM_CHILD],
+                             stdout=subprocess.PIPE, text=True)
+    assert child.stdout is not None
+    print(f"child says: {child.stdout.readline().strip()}")  # wait until ready
+    child.terminate()  # sends SIGTERM
+    rest, _ = child.communicate(timeout=30)
+    print(f"child says: {rest.strip()}")
+    # Without the handler the exit code would be -15: "killed by signal 15".
+    print(f"child exit code: {child.returncode}")
+
+
 def main() -> None:
     exit_codes_demo()
     print()
     streams_demo()
     print()
     atexit_demo()
+    print()
+    signals_demo()
 
 
 if __name__ == "__main__":
