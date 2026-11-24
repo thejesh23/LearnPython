@@ -15,6 +15,7 @@ connecting generators together. advanced/lazy_evaluation_pipelines.py goes
 further.
 """
 
+import sys
 from collections.abc import Iterable
 from collections.abc import Iterator
 
@@ -84,10 +85,28 @@ def pipeline_demo() -> None:
     print(f"genexp version: {list(errors)}")
 
 
+def memory_demo() -> None:
+    # A list stores every element, so its size grows with the data.
+    # A generator stores only its current position, so its size does not.
+    for n in [10, 1_000, 1_000_000]:
+        as_list = [x * 2 for x in range(n)]
+        as_gen = (x * 2 for x in range(n))
+        print(f"n = {n:>9,}: list {sys.getsizeof(as_list):>9,} bytes, "
+              f"generator {sys.getsizeof(as_gen):>4} bytes")
+
+    # Summing through a pipeline never holds more than one number at a time.
+    total = sum(x * 2 for x in range(1_000_000) if x % 3 == 0)
+    print(f"sum via pipeline = {total:,}")
+    # (getsizeof counts the container itself, not the objects it refers to,
+    # so the true cost of the list is even larger.)
+
+
 def main() -> None:
     genexp_demo()
     print()
     pipeline_demo()
+    print()
+    memory_demo()
 
 
 if __name__ == "__main__":
