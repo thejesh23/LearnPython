@@ -111,9 +111,37 @@ def check_in_range() -> None:
     report("2. in_range", test_in_range, in_range)
 
 
+def display_name(name: str, nickname: str) -> str:
+    """Return the nickname, or the full name when the nickname is empty.
+
+    display_name("Robert", "Bob") -> "Bob"
+    display_name("Robert", "")    -> "Robert"
+
+    Hint: `or` returns one of its operands, not just True or False.
+    """
+    raise NotImplementedError
+
+
+def test_display_name(fn: Callable[..., Any]) -> None:
+    cases = [
+        (("Robert", "Bob"), "Bob"),
+        (("Robert", ""), "Robert"),
+        (("Ada", "Ada"), "Ada"),
+        (("Margaret", "Peggy"), "Peggy"),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"display_name{args} returned {got!r}, expected {want!r}"
+
+
+def check_display_name() -> None:
+    report("3. display_name", test_display_name, display_name)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
+    check_display_name()
 
 
 if __name__ == "__main__":
