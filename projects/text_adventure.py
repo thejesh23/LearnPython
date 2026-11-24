@@ -88,8 +88,51 @@ def world_demo() -> None:
         print(f"ValueError: {exc}")
 
 
+DIRECTIONS = {"n": "north", "s": "south", "e": "east", "w": "west",
+              "u": "up", "d": "down"}
+DIRECTIONS |= {d: d for d in list(DIRECTIONS.values())}
+FILLER = {"the", "a", "an", "to"}
+
+
+@dataclass
+class Command:
+    verb: str
+    noun: str = ""
+
+
+def parse(text: str) -> Command:
+    words = [w for w in text.lower().split() if w not in FILLER]
+    match words:
+        case []:
+            return Command("nothing")
+        case ["go" | "walk" | "climb", direction] if direction in DIRECTIONS:
+            return Command("go", DIRECTIONS[direction])
+        case [direction] if direction in DIRECTIONS:  # just "n" or "north"
+            return Command("go", DIRECTIONS[direction])
+        case ["take" | "get" | "grab", *item] if item:
+            return Command("take", " ".join(item))
+        case ["drop", *item] if item:
+            return Command("drop", " ".join(item))
+        case ["look" | "l"]:
+            return Command("look")
+        case ["inventory" | "inv" | "i"]:
+            return Command("inventory")
+        case ["quit" | "q"]:
+            return Command("quit")
+        case _:
+            return Command("unknown", text.strip())
+
+
+def parser_demo() -> None:
+    for text in ["go north", "N", "climb the up", "take the brass key", "i",
+                 "drop", "look", "", "dance wildly"]:
+        print(f"{text!r:22} -> {parse(text)}")
+
+
 def main() -> None:
     world_demo()
+    print()
+    parser_demo()
 
 
 if __name__ == "__main__":
