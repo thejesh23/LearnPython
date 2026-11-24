@@ -14,6 +14,7 @@ line by line; if the tests pass, it is a valid solution.
 
 import runpy
 from pathlib import Path
+from typing import Literal, cast, get_args
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -34,8 +35,25 @@ def check_first() -> None:
     report("1. first[T]", EXERCISES["test_first"], first)
 
 
+type Mode = Literal["r", "w", "a"]
+
+
+def parse_mode(text: str) -> Mode:
+    allowed = get_args(Mode.__value__)  # ('r', 'w', 'a'), kept in one place
+    if text not in allowed:
+        raise ValueError(f"mode must be one of {allowed}, got {text!r}")
+    # A type checker cannot see that the `in` test narrowed str to Mode, so
+    # tell it with cast(); cast does nothing at runtime.
+    return cast(Mode, text)
+
+
+def check_parse_mode() -> None:
+    report("2. parse_mode", EXERCISES["test_parse_mode"], parse_mode)
+
+
 def main() -> None:
     check_first()
+    check_parse_mode()
 
 
 if __name__ == "__main__":
