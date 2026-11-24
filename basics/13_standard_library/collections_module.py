@@ -13,6 +13,7 @@ Each one removes a few lines of fiddly code, and the bugs that hide in them.
 
 from collections import Counter
 from collections import defaultdict
+from collections import deque
 
 
 def counter_demo() -> None:
@@ -53,10 +54,31 @@ def defaultdict_demo() -> None:
     print(f"after reading 'z': 'z' in by_letter -> {'z' in by_letter}")
 
 
+def deque_demo() -> None:
+    # list.pop(0) shifts every other element: O(n). deque pops from either
+    # end in O(1), which makes it the right type for a queue.
+    queue = deque(["first", "second"])
+    queue.append("third")          # join at the back
+    print(f"served: {queue.popleft()}, waiting: {list(queue)}")
+
+    # maxlen turns a deque into a fixed-size window: old items fall off.
+    recent = deque(maxlen=3)
+    for reading in [10, 20, 30, 40, 50]:
+        recent.append(reading)
+    print(f"last three readings: {list(recent)}")
+
+    # rotate(n) moves items from the right end round to the left.
+    ring = deque([1, 2, 3, 4, 5])
+    ring.rotate(2)
+    print(f"rotated by 2: {list(ring)}")
+
+
 def main() -> None:
     counter_demo()
     print()
     defaultdict_demo()
+    print()
+    deque_demo()
 
 
 if __name__ == "__main__":
