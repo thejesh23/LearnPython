@@ -35,8 +35,21 @@ def check_first_or_default() -> None:
            first_or_default)
 
 
+def countdown(n: int) -> Iterator[int]:
+    # Each yield hands out one value and pauses here until the next is
+    # asked for. When the loop ends, the generator is exhausted.
+    while n > 0:
+        yield n
+        n -= 1
+
+
+def check_countdown() -> None:
+    report("2. countdown", EXERCISES["test_countdown"], countdown)
+
+
 def main() -> None:
     check_first_or_default()
+    check_countdown()
 
 
 if __name__ == "__main__":
