@@ -14,6 +14,7 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import runpy
+import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -39,8 +40,24 @@ def check_parallel_map() -> None:
     report("1. parallel_map", EXERCISES["test_parallel_map"], parallel_map)
 
 
+class SafeCounter:
+    def __init__(self) -> None:
+        self.value = 0
+        self._lock = threading.Lock()
+
+    def increment(self, amount: int = 1) -> None:
+        # Only one thread at a time may do the read-add-write.
+        with self._lock:
+            self.value += amount
+
+
+def check_safe_counter() -> None:
+    report("2. SafeCounter", EXERCISES["test_safe_counter"], SafeCounter)
+
+
 def main() -> None:
     check_parallel_map()
+    check_safe_counter()
 
 
 if __name__ == "__main__":
