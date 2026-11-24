@@ -77,7 +77,7 @@ Follow the numbered folders in order. Inside each folder, read the files in alph
 | 06 | `06_functions/` | Defaults, `*args`/`**kwargs`, keyword-only and positional-only, lambdas, closures, decorators |
 | 07 | `07_collections/` | `list`, `tuple`, `dict`, `set`, comprehensions, slicing |
 | 08 | `08_iterators/` | Iterables, generators, `yield`, `itertools` |
-| 09 | `09_classes/` | Attributes, `__init__`, dunder methods, inheritance, `dataclass`, `Enum` |
+| 09 | `09_classes/` | Attributes, `__init__`, class and static methods, dunder methods, inheritance, `dataclass`, `Enum` |
 | 10 | `10_async/` | `async`/`await`, `asyncio.gather`, async generators |
 | 11 | `11_errors/` | `try`/`except`/`else`/`finally`, raising, custom exceptions |
 | 12 | `12_modules_io/` | Imports, `pathlib`, context managers, JSON |
