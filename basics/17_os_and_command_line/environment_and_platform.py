@@ -17,6 +17,9 @@ never dumps the whole of `os.environ`.
 """
 
 import os
+import platform
+import sys
+from pathlib import Path
 
 
 def env_int(name: str, default: int) -> int:
@@ -63,8 +66,31 @@ def environ_demo() -> None:
         os.environ.pop(name)
 
 
+def interpreter_demo() -> None:
+    # version_info is a tuple, so comparisons just work.
+    v = sys.version_info
+    print(f"Python {v.major}.{v.minor}.{v.micro}")
+    print(f"at least 3.12: {sys.version_info >= (3, 12)}")
+    print(f"implementation: {platform.python_implementation()}")
+
+    # sys.platform is fixed when Python is built: 'linux', 'darwin', 'win32'.
+    # platform.system() asks the OS at run time: 'Linux', 'Darwin', 'Windows'.
+    print(f"sys.platform: {sys.platform}, platform.system(): {platform.system()}")
+    # os.name is 'posix' (Linux, macOS) or 'nt' (Windows): handy for branching.
+    print(f"os.name: {os.name}")
+
+    # The full path to the running interpreter. Use it to start another Python
+    # that has the same packages as this one (see running_programs.py).
+    exe = Path(sys.executable)
+    print(f"sys.executable ends in: {exe.name}, absolute: {exe.is_absolute()}")
+    # A virtual environment makes sys.prefix differ from sys.base_prefix.
+    print(f"inside a virtual environment: {sys.prefix != sys.base_prefix}")
+
+
 def main() -> None:
     environ_demo()
+    print()
+    interpreter_demo()
 
 
 if __name__ == "__main__":
