@@ -74,10 +74,30 @@ def check_add_user() -> None:
     report("3. add_user", EXERCISES["test_add_user"], add_user)
 
 
+TOP_CUSTOMERS_SQL = """
+    SELECT customers.name, SUM(orders.amount) AS total
+    FROM customers
+    JOIN orders ON orders.customer_id = customers.id
+    GROUP BY customers.id
+    ORDER BY total DESC, customers.name
+    LIMIT ?
+"""
+
+
+def top_customers(conn: sqlite3.Connection, n: int) -> list[tuple[str, float]]:
+    # An inner JOIN drops customers with no orders, as the task asks.
+    return conn.execute(TOP_CUSTOMERS_SQL, (n,)).fetchall()
+
+
+def check_top_customers() -> None:
+    report("4. top_customers", EXERCISES["test_top_customers"], top_customers)
+
+
 def main() -> None:
     check_sha256_file()
     check_parse_header()
     check_add_user()
+    check_top_customers()
 
 
 if __name__ == "__main__":
