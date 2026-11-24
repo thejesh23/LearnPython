@@ -17,6 +17,7 @@ This file passes lists, so it runs the same way without any real arguments,
 and that is also how you test a command-line tool.
 """
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -50,8 +51,40 @@ def sys_argv_demo() -> None:
         print("by hand, '--top' with no value crashes with IndexError")
 
 
+def build_wordcount_parser() -> argparse.ArgumentParser:
+    # prog= fixes the name shown in help; by default it is taken from sys.argv[0].
+    parser = argparse.ArgumentParser(
+        prog="wordcount",
+        description="Count the most common words in a text file.",
+    )
+    parser.add_argument("file", help="the text file to read")
+    parser.add_argument("-n", "--top", type=int, default=10,
+                        help="how many words to show (default: %(default)s)")
+    parser.add_argument("--order", choices=["count", "alpha"], default="count",
+                        help="sort by count or alphabetically")
+    return parser
+
+
+def positional_and_optional_demo() -> None:
+    parser = build_wordcount_parser()
+
+    args = parser.parse_args(["notes.txt"])
+    print(f"defaults: file={args.file!r} top={args.top} order={args.order!r}")
+
+    # Short and long spellings set the same attribute, args.top.
+    args = parser.parse_args(["notes.txt", "-n", "3", "--order", "alpha"])
+    print(f"given:    file={args.file!r} top={args.top} order={args.order!r}")
+    print(f"type=int converted it: {type(args.top).__name__}")
+
+    # The --name=value spelling works too, and options may come first.
+    args = parser.parse_args(["--top=5", "notes.txt"])
+    print(f"--top=5 first: top={args.top}")
+
+
 def main() -> None:
     sys_argv_demo()
+    print()
+    positional_and_optional_demo()
 
 
 if __name__ == "__main__":
