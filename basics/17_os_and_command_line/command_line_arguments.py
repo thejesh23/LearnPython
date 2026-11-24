@@ -18,6 +18,8 @@ and that is also how you test a command-line tool.
 """
 
 import argparse
+import contextlib
+import io
 import sys
 from pathlib import Path
 
@@ -81,10 +83,46 @@ def positional_and_optional_demo() -> None:
     print(f"--top=5 first: top={args.top}")
 
 
+def build_flag_parser() -> argparse.ArgumentParser:
+    parser = build_wordcount_parser()
+    # store_true: absent means False, present means True. No value follows it.
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="print progress messages")
+    parser.add_argument("--ignore-case", action="store_true",
+                        help="treat 'The' and 'the' as the same word")
+    return parser
+
+
+def flags_and_errors_demo() -> None:
+    parser = build_flag_parser()
+    args = parser.parse_args(["notes.txt", "-v", "--ignore-case"])
+    # A dash in an option name becomes an underscore in the attribute name.
+    print(f"verbose={args.verbose} ignore_case={args.ignore_case}")
+    print(f"all parsed values: {vars(args)}")
+
+    # format_help() returns the text that --help would print.
+    print("\nwhat `wordcount --help` shows:")
+    print(parser.format_help())
+
+    # On bad input argparse prints a message to stderr and exits with code 2.
+    # That exit is a SystemExit exception, so a test can catch it.
+    for bad in (["notes.txt", "--top", "many"], ["notes.txt", "--order", "size"], []):
+        captured = io.StringIO()
+        try:
+            with contextlib.redirect_stderr(captured):
+                parser.parse_args(bad)
+        except SystemExit as exc:
+            last_line = captured.getvalue().strip().splitlines()[-1]
+            print(f"{bad} -> exit code {exc.code}")
+            print(f"    {last_line}")
+
+
 def main() -> None:
     sys_argv_demo()
     print()
     positional_and_optional_demo()
+    print()
+    flags_and_errors_demo()
 
 
 if __name__ == "__main__":
