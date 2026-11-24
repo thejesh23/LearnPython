@@ -13,10 +13,13 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import runpy
+from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Iterable
 from collections.abc import Iterator
+from functools import wraps
 from pathlib import Path
+from typing import Any
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -67,10 +70,28 @@ def check_parse_readings() -> None:
     report("3. parse_readings", EXERCISES["test_parse_readings"], parse_readings)
 
 
+def memoize(func: Callable[..., Any]) -> Callable[..., Any]:
+    cache: dict[tuple[Any, ...], Any] = {}
+
+    @wraps(func)  # copy __name__, __doc__ and friends onto the wrapper
+    def wrapper(*args: Any) -> Any:
+        # `in` rather than .get(): a cached None or 0 is still a hit.
+        if args not in cache:
+            cache[args] = func(*args)
+        return cache[args]
+
+    return wrapper
+
+
+def check_memoize() -> None:
+    report("4. memoize", EXERCISES["test_memoize"], memoize)
+
+
 def main() -> None:
     check_has_duplicates()
     check_common_words()
     check_parse_readings()
+    check_memoize()
 
 
 if __name__ == "__main__":
