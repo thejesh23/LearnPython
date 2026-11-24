@@ -16,6 +16,7 @@ frames carefully.
 This file never actually opens pdb, because pdb waits for keyboard input.
 """
 
+import io
 import os
 import traceback
 
@@ -46,8 +47,30 @@ def read_traceback_demo() -> None:
     print("  in read_traceback_demo    the outermost call, where we started")
 
 
+def traceback_tools_demo() -> None:
+    try:
+        load_config({})  # a missing key this time
+    except KeyError as exc:
+        # print_exc writes to stderr by default; file= sends it anywhere.
+        buffer = io.StringIO()
+        traceback.print_exc(limit=1, file=buffer)  # limit: outermost frames only
+        print("print_exc(limit=1):")
+        print("  " + buffer.getvalue().replace(HERE, "").strip().replace("\n", "\n  "))
+
+        # Just the last line, handy for a short log message.
+        only = traceback.format_exception_only(exc)
+        print(f"format_exception_only: {only[-1].strip()}")
+
+        # The frames as data, for when you want to process them yourself.
+        print("frames, oldest first:")
+        for frame in traceback.extract_tb(exc.__traceback__):
+            print(f"  {frame.name}() line {frame.lineno}: {frame.line}")
+
+
 def main() -> None:
     read_traceback_demo()
+    print()
+    traceback_tools_demo()
 
 
 if __name__ == "__main__":
