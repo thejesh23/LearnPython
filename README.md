@@ -162,7 +162,7 @@ Full details in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Roadmap
 
-More samples land in later sessions. Planned expansions mirror [LearnDart](https://github.com/polyglot-learn/LearnDart): the full `basics/` path first, then sorts, searches, data structures, graphs, DP, and the advanced categories (crypto, compression, distributed, probabilistic).
+More samples land in later sessions. The `basics/` path keeps growing toward the parts of Python and its standard library that everyday code relies on, and the algorithm categories keep gaining samples that each teach one idea and check themselves.
 
 ## Contributing
 
