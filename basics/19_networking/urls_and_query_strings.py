@@ -17,9 +17,12 @@ parts for you:
 Nothing in this file touches the network: it is all string processing.
 """
 
+from urllib.parse import parse_qs
+from urllib.parse import parse_qsl
 from urllib.parse import quote
 from urllib.parse import quote_plus
 from urllib.parse import unquote
+from urllib.parse import urlencode
 from urllib.parse import urlsplit
 from urllib.parse import urlunsplit
 
@@ -59,10 +62,33 @@ def quote_demo() -> None:
     print(f"safe path: {path}")
 
 
+def query_demo() -> None:
+    params = {"q": "fish & chips", "page": 2, "sort": "price"}
+    query = urlencode(params)
+    print(f"urlencode: {query}")
+
+    # A list value: doseq=True repeats the key, which is what servers expect.
+    tags = {"tag": ["python", "web"], "limit": 10}
+    print(f"no doseq : {urlencode(tags)}")
+    print(f"doseq    : {urlencode(tags, doseq=True)}")
+
+    # Reading a query string back. parse_qs gives a list per key, because a
+    # key may legally appear more than once.
+    incoming = "tag=python&tag=web&limit=10&q=fish+%26+chips"
+    print(f"parse_qs : {parse_qs(incoming)}")
+    # parse_qsl keeps order and duplicates as (key, value) pairs.
+    print(f"parse_qsl: {parse_qsl(incoming)}")
+    # Values always come back as strings; convert them yourself.
+    limit = int(parse_qs(incoming)["limit"][0])
+    print(f"limit as int: {limit}")
+
+
 def main() -> None:
     split_demo()
     print()
     quote_demo()
+    print()
+    query_demo()
 
 
 if __name__ == "__main__":
