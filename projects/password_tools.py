@@ -23,8 +23,11 @@ Uses:
     13_standard_library    secrets, math.log2, re, random (and its weakness)
 """
 
+import re
 import secrets
 import string
+from dataclasses import dataclass
+from dataclasses import field
 
 
 # Characters that are easy to confuse when a password is read aloud or typed
@@ -116,8 +119,76 @@ def generator_demo() -> None:
         print(f"ValueError: {exc}")
 
 
+# A real checker would use a list of millions of leaked passwords. These are
+# a few of the most common ones, all lower case.
+COMMON = {"password", "123456", "qwerty", "letmein", "iloveyou", "admin", "welcome"}
+
+KEYBOARD_RUNS = ["abcdefghijklmnopqrstuvwxyz", "0123456789", "qwertyuiop", "asdfghjkl"]
+
+
+@dataclass
+class CheckResult:
+    password: str
+    problems: list[str] = field(default_factory=list)
+
+    @property
+    def ok(self) -> bool:
+        return not self.problems
+
+
+def has_sequence(password: str, size: int = 4) -> bool:
+    """True if the password contains a run like 'abcd', '1234' or 'qwer'."""
+    lowered = password.lower()
+    for run in KEYBOARD_RUNS:
+        for start in range(len(run) - size + 1):
+            if run[start : start + size] in lowered:
+                return True
+    return False
+
+
+def check(password: str, min_length: int = 12) -> CheckResult:
+    result = CheckResult(password)
+    if len(password) < min_length:
+        result.problems.append(f"shorter than {min_length} characters")
+    # Strip digits and symbols so "Password123!" is still caught.
+    core = re.sub(r"[^a-z]", "", password.lower())
+    if password.lower() in COMMON or core in COMMON:
+        result.problems.append("a well-known common password")
+    if has_sequence(password):
+        result.problems.append("contains a keyboard or alphabet sequence")
+    # (.)\1\1 means: any character, then the same character twice more.
+    if re.search(r"(.)\1\1", password):
+        result.problems.append("repeats one character three times in a row")
+    if re.search(r"(19|20)\d\d", password):
+        result.problems.append("contains what looks like a year")
+    if len(set(password)) < 6:
+        result.problems.append("uses fewer than 6 different characters")
+    return result
+
+
+def checker_demo() -> None:
+    print("== stage 2: checking rules ==")
+    samples = [
+        "Password123!",
+        "aaaabbbb",
+        "Summer2024!",
+        "qwerty7Zx!pq",
+        "correct-horse-battery-staple",
+        generate_password(),
+    ]
+    for pw in samples:
+        result = check(pw)
+        # Do not echo the random one; show only that it passed.
+        shown = pw if pw in samples[:-1] else "(generated)"
+        print(f"{shown:<30} {'ok' if result.ok else 'problems:'}")
+        for problem in result.problems:
+            print(f"    - {problem}")
+
+
 def main() -> None:
     generator_demo()
+    print()
+    checker_demo()
 
 
 if __name__ == "__main__":
