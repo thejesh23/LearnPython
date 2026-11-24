@@ -125,12 +125,36 @@ def repeated_work_demo() -> None:
             lambda: min(NUMBERS))
 
 
+def has_big_loop() -> bool:
+    for n in NUMBERS:
+        if n > 5_000:  # never true, so both versions scan everything
+            return True
+    return False
+
+
+def has_big_any() -> bool:
+    return any(n > 5_000 for n in NUMBERS)
+
+
+def measure_first_demo() -> None:
+    # any() with a generator reads beautifully, and you should usually write
+    # it. But the generator resumes once per item, which costs more than a
+    # plain loop. Guessing "built-in, so faster" would be wrong here.
+    print("a guess put to the test:")
+    ratio = compare("any(genexp) vs explicit loop", has_big_loop, has_big_any)
+    print(f"  any(genexp) is faster than the loop: {ratio > 1}")
+    # The takeaway is not "avoid any()". It is: write the clear version first,
+    # profile to find the slow part, and only then measure alternatives.
+
+
 def main() -> None:
     builtins_demo()
     print()
     local_names_demo()
     print()
     repeated_work_demo()
+    print()
+    measure_first_demo()
 
 
 if __name__ == "__main__":
