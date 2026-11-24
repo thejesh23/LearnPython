@@ -64,11 +64,23 @@ def check_mask_card() -> None:
     report("4. mask_card", EXERCISES["test_mask_card"], mask_card)
 
 
+def parse_setting(line: str) -> tuple[str, str]:
+    # partition splits at the first "=" and always returns three parts,
+    # with an empty value when there is no "=", so it never raises.
+    key, _, value = line.partition("=")
+    return key.strip(), value.strip()
+
+
+def check_parse_setting() -> None:
+    report("5. parse_setting", EXERCISES["test_parse_setting"], parse_setting)
+
+
 def main() -> None:
     check_format_price()
     check_initials()
     check_is_palindrome()
     check_mask_card()
+    check_parse_setting()
 
 
 if __name__ == "__main__":
