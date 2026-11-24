@@ -71,10 +71,36 @@ def queue_demo() -> None:
     print(f"list as a stack (pop from the end): {stack.pop()}, {stack.pop()}")
 
 
+USERS = [{"id": i, "name": f"user{i}"} for i in range(5_000)]
+WANTED = list(range(0, 5_000, 50))  # 100 ids to look up
+
+
+def names_by_scanning() -> list[str]:
+    # For each wanted id, walk the list: O(n) per lookup, O(n * m) in total.
+    return [next(u["name"] for u in USERS if u["id"] == i) for i in WANTED]
+
+
+def names_by_index() -> list[str]:
+    # Build an id -> user dict once (O(n)), then each lookup is O(1).
+    by_id = {u["id"]: u for u in USERS}
+    return [by_id[i]["name"] for i in WANTED]
+
+
+def dict_index_demo() -> None:
+    print(f"same names: {names_by_scanning() == names_by_index()}")
+    scan = best_time(names_by_scanning, 3)
+    index = best_time(names_by_index, 3)
+    print(f"index (including building it) faster than scanning: {index < scan}")
+    # Rule of thumb: if you search the same list more than a few times,
+    # build a dict (or set) from it first.
+
+
 def main() -> None:
     membership_demo()
     print()
     queue_demo()
+    print()
+    dict_index_demo()
 
 
 if __name__ == "__main__":
