@@ -18,6 +18,7 @@ No micro-optimisation of a loop body competes with replacing an O(n) step by
 an O(1) one. The demos print comparisons, not raw timings.
 """
 
+import bisect
 import timeit
 from collections import deque
 from collections.abc import Callable
@@ -95,12 +96,50 @@ def dict_index_demo() -> None:
     # build a dict (or set) from it first.
 
 
+class Counted:
+    """An int wrapper that counts how often it is compared."""
+
+    comparisons = 0
+
+    def __init__(self, value: int) -> None:
+        self.value = value
+
+    def __eq__(self, other: object) -> bool:
+        Counted.comparisons += 1
+        return isinstance(other, Counted) and self.value == other.value
+
+    def __lt__(self, other: "Counted") -> bool:
+        Counted.comparisons += 1
+        return self.value < other.value
+
+
+def counting_steps_demo() -> None:
+    # Counting steps gives the same answer on every machine, unlike a timer.
+    print(f"{'n':>7} {'linear search':>14} {'binary search':>14}")
+    for n in (1_000, 10_000, 100_000):
+        data = [Counted(i) for i in range(n)]  # already sorted
+        target = Counted(n - 1)  # the last item: worst case for linear
+
+        Counted.comparisons = 0
+        _ = target in data  # compares against each item in turn
+        linear = Counted.comparisons
+
+        Counted.comparisons = 0
+        bisect.bisect_left(data, target)  # halves the range each step
+        binary = Counted.comparisons
+        print(f"{n:>7,} {linear:>14,} {binary:>14,}")
+    # bisect needs sorted data. Sorting costs O(n log n) once, which pays off
+    # when you search the same data many times.
+
+
 def main() -> None:
     membership_demo()
     print()
     queue_demo()
     print()
     dict_index_demo()
+    print()
+    counting_steps_demo()
 
 
 if __name__ == "__main__":
