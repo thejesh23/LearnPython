@@ -13,6 +13,8 @@ is a pile of subclasses named after combinations: ShoutingEmailNotifier,
 QuietSmsNotifier, and so on.
 """
 
+from collections.abc import Callable
+
 
 class ListStack(list):
     """Is-a: inherits *every* list method, wanted or not."""
@@ -88,10 +90,53 @@ def class_explosion_demo() -> None:
     print(f"{len(notifiers)} classes for 2 channels x 2 styles")
 
 
+def plain(text: str) -> str:
+    return text
+
+
+def shouting(text: str) -> str:
+    return text.upper() + "!"
+
+
+class EmailSender:
+    def send(self, message: str) -> str:
+        return f"email: {message}"
+
+
+class SmsSender:
+    def send(self, message: str) -> str:
+        return f"sms: {message}"
+
+
+class Notifier:
+    """Has a formatter and has a sender; delegates the work to each."""
+
+    def __init__(
+        self, sender: EmailSender | SmsSender, style: Callable[[str], str] = plain
+    ) -> None:
+        self.sender = sender
+        self.style = style
+
+    def notify(self, text: str) -> str:
+        return self.sender.send(self.style(text))
+
+
+def composed_demo() -> None:
+    # Every combination comes from one class plus small parts. A new channel
+    # or a new style is one new part, not a new row of subclasses.
+    for sender in (EmailSender(), SmsSender()):
+        for style in (plain, shouting):
+            n = Notifier(sender, style)
+            print(f"{type(sender).__name__:11} + {style.__name__:8} -> "
+                  f"{n.notify('build passed')}")
+
+
 def main() -> None:
     is_a_vs_has_a_demo()
     print()
     class_explosion_demo()
+    print()
+    composed_demo()
 
 
 if __name__ == "__main__":
