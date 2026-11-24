@@ -54,8 +54,22 @@ def first_tests_demo() -> None:
     run(StackBasics)
 
 
+class StackErrors(unittest.TestCase):
+    def test_pop_on_empty_raises(self) -> None:
+        # The test passes only if the block raises IndexError.
+        with self.assertRaises(IndexError) as caught:
+            Stack().pop()
+        self.assertIn("empty", str(caught.exception))
+
+
+def exceptions_demo() -> None:
+    run(StackErrors)
+
+
 def main() -> None:
     first_tests_demo()
+    print()
+    exceptions_demo()
 
 
 if __name__ == "__main__":
