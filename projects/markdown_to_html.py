@@ -141,10 +141,54 @@ Another paragraph.
     show(source, BlockConverter())
 
 
+BULLET = re.compile(r"[-*]\s+(.*)")
+NUMBERED = re.compile(r"\d+\.\s+(.*)")
+
+
+class ListConverter(BlockConverter):
+    """Adds two states, "ul" and "ol", for bullet and numbered lists."""
+
+    def close_block(self) -> None:
+        if self.state in ("ul", "ol"):
+            self.out.append(f"</{self.state}>")
+        super().close_block()
+
+    def feed(self, line: str) -> None:
+        if m := BULLET.match(line):
+            kind = "ul"
+        elif m := NUMBERED.match(line):
+            kind = "ol"
+        else:
+            # Not a list item: let the parent decide. Its close_block() call
+            # still reaches ours, so an open list is closed properly.
+            super().feed(line)
+            return
+        if self.state != kind:
+            self.close_block()  # ends a paragraph, or a list of the other kind
+            self.out.append(f"<{kind}>")
+            self.state = kind
+        self.out.append(f"  <li>{inline(m[1])}</li>")
+
+
+def lists_demo() -> None:
+    print("== stage 3: lists ==")
+    source = """
+Shopping:
+- **eggs**
+- milk
+1. preheat the oven
+2. mix
+Done.
+"""
+    show(source, ListConverter())
+
+
 def main() -> None:
     inline_demo()
     print()
     blocks_demo()
+    print()
+    lists_demo()
 
 
 if __name__ == "__main__":
