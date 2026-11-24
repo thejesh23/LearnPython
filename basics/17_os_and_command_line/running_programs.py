@@ -72,10 +72,26 @@ def check_demo() -> None:
         print("unknown program -> FileNotFoundError")
 
 
+def timeout_demo() -> None:
+    # Anything that talks to a network or a user can hang. A timeout stops
+    # the child and raises TimeoutExpired instead of waiting forever.
+    sleeper = [sys.executable, "-c", "import time; time.sleep(10)"]
+    try:
+        subprocess.run(sleeper, capture_output=True, timeout=0.5)
+    except subprocess.TimeoutExpired as exc:
+        print(f"TimeoutExpired after {exc.timeout} seconds; the child was killed")
+
+    quick = subprocess.run([sys.executable, "-c", "print('done')"],
+                           capture_output=True, text=True, timeout=30)
+    print(f"a fast program finishes normally: {quick.stdout.strip()!r}")
+
+
 def main() -> None:
     run_demo()
     print()
     check_demo()
+    print()
+    timeout_demo()
 
 
 if __name__ == "__main__":
