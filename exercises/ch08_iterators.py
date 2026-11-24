@@ -208,11 +208,41 @@ def check_chunks() -> None:
     report("4. chunks", test_chunks, chunks)
 
 
+def run_lengths(text: str) -> list[tuple[str, int]]:
+    """Return each run of repeated characters as a (character, count) pair.
+
+    run_lengths("aaabccdd") -> [("a", 3), ("b", 1), ("c", 2), ("d", 2)]
+    run_lengths("abab")     -> [("a", 1), ("b", 1), ("a", 1), ("b", 1)]
+    run_lengths("")         -> []
+
+    Hint: itertools.groupby groups *consecutive* equal items.
+    """
+    raise NotImplementedError
+
+
+def test_run_lengths(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("aaabccdd", [("a", 3), ("b", 1), ("c", 2), ("d", 2)]),
+        ("abab", [("a", 1), ("b", 1), ("a", 1), ("b", 1)]),
+        ("zzzz", [("z", 4)]),
+        ("", []),
+        ("x", [("x", 1)]),
+    ]
+    for text, want in cases:
+        got = fn(text)
+        assert got == want, f"run_lengths({text!r}) returned {got!r}, expected {want!r}"
+
+
+def check_run_lengths() -> None:
+    report("5. run_lengths", test_run_lengths, run_lengths)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
     check_running_total()
     check_chunks()
+    check_run_lengths()
 
 
 if __name__ == "__main__":
