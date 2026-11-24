@@ -18,7 +18,9 @@ Uses:
 """
 
 import re
+import tempfile
 from collections import Counter
+from pathlib import Path
 
 
 GETTYSBURG = """
@@ -149,12 +151,60 @@ def report_demo() -> None:
     print(report("The Gettysburg Address", GETTYSBURG))
 
 
+TALE_OF_TWO_CITIES = """
+It was the best of times, it was the worst of times, it was the age of wisdom,
+it was the age of foolishness, it was the epoch of belief, it was the epoch of
+incredulity, it was the season of Light, it was the season of Darkness, it was
+the spring of hope, it was the winter of despair, we had everything before us,
+we had nothing before us, we were all going direct to Heaven, we were all going
+direct the other way—in short, the period was so far like the present period,
+that some of its noisiest authorities insisted on its being received, for good
+or for evil, in the superlative degree of comparison only.
+"""
+
+
+def load_texts(folder: Path) -> dict[str, str]:
+    """Read every .txt file in a folder, keyed by file name without .txt."""
+    # sorted() makes the order the same on every operating system.
+    return {
+        path.stem: path.read_text(encoding="utf-8")
+        for path in sorted(folder.glob("*.txt"))
+    }
+
+
+def files_demo() -> None:
+    print("== stage 4: reading files and comparing ==")
+    with tempfile.TemporaryDirectory() as tmp:
+        folder = Path(tmp)
+        (folder / "gettysburg.txt").write_text(GETTYSBURG, encoding="utf-8")
+        (folder / "two_cities.txt").write_text(TALE_OF_TWO_CITIES, encoding="utf-8")
+        texts = load_texts(folder)
+
+    print(f"loaded: {', '.join(texts)}")
+    vocab: dict[str, set[str]] = {}
+    for name, text in texts.items():
+        words = tokenise(text)
+        content = count_content_words(words)
+        top3 = ", ".join(word for word, _ in content.most_common(3))
+        print(f"  {name:<12} {len(words):>4} words, top: {top3}")
+        vocab[name] = set(content)
+
+    # Set intersection: content words both texts use. Two texts on different
+    # subjects share almost nothing once the stop words are gone.
+    shared = sorted(vocab["gettysburg"] & vocab["two_cities"])
+    print(f"content words in both: {', '.join(shared)}")
+    print()
+    print(report("A Tale of Two Cities, opening", TALE_OF_TWO_CITIES, top=5))
+
+
 def main() -> None:
     tokenise_demo()
     print()
     counting_demo()
     print()
     report_demo()
+    print()
+    files_demo()
 
 
 if __name__ == "__main__":
