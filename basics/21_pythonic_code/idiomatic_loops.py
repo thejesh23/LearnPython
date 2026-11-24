@@ -119,12 +119,42 @@ def any_all_sum_demo() -> None:
     print(f"  any([]) = {any([])}, all([]) = {all([])}")
 
 
+ROWS = [("2026-01-05", "coffee", 3.5), ("2026-01-05", "bagel", 2.25)]
+
+
+def unpacking_demo() -> None:
+    # Before: row[0], row[1], row[2] -- what was index 2 again?
+    for row in ROWS:
+        print(f"  before: {row[1]} cost {row[2]}")
+    # After: name the parts once, in the for statement itself.
+    for _date, item, cost in ROWS:  # _ marks a part we do not use
+        print(f"  after : {item} cost {cost}")
+
+    # Star unpacking takes "the rest".
+    header, *body = ["name,qty", "tea,2", "jam,1"]
+    print(f"header={header!r} body={body}")
+    *_, last = range(10)
+    print(f"last item of range(10): {last}")
+
+    # Swapping without a temporary variable.
+    a, b = 1, 2
+    a, b = b, a
+    print(f"after swap: a={a} b={b}")
+
+    # Nested unpacking follows the shape of the data.
+    point_pairs = [((0, 0), (3, 4)), ((1, 1), (4, 5))]
+    for (x1, y1), (x2, y2) in point_pairs:
+        print(f"  ({x1},{y1}) -> ({x2},{y2}): dx={x2 - x1} dy={y2 - y1}")
+
+
 def main() -> None:
     enumerate_zip_demo()
     print()
     dict_items_demo()
     print()
     any_all_sum_demo()
+    print()
+    unpacking_demo()
 
 
 if __name__ == "__main__":
