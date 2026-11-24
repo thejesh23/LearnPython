@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_432 runnable samples across 51 directories._
+_453 runnable samples across 54 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -214,6 +214,26 @@ _432 runnable samples across 51 directories._
 - [pickle_and_its_dangers](basics/18_data_and_storage/pickle_and_its_dangers.py)
 - [sqlite3_basics](basics/18_data_and_storage/sqlite3_basics.py)
 - [sqlite3_queries](basics/18_data_and_storage/sqlite3_queries.py)
+
+## basics/19_networking
+- [http_server_and_client](basics/19_networking/http_server_and_client.py)
+- [json_api_client](basics/19_networking/json_api_client.py)
+- [sockets_echo_server](basics/19_networking/sockets_echo_server.py)
+- [urls_and_query_strings](basics/19_networking/urls_and_query_strings.py)
+
+## basics/20_performance
+- [choosing_data_structures](basics/20_performance/choosing_data_structures.py)
+- [faster_python_idioms](basics/20_performance/faster_python_idioms.py)
+- [measuring_with_timeit](basics/20_performance/measuring_with_timeit.py)
+- [memory_with_tracemalloc](basics/20_performance/memory_with_tracemalloc.py)
+- [profiling_with_cprofile](basics/20_performance/profiling_with_cprofile.py)
+
+## basics/21_pythonic_code
+- [common_mistakes](basics/21_pythonic_code/common_mistakes.py)
+- [eafp_vs_lbyl](basics/21_pythonic_code/eafp_vs_lbyl.py)
+- [idiomatic_loops](basics/21_pythonic_code/idiomatic_loops.py)
+- [style_and_pep8](basics/21_pythonic_code/style_and_pep8.py)
+- [zen_of_python](basics/21_pythonic_code/zen_of_python.py)
 
 ## basics/22_packaging_and_projects
 - [installing_packages](basics/22_packaging_and_projects/installing_packages.py)
@@ -469,9 +489,16 @@ _432 runnable samples across 51 directories._
 ## projects
 - [contact_book](projects/contact_book.py)
 - [expense_tracker](projects/expense_tracker.py)
+- [hangman](projects/hangman.py)
+- [inventory_system](projects/inventory_system.py)
+- [log_analyzer](projects/log_analyzer.py)
+- [markdown_to_html](projects/markdown_to_html.py)
+- [password_tools](projects/password_tools.py)
 - [quiz_game](projects/quiz_game.py)
 - [text_adventure](projects/text_adventure.py)
 - [todo_cli](projects/todo_cli.py)
+- [url_shortener](projects/url_shortener.py)
+- [word_frequency_report](projects/word_frequency_report.py)
 
 ## puzzles
 - [fizzbuzz_variations](puzzles/fizzbuzz_variations.py)
