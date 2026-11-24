@@ -21,8 +21,11 @@ Uses:
     13_standard_library    regular expressions
 """
 
+import csv
 import re
+import tempfile
 from dataclasses import dataclass
+from pathlib import Path
 
 
 class ValidationError(ValueError):
@@ -104,10 +107,55 @@ def book_demo() -> None:
         print(f"search {query!r}: {[c.name for c in book.search(query)]}")
 
 
+FIELDS = ["name", "email", "phone", "tags"]
+
+
+def export_csv(book: ContactBook, path: Path) -> None:
+    # newline="" lets the csv module choose line endings itself.
+    with path.open("w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDS)
+        writer.writeheader()
+        for c in book.all():
+            writer.writerow({"name": c.name, "email": c.email, "phone": c.phone,
+                             "tags": ";".join(c.tags)})
+
+
+def import_csv(book: ContactBook, path: Path) -> list[str]:
+    """Add every good row; return one message per row that was skipped."""
+    problems = []
+    with path.open(newline="") as f:
+        # start=2 because line 1 is the header.
+        for line_no, row in enumerate(csv.DictReader(f), start=2):
+            try:
+                tags = tuple(t.strip() for t in (row.get("tags") or "").split(";"))
+                contact = Contact(row.get("name") or "", row.get("email") or "",
+                                  row.get("phone") or "", tuple(t for t in tags if t))
+                book.add(contact)
+            except ValidationError as exc:
+                problems.append(f"line {line_no}: {exc}")
+    return problems
+
+
+def csv_demo() -> None:
+    book = ContactBook()
+    book.add(Contact("Margaret Hamilton", "margaret@nasa.gov", "555 0100 123"))
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "contacts.csv"
+        export_csv(book, path)
+        print("exported contacts.csv:")
+        for line in path.read_text().splitlines():
+            print(f"  {line}")
+        copy = ContactBook()
+        print(f"re-import problems: {import_csv(copy, path)}")
+        print(f"round trip equal: {copy.all() == book.all()}")
+
+
 def main() -> None:
     contact_demo()
     print()
     book_demo()
+    print()
+    csv_demo()
 
 
 if __name__ == "__main__":
