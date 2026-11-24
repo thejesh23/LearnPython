@@ -131,12 +131,41 @@ def composed_demo() -> None:
                   f"{n.notify('build passed')}")
 
 
+class RecordingSender:
+    """A fake part for tests: remembers messages instead of sending them."""
+
+    def __init__(self) -> None:
+        self.sent: list[str] = []
+
+    def send(self, message: str) -> str:
+        self.sent.append(message)
+        return f"recorded: {message}"
+
+
+def swap_parts_demo() -> None:
+    n = Notifier(EmailSender())
+    print(n.notify("deploy started"))
+
+    # Change behaviour on a live object by replacing one part.
+    n.style = shouting
+    print(n.notify("deploy failed"))
+
+    # Swap in a fake sender: no subclassing, no patching needed.
+    fake = RecordingSender()
+    n.sender = fake  # type: ignore[assignment]
+    n.notify("hello")
+    n.notify("bye")
+    print(f"the fake captured: {fake.sent}")
+
+
 def main() -> None:
     is_a_vs_has_a_demo()
     print()
     class_explosion_demo()
     print()
     composed_demo()
+    print()
+    swap_parts_demo()
 
 
 if __name__ == "__main__":
