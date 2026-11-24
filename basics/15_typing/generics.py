@@ -17,6 +17,7 @@ will see both. Like every hint, type parameters are checked by tools such as
 mypy, not by Python when the code runs.
 """
 
+from collections.abc import Callable
 from collections.abc import Sequence
 
 
@@ -42,8 +43,55 @@ def function_demo() -> None:
     # At runtime nothing is enforced: T is a promise to the type checker.
 
 
+class Box[T]:
+    """Holds one value of type T. Box[int] holds an int, Box[str] a str."""
+
+    def __init__(self, value: T) -> None:
+        self.value = value
+
+    def get(self) -> T:
+        return self.value
+
+    def map[U](self, fn: Callable[[T], U]) -> "Box[U]":
+        # A method can add its own parameter: mapping a Box[int] with str()
+        # gives a Box[str], and the checker follows the change of type.
+        return Box(fn(self.value))
+
+    def __repr__(self) -> str:
+        return f"Box({self.value!r})"
+
+
+class Stack[T]:
+    def __init__(self) -> None:
+        self._items: list[T] = []
+
+    def push(self, item: T) -> None:
+        self._items.append(item)
+
+    def pop(self) -> T:
+        return self._items.pop()
+
+
+def class_demo() -> None:
+    number = Box(21)  # the checker infers Box[int]
+    text = number.map(lambda n: f"{n * 2} apples")  # Box[str]
+    print(f"{number} -> {text}, text.get().upper() = {text.get().upper()!r}")
+
+    # You can also spell the type out. Box[int] is a "generic alias".
+    explicit: Box[int] = Box[int](5)
+    print(f"Box[int](5) = {explicit}, Box[int] is {Box[int]!r}")
+
+    tasks = Stack[str]()
+    tasks.push("write tests")
+    tasks.push("fix bug")
+    print(f"popped {tasks.pop()!r}, then {tasks.pop()!r}")
+    # tasks.push(42) would still run; mypy would report "expected str".
+
+
 def main() -> None:
     function_demo()
+    print()
+    class_demo()
 
 
 if __name__ == "__main__":
