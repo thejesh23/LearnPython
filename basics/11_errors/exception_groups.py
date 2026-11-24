@@ -47,10 +47,33 @@ def split_demo() -> None:
         print(f"still unhandled: {rest.exceptions!r}")
 
 
+def load_settings(lines: list[str]) -> dict[str, int]:
+    settings: dict[str, int] = {}
+    for number, line in enumerate(lines, start=1):
+        key, value = line.split("=")
+        try:
+            settings[key] = int(value)
+        except ValueError as exc:
+            exc.add_note(f"while reading line {number}: {line!r}")
+            raise
+    return settings
+
+
+def notes_demo() -> None:
+    try:
+        load_settings(["width=80", "height=tall"])
+    except ValueError as exc:
+        print(f"error: {exc}")
+        for note in exc.__notes__:
+            print(f"note:  {note}")
+
+
 def main() -> None:
     group_demo()
     print()
     split_demo()
+    print()
+    notes_demo()
 
 
 if __name__ == "__main__":
