@@ -18,6 +18,7 @@ import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from typing import Any
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -55,9 +56,27 @@ def check_safe_counter() -> None:
     report("2. SafeCounter", EXERCISES["test_safe_counter"], SafeCounter)
 
 
+def run_all(funcs: list[Callable[[], Any]]) -> tuple[list[Any], list[str]]:
+    results: list[Any] = []
+    errors: list[str] = []
+    with ThreadPoolExecutor() as pool:
+        futures = [pool.submit(func) for func in funcs]
+        for future in futures:  # submission order, not finishing order
+            try:
+                results.append(future.result())
+            except Exception as exc:  # the worker's exception, re-raised here
+                errors.append(f"{type(exc).__name__}: {exc}")
+    return results, errors
+
+
+def check_run_all() -> None:
+    report("3. run_all", EXERCISES["test_run_all"], run_all)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
+    check_run_all()
 
 
 if __name__ == "__main__":
