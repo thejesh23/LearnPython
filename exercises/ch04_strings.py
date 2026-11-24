@@ -181,11 +181,46 @@ def check_mask_card() -> None:
     report("4. mask_card", test_mask_card, mask_card)
 
 
+def parse_setting(line: str) -> tuple[str, str]:
+    """Split a "key = value" line into a (key, value) pair.
+
+    Split at the first "=" only, so the value may contain "=" itself.
+    Strip spaces from both parts. With no "=", the value is "".
+
+    parse_setting("name = Ada")         -> ("name", "Ada")
+    parse_setting("  debug=true ")      -> ("debug", "true")
+    parse_setting("query = a=1")        -> ("query", "a=1")
+    parse_setting("verbose")            -> ("verbose", "")
+    """
+    raise NotImplementedError
+
+
+def test_parse_setting(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("name = Ada", ("name", "Ada")),
+        ("  debug=true ", ("debug", "true")),
+        ("query = a=1", ("query", "a=1")),
+        ("verbose", ("verbose", "")),
+        ("empty =", ("empty", "")),
+        ("greeting = hello world", ("greeting", "hello world")),
+    ]
+    for line, want in cases:
+        got = fn(line)
+        assert got == want, (
+            f"parse_setting({line!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_parse_setting() -> None:
+    report("5. parse_setting", test_parse_setting, parse_setting)
+
+
 def main() -> None:
     check_format_price()
     check_initials()
     check_is_palindrome()
     check_mask_card()
+    check_parse_setting()
 
 
 if __name__ == "__main__":
