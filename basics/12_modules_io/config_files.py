@@ -17,6 +17,7 @@ so a file sets the usual values and one environment variable can change a
 single setting for one run.
 """
 
+import configparser
 import tempfile
 import tomllib
 from pathlib import Path
@@ -59,8 +60,49 @@ def toml_demo() -> None:
         print(f"TOMLDecodeError: {exc}")
 
 
+INI_TEXT = """
+[DEFAULT]
+timeout = 30
+
+[server]
+host = 0.0.0.0
+port = 8000
+debug = yes
+
+[backup]
+enabled = off
+"""
+
+
+def ini_demo() -> None:
+    parser = configparser.ConfigParser()
+    parser.read_string(INI_TEXT)
+    print(f"sections: {parser.sections()}  (DEFAULT is not listed)")
+
+    server = parser["server"]
+    # Everything is a string; the get* helpers convert for you.
+    print(f"port as stored: {server['port']!r}, getint: {server.getint('port')}")
+    print(f"debug = yes -> getboolean: {server.getboolean('debug')}")
+    print(f"backup enabled = off -> {parser.getboolean('backup', 'enabled')}")
+    # [DEFAULT] values show up in every section.
+    print(f"backup timeout inherited from DEFAULT: {parser['backup']['timeout']}")
+    print(f"missing key with fallback: {server.get('retries', fallback='3')}")
+
+    # ConfigParser can also write INI files back out.
+    parser["server"]["port"] = "9000"
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "app.ini"
+        with path.open("w", encoding="utf-8") as f:
+            parser.write(f)
+        again = configparser.ConfigParser()
+        again.read(path, encoding="utf-8")
+    print(f"round trip through a file, port = {again['server']['port']}")
+
+
 def main() -> None:
     toml_demo()
+    print()
+    ini_demo()
 
 
 if __name__ == "__main__":
