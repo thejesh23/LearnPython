@@ -82,8 +82,37 @@ def check_top_words() -> None:
     report("1. top_words", test_top_words, top_words)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def group_by_length(words: list[str]) -> dict[int, list[str]]:
+    """Group words by their length, keeping the input order inside each group.
+
+    collections.defaultdict(list) lets you append without checking whether
+    the key exists yet.
+
+    >>> group_by_length(["hi", "cat", "yo", "dog", "a"])
+    {2: ['hi', 'yo'], 3: ['cat', 'dog'], 1: ['a']}
+    """
+    raise NotImplementedError
+
+
+def test_group_by_length(impl: Callable[[list[str]], dict[int, list[str]]]) -> None:
+    got = impl(["hi", "cat", "yo", "dog", "a"])
+    expected = {2: ["hi", "yo"], 3: ["cat", "dog"], 1: ["a"]}
+    assert got == expected, f"expected {expected}, got {got}"
+    assert impl([]) == {}, "no words should give an empty dict"
+    got = impl(["same", "same"])
+    assert got == {4: ["same", "same"]}, f"duplicates are kept, got {got}"
+    assert 99 not in got and len(got) == 1, "only lengths that occur are keys"
+
+
+def check_group_by_length() -> None:
+    report("2. group_by_length", test_group_by_length, group_by_length)
+
+
 def main() -> None:
     check_top_words()
+    check_group_by_length()
 
 
 if __name__ == "__main__":
