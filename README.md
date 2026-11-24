@@ -79,7 +79,7 @@ Follow the numbered folders in order. Inside each folder, read the files in alph
 | 08 | `08_iterators/` | Iterables, generators, `yield`, `itertools` |
 | 09 | `09_classes/` | Attributes, `__init__`, class and static methods, dunder methods, inheritance, `dataclass`, `Enum` |
 | 10 | `10_async/` | `async`/`await`, `asyncio.gather`, async generators |
-| 11 | `11_errors/` | `try`/`except`/`else`/`finally`, raising, custom exceptions |
+| 11 | `11_errors/` | `try`/`except`/`else`/`finally`, raising, custom exceptions, exception groups |
 | 12 | `12_modules_io/` | Imports, `pathlib`, context managers, JSON |
 | 13 | `13_standard_library/` | `collections`, `functools`, `datetime`, `re`, `logging` |
 | 14 | `14_testing/` | `assert`, doctest, `unittest`, `unittest.mock` |
