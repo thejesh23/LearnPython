@@ -85,12 +85,49 @@ def limit_demo() -> None:
     # memory; for long linear work, a loop is the honest fix.
 
 
+# A folder tree as nested dicts: a dict is a folder, an int is a file size.
+FILES = {
+    "notes.txt": 12,
+    "photos": {"cat.jpg": 300, "dog.jpg": 250, "old": {"1999.jpg": 80}},
+    "code": {"main.py": 4, "lib": {"util.py": 2, "math.py": 3}},
+}
+
+
+def total_size(folder: dict) -> int:
+    """Each folder's size is its files plus the size of its sub-folders."""
+    total = 0
+    for item in folder.values():
+        if isinstance(item, dict):
+            total += total_size(item)  # same question, smaller tree
+        else:
+            total += item
+    return total
+
+
+def show_tree(folder: dict, indent: int = 0) -> None:
+    for name, item in folder.items():
+        if isinstance(item, dict):
+            print(f"{'  ' * indent}{name}/  ({total_size(item)} KB)")
+            show_tree(item, indent + 1)
+        else:
+            print(f"{'  ' * indent}{name}  ({item} KB)")
+
+
+def tree_demo() -> None:
+    # A loop would need to know how deep the nesting goes. Recursion does not:
+    # each level handles itself and hands sub-folders to another call.
+    show_tree(FILES)
+    print(f"total = {total_size(FILES)} KB")
+
+
 def main() -> None:
     base_case_demo()
     print()
     call_stack_demo()
     print()
     limit_demo()
+    print()
+    tree_demo()
 
 
 if __name__ == "__main__":
