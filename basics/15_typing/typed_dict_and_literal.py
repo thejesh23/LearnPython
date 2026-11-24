@@ -15,11 +15,14 @@ to read the hints back and validate incoming data yourself.
 """
 
 import json
+from typing import Any
 from typing import Literal
 from typing import NotRequired
 from typing import Required
 from typing import TypedDict
 from typing import get_args
+from typing import get_origin
+from typing import get_type_hints
 
 
 class Movie(TypedDict):
@@ -105,12 +108,58 @@ def literal_demo() -> None:
     print(f"'finished' allowed: {'finished' in allowed}")
 
 
+class Task(TypedDict):
+    title: str
+    status: Status
+
+
+class Project(TypedDict):
+    # TypedDicts nest, so a whole JSON document can be described this way.
+    name: str
+    owner: User
+    tasks: list[Task]
+
+
+def problems_with_task(data: dict[str, Any]) -> list[str]:
+    """Check one task dict against the Task hints and report what is wrong."""
+    problems = [f"missing key {key!r}" for key in sorted(Task.__required_keys__)
+                if key not in data]
+    for key, hint in get_type_hints(Task).items():
+        if key not in data:
+            continue
+        value = data[key]
+        if get_origin(hint) is Literal:  # Literal hints: compare values
+            if value not in get_args(hint):
+                problems.append(f"{key}={value!r} not in {get_args(hint)}")
+        elif not isinstance(value, hint):  # plain classes such as str
+            problems.append(f"{key} should be {hint.__name__}")
+    return problems
+
+
+def validate_demo() -> None:
+    raw = """
+    {"name": "launch", "owner": {"id": 7, "name": "Kai"},
+     "tasks": [{"title": "write docs", "status": "doing"},
+               {"title": "ship", "status": "finished"},
+               {"status": "todo"}]}
+    """
+    project: Project = json.loads(raw)
+    print(f"project {project['name']!r} owned by {contact_line(project['owner'])}")
+    for task in project["tasks"]:
+        found = problems_with_task(dict(task))
+        label = task.get("title", "?")
+        print(f"  {label:<11} {'ok' if not found else '; '.join(found)}")
+    # For real projects, libraries such as pydantic do this checking for you.
+
+
 def main() -> None:
     typed_dict_demo()
     print()
     optional_keys_demo()
     print()
     literal_demo()
+    print()
+    validate_demo()
 
 
 if __name__ == "__main__":
