@@ -164,10 +164,65 @@ def check_insufficient_funds() -> None:
     report("3. InsufficientFunds", test_insufficient_funds, InsufficientFunds)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def retry(func: Callable[[], str], attempts: int) -> str:
+    """Call func() and return its result, retrying on ConnectionError.
+
+    - Try at most `attempts` times in total (attempts is at least 1).
+    - If every try raises ConnectionError, re-raise the last one (a bare
+      `raise` inside the except block does that).
+    - Any other exception is not worth retrying: let it through at once.
+    """
+    raise NotImplementedError
+
+
+def test_retry(impl: Callable[[Callable[[], str], int], str]) -> None:
+    calls = 0
+
+    def flaky(failures: int, error: type[Exception]) -> Callable[[], str]:
+        """Make a func that raises `error` for its first `failures` calls."""
+        def func() -> str:
+            nonlocal calls
+            calls += 1
+            if calls <= failures:
+                raise error(f"failure {calls}")
+            return "ok"
+        return func
+
+    calls = 0
+    result = impl(flaky(0, ConnectionError), 1)
+    assert result == "ok", f"a first-try success should return 'ok', got {result!r}"
+    calls = 0
+    result = impl(flaky(2, ConnectionError), 3)
+    assert result == "ok", f"2 failures then success should give 'ok', got {result!r}"
+    assert calls == 3, f"func should be called 3 times, was called {calls}"
+    calls = 0
+    try:
+        impl(flaky(10, ConnectionError), 3)
+    except ConnectionError as exc:
+        assert calls == 3, f"stop after 3 attempts, but func ran {calls} times"
+        assert str(exc) == "failure 3", f"re-raise the last error, got {exc!r}"
+    else:
+        raise AssertionError("after 3 failed attempts the error should be raised")
+    calls = 0
+    try:
+        impl(flaky(10, ValueError), 3)
+    except ValueError:
+        assert calls == 1, f"do not retry a ValueError; func ran {calls} times"
+    else:
+        raise AssertionError("a ValueError should pass straight through")
+
+
+def check_retry() -> None:
+    report("4. retry", test_retry, retry)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
     check_insufficient_funds()
+    check_retry()
 
 
 if __name__ == "__main__":
