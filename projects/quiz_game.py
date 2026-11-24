@@ -23,6 +23,7 @@ Uses:
     13_standard_library    random with a seed
 """
 
+import random
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
@@ -121,10 +122,34 @@ def scoring_demo() -> None:
     print(f"total: {sum(r.points for r in results)}")
 
 
+def shuffled(questions: list[Question], rng: random.Random) -> list[Question]:
+    # Copy before shuffling so the caller's list is left alone.
+    order = questions[:]
+    rng.shuffle(order)
+    mixed = []
+    for q in order:
+        # rng.sample(seq, len(seq)) is a shuffled copy; the answer is stored
+        # as text, so it stays right wherever it lands.
+        mixed.append(Question(q.prompt, rng.sample(q.choices, len(q.choices)),
+                              q.answer))
+    return mixed
+
+
+def shuffle_demo() -> None:
+    questions = load_questions(QUESTIONS)
+    for seed in [1, 4, 1]:
+        game = shuffled(questions, random.Random(seed))
+        print(f"seed {seed}: first is {game[0].prompt!r}")
+        print(f"         choices {game[0].choices}")
+    print(f"original untouched: {questions[0].prompt!r}")
+
+
 def main() -> None:
     questions_demo()
     print()
     scoring_demo()
+    print()
+    shuffle_demo()
 
 
 if __name__ == "__main__":
