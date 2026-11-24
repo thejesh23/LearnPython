@@ -10,9 +10,11 @@ The common thread: functions are ordinary objects in Python, so you can pass
 them around, wrap them, and build new ones from old ones.
 """
 
+import operator
 import time
 from functools import cache
 from functools import partial
+from functools import reduce
 
 
 @cache
@@ -46,10 +48,27 @@ def partial_demo() -> None:
     print(f"binary strings: {list(map(parse_binary, ['101', '1111', '10000']))}")
 
 
+def reduce_demo() -> None:
+    # reduce(f, items) computes f(f(f(a, b), c), d): it folds left to right.
+    numbers = [1, 2, 3, 4, 5]
+    product = reduce(operator.mul, numbers)
+    print(f"product of {numbers} = {product}")
+
+    # A starting value handles the empty case, which otherwise raises.
+    print(f"product of [] with start 1 = {reduce(operator.mul, [], 1)}")
+
+    # Prefer a built-in when one exists: sum(), max(), any(), "".join(),
+    # and math.prod() say what they do. reduce is for the folds left over.
+    nested = [[1, 2], [3], [4, 5]]
+    print(f"flattened with reduce: {reduce(operator.add, nested, [])}")
+
+
 def main() -> None:
     cache_demo()
     print()
     partial_demo()
+    print()
+    reduce_demo()
 
 
 if __name__ == "__main__":
