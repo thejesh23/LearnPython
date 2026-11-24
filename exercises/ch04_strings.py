@@ -89,8 +89,36 @@ def check_format_price() -> None:
     report("1. format_price", test_format_price, format_price)
 
 
+def initials(full_name: str) -> str:
+    """Return the initials of a two-word name, upper case, each with a dot.
+
+    The name may have stray spaces and any capitalisation.
+
+    initials("Ada Lovelace")      -> "A.L."
+    initials("  grace   hopper ") -> "G.H."
+    """
+    raise NotImplementedError
+
+
+def test_initials(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("Ada Lovelace", "A.L."),
+        ("  grace   hopper ", "G.H."),
+        ("alan Turing", "A.T."),
+        ("Q X", "Q.X."),
+    ]
+    for name, want in cases:
+        got = fn(name)
+        assert got == want, f"initials({name!r}) returned {got!r}, expected {want!r}"
+
+
+def check_initials() -> None:
+    report("2. initials", test_initials, initials)
+
+
 def main() -> None:
     check_format_price()
+    check_initials()
 
 
 if __name__ == "__main__":
