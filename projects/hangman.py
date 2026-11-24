@@ -25,6 +25,7 @@ Uses:
 """
 
 import random
+import sys
 from collections import Counter
 from collections.abc import Callable
 from collections.abc import Iterable
@@ -247,6 +248,26 @@ def computer_player_demo() -> None:
     play(game, computer_guesses(game, WORDS))
 
 
+def typed_guesses() -> Iterator[str]:
+    """Ask the person at the keyboard, one guess per loop of play()."""
+    while True:
+        try:
+            yield input("your guess: ")
+        except EOFError:  # Ctrl-D (or Ctrl-Z on Windows) ends the game
+            print()
+            return
+
+
+def play_yourself_demo() -> None:
+    print("== stage 5: your turn ==")
+    if "--play" not in sys.argv:
+        # Never wait for input unless asked: scripts and CI have no keyboard.
+        print("run with --play to play a game yourself")
+        return
+    word = random.choice(WORDS)  # unseeded: a different word each time
+    play(Hangman(word), typed_guesses(), verbose=True)
+
+
 def main() -> None:
     game_state_demo()
     print()
@@ -255,6 +276,8 @@ def main() -> None:
     scripted_game_demo()
     print()
     computer_player_demo()
+    print()
+    play_yourself_demo()
 
 
 if __name__ == "__main__":
