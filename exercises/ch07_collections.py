@@ -176,11 +176,39 @@ def check_group_by_length() -> None:
     report("4. group_by_length", test_group_by_length, group_by_length)
 
 
+def common_items(a: list[Any], b: list[Any]) -> list[Any]:
+    """Return the distinct items that appear in both lists, sorted.
+
+    common_items([3, 1, 2, 3], [3, 4, 1])   -> [1, 3]
+    common_items(["b", "a"], ["c", "a", "b"]) -> ["a", "b"]
+    common_items([1, 2], [])                -> []
+    """
+    raise NotImplementedError
+
+
+def test_common_items(fn: Callable[..., Any]) -> None:
+    cases = [
+        (([3, 1, 2, 3], [3, 4, 1]), [1, 3]),
+        ((["b", "a"], ["c", "a", "b"]), ["a", "b"]),
+        (([1, 2], []), []),
+        (([5, 5, 5], [5]), [5]),
+        (([1, 2, 3], [4, 5, 6]), []),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"common_items{args} returned {got!r}, expected {want!r}"
+
+
+def check_common_items() -> None:
+    report("5. common_items", test_common_items, common_items)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
     check_word_counts()
     check_group_by_length()
+    check_common_items()
 
 
 if __name__ == "__main__":
