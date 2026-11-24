@@ -64,8 +64,50 @@ def contact_demo() -> None:
             print(f"rejected: {exc}")
 
 
+class ContactBook:
+    def __init__(self) -> None:
+        # Keyed by email: two contacts may share a name, never an address.
+        self._by_email: dict[str, Contact] = {}
+
+    def __len__(self) -> int:
+        return len(self._by_email)
+
+    def add(self, contact: Contact) -> None:
+        if contact.email in self._by_email:
+            raise ValidationError(f"{contact.email} is already in the book")
+        self._by_email[contact.email] = contact
+
+    def remove(self, email: str) -> Contact:
+        return self._by_email.pop(email.lower())
+
+    def all(self) -> list[Contact]:
+        return sorted(self._by_email.values(), key=lambda c: c.name.lower())
+
+    def search(self, text: str) -> list[Contact]:
+        needle = text.lower()
+        return [c for c in self.all()
+                if needle in c.name.lower() or needle in c.email
+                or needle in (t.lower() for t in c.tags)]
+
+
+def book_demo() -> None:
+    book = ContactBook()
+    book.add(Contact("Grace Hopper", "grace@navy.mil", tags=("work",)))
+    book.add(Contact("Alan Turing", "alan@bletchley.uk", tags=("work", "chess")))
+    book.add(Contact("Linus", "linus@example.org", tags=("friend",)))
+    try:
+        book.add(Contact("Grace H.", "Grace@navy.mil"))
+    except ValidationError as exc:
+        print(f"rejected: {exc}")
+    print(f"{len(book)} contacts: {[c.name for c in book.all()]}")
+    for query in ["work", "LIN", "nobody"]:
+        print(f"search {query!r}: {[c.name for c in book.search(query)]}")
+
+
 def main() -> None:
     contact_demo()
+    print()
+    book_demo()
 
 
 if __name__ == "__main__":
