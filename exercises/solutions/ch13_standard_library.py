@@ -19,6 +19,7 @@ from collections import Counter
 from collections import defaultdict
 from collections import deque
 from datetime import date, timedelta
+from functools import cache
 from pathlib import Path
 
 
@@ -95,12 +96,25 @@ def check_us_to_iso() -> None:
     report("5. us_to_iso", EXERCISES["test_us_to_iso"], us_to_iso)
 
 
+@cache
+def count_paths(rows: int, cols: int) -> int:
+    if rows == 1 or cols == 1:
+        return 1
+    # Each sub-grid is computed once; repeated calls are dictionary lookups.
+    return count_paths(rows - 1, cols) + count_paths(rows, cols - 1)
+
+
+def check_count_paths() -> None:
+    report("6. count_paths", EXERCISES["test_count_paths"], count_paths)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
     check_moving_average()
     check_add_business_days()
     check_us_to_iso()
+    check_count_paths()
 
 
 if __name__ == "__main__":
