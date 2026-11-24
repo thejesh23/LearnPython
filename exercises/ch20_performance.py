@@ -103,8 +103,61 @@ def check_has_duplicates() -> None:
     report("1. has_duplicates", test_has_duplicates, has_duplicates)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def common_words(first: list[str], second: list[str]) -> list[str]:
+    """Return the words of `first` that also appear in `second`.
+
+    Keep the order of `first` and list each word once:
+        common_words(["the", "cat", "sat", "on", "the", "mat"],
+                     ["mat", "the", "dog"])  ->  ["the", "mat"]
+
+    `word in second` scans the whole list every time, which is O(n) per
+    word. Build a set from `second` once, before the loop, and look words
+    up in that. The test counts how often `second` is read and searched.
+    """
+    raise NotImplementedError
+
+
+class CountingList(list[str]):
+    """Test helper: a list that counts loops over it and `in` checks on it."""
+
+    def __init__(self, items: Iterable[str]) -> None:
+        super().__init__(items)
+        self.loops = 0
+        self.searches = 0
+
+    def __iter__(self) -> Iterator[str]:
+        self.loops += 1
+        return super().__iter__()
+
+    def __contains__(self, item: object) -> bool:
+        self.searches += 1
+        return super().__contains__(item)
+
+
+def test_common_words(impl: Callable[[list[str], list[str]], list[str]]) -> None:
+    first = ["the", "cat", "sat", "on", "the", "mat"]
+    second = CountingList(["mat", "the", "dog"])
+    got = impl(first, second)
+    assert got == ["the", "mat"], f"expected ['the', 'mat'], got {got}"
+    assert second.searches == 0, (
+        f"`in` was used on the list {second.searches} times: use a set instead"
+    )
+    assert second.loops == 1, (
+        f"the second list was read {second.loops} times; build the set once"
+    )
+    got = impl(["a", "b"], CountingList([]))
+    assert got == [], f"nothing in common should give [], got {got}"
+
+
+def check_common_words() -> None:
+    report("2. common_words", test_common_words, common_words)
+
+
 def main() -> None:
     check_has_duplicates()
+    check_common_words()
 
 
 if __name__ == "__main__":
