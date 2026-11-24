@@ -26,6 +26,7 @@ from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Iterable
 from collections.abc import Iterator
+from functools import wraps
 from itertools import islice
 from typing import Any
 
@@ -199,10 +200,73 @@ def check_parse_readings() -> None:
     report("3. parse_readings", test_parse_readings, parse_readings)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def memoize(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator: remember each result so repeated calls are instant.
+
+    Keep a dict from the positional arguments (a tuple, so hashable) to the
+    result. On a call, return the stored result if there is one; otherwise
+    call func, store the result and return it. Two traps:
+      - A result can be None, 0 or "", so test `args in cache`, not
+        `if cache.get(args)`.
+      - Use @functools.wraps(func) on the wrapper so it keeps func's
+        __name__ and docstring.
+    functools.cache does all this for real; writing it once shows how.
+    """
+    raise NotImplementedError
+
+
+def test_memoize(impl: Callable[[Callable[..., Any]], Callable[..., Any]]) -> None:
+    calls: list[tuple[int, ...]] = []
+
+    def area(width: int, height: int) -> int:
+        """Area of a rectangle."""
+        calls.append((width, height))
+        return width * height
+
+    fast = impl(area)
+    assert fast.__name__ == "area", "use functools.wraps to keep the name"
+    assert fast.__doc__ == "Area of a rectangle.", "wraps also keeps the docstring"
+    got = [fast(2, 3), fast(4, 5), fast(2, 3), fast(3, 2), fast(2, 3)]
+    assert got == [6, 20, 6, 6, 6], f"results were {got}"
+    assert calls == [(2, 3), (4, 5), (3, 2)], f"area really ran for {calls}"
+
+    nothing_calls: list[int] = []
+
+    @impl
+    def find_nothing(n: int) -> None:
+        nothing_calls.append(n)
+        return None
+
+    find_nothing(1)
+    find_nothing(1)
+    assert nothing_calls == [1], "a stored None is still a stored result"
+
+    fib_calls = 0
+
+    @impl
+    def fib(n: int) -> int:
+        nonlocal fib_calls
+        fib_calls += 1
+        return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+    got = fib(25)
+    assert got == 75025, f"fib(25) is 75025, got {got}"
+    assert fib_calls == 26, (
+        f"memoised fib(25) needs 26 real calls, not {fib_calls:,}"
+    )
+
+
+def check_memoize() -> None:
+    report("4. memoize", test_memoize, memoize)
+
+
 def main() -> None:
     check_has_duplicates()
     check_common_words()
     check_parse_readings()
+    check_memoize()
 
 
 if __name__ == "__main__":
