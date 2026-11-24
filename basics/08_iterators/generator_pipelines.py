@@ -15,6 +15,7 @@ connecting generators together. advanced/lazy_evaluation_pipelines.py goes
 further.
 """
 
+import itertools
 import sys
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -101,12 +102,45 @@ def memory_demo() -> None:
     # so the true cost of the list is even larger.)
 
 
+def is_prime(n: int) -> bool:
+    return n >= 2 and all(n % d for d in range(2, int(n**0.5) + 1))
+
+
+def ticket_numbers(prefix: str) -> Iterator[str]:
+    """An endless source: there is always another ticket."""
+    for n in itertools.count(1):
+        yield f"{prefix}-{n:04d}"
+
+
+def infinite_demo() -> None:
+    # count() never ends, which is fine because every step is lazy.
+    # islice takes the first N items and then stops pulling.
+    primes = (n for n in itertools.count() if is_prime(n))
+    print(f"first 10 primes: {list(itertools.islice(primes, 10))}")
+
+    tickets = ticket_numbers("Q")
+    print(f"three tickets: {list(itertools.islice(tickets, 3))}")
+    print(f"the next one:  {next(tickets)}")
+
+    # takewhile stops at the first item that fails a test.
+    powers = (2**n for n in itertools.count())
+    small = itertools.takewhile(lambda p: p < 1000, powers)
+    print(f"powers of 2 under 1000: {list(small)}")
+
+    # next() with a generator finds the first match without scanning the rest.
+    first_big_square = next(n * n for n in itertools.count(1) if n * n > 500)
+    print(f"first square above 500: {first_big_square}")
+    # Never call list() or sum() on an endless generator: it never returns.
+
+
 def main() -> None:
     genexp_demo()
     print()
     pipeline_demo()
     print()
     memory_demo()
+    print()
+    infinite_demo()
 
 
 if __name__ == "__main__":
