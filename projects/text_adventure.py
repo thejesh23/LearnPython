@@ -129,10 +129,91 @@ def parser_demo() -> None:
         print(f"{text!r:22} -> {parse(text)}")
 
 
+class Game:
+    def __init__(self, data: dict[str, dict], start: str = "hall") -> None:
+        self.world = build_world(data)
+        self.here = self.world[start]
+        self.inventory: list[str] = []
+        self.over = False
+        self.moves = 0
+
+    def can_see(self) -> bool:
+        return not self.here.dark or "lamp" in self.inventory
+
+    def describe(self) -> str:
+        if not self.can_see():
+            return "It is pitch dark. You might trip over something."
+        text = self.here.description
+        if self.here.items:
+            text += f"\nYou see: {', '.join(self.here.items)}."
+        return text + f"\nExits: {', '.join(sorted(self.here.exits))}."
+
+    def go(self, direction: str) -> str:
+        if direction not in self.here.exits:
+            return "You can't go that way."
+        news = ""
+        key = self.here.locked.get(direction)
+        if key:
+            if key not in self.inventory:
+                return "It's locked."
+            del self.here.locked[direction]  # stays unlocked from now on
+            news = f"You unlock the way {direction} with the {key}.\n"
+        self.here = self.world[self.here.exits[direction]]
+        return news + self.describe()
+
+    def take(self, item: str) -> str:
+        if not self.can_see():
+            return "You fumble around in the dark and find nothing."
+        if item not in self.here.items:
+            return f"There is no {item} here."
+        self.here.items.remove(item)
+        self.inventory.append(item)
+        return f"Taken: {item}."
+
+    def drop(self, item: str) -> str:
+        if item not in self.inventory:
+            return f"You are not carrying a {item}."
+        self.inventory.remove(item)
+        self.here.items.append(item)
+        return f"Dropped: {item}."
+
+    def step(self, text: str) -> str:
+        self.moves += 1
+        # Class patterns: Command("go", d) matches a Command whose verb is
+        # "go" and binds its noun to d (dataclasses support this for free).
+        match parse(text):
+            case Command("go", direction):
+                return self.go(direction)
+            case Command("take", item):
+                return self.take(item)
+            case Command("drop", item):
+                return self.drop(item)
+            case Command("look"):
+                return self.describe()
+            case Command("inventory"):
+                return f"You carry: {', '.join(self.inventory) or 'nothing'}."
+            case Command("quit"):
+                self.over = True
+                return "Bye."
+            case Command("nothing"):
+                return "Say something."
+            case Command(noun=said):
+                return f"I don't understand {said!r}."
+
+
+def game_demo() -> None:
+    game = Game(ROOMS)
+    for text in ["e", "take lamp", "take sword", "w", "u", "n", "up", "i"]:
+        print(f"> {text}")
+        print(game.step(text))
+
+
 def main() -> None:
     world_demo()
     print()
     parser_demo()
+    print()
+    game_demo()
 
 
 if __name__ == "__main__":
