@@ -18,6 +18,7 @@ styles belong in your toolbox; this file shows when to reach for which.
 """
 
 import tempfile
+import timeit
 from collections.abc import Callable
 from pathlib import Path
 
@@ -91,10 +92,67 @@ def race_demo() -> None:
     # is why Path.mkdir(exist_ok=True) does the check and the act as one step.
 
 
+def transfer_as_you_go(
+    balances: dict[str, int], moves: list[tuple[str, int]]
+) -> None:
+    # Applies moves one by one and fails halfway: some money has moved,
+    # some has not. Exceptions do not undo the earlier steps.
+    for name, amount in moves:
+        if balances[name] + amount < 0:
+            raise ValueError(f"{name} would go negative")
+        balances[name] += amount
+
+
+def transfer_check_first(
+    balances: dict[str, int], moves: list[tuple[str, int]]
+) -> None:
+    # Validate everything first; only then change anything.
+    for name, amount in moves:
+        if name not in balances or balances[name] + amount < 0:
+            raise ValueError(f"invalid move for {name}")
+    for name, amount in moves:
+        balances[name] += amount
+
+
+def when_lbyl_wins_demo() -> None:
+    # 1. The action cannot be safely abandoned halfway.
+    moves = [("ann", -30), ("bob", +30), ("cat", -99)]
+    for transfer in (transfer_as_you_go, transfer_check_first):
+        balances = {"ann": 50, "bob": 0, "cat": 10}
+        try:
+            transfer(balances, moves)
+        except ValueError as exc:
+            print(f"{transfer.__name__}: {exc}; balances now {balances}")
+
+    # 2. Failure is the normal case. Raising and catching an exception costs
+    # much more than an `in` test, so do not use exceptions as an "if".
+    present = {str(n): n for n in range(100)}
+    keys = [str(n) for n in range(1_000)]  # 90% of these are missing
+
+    def eafp() -> int:
+        found = 0
+        for key in keys:
+            try:
+                found += present[key]
+            except KeyError:
+                pass
+        return found
+
+    def lbyl() -> int:
+        return sum(present[key] for key in keys if key in present)
+
+    assert eafp() == lbyl()
+    eafp_time = min(timeit.repeat(eafp, number=50, repeat=3))
+    lbyl_time = min(timeit.repeat(lbyl, number=50, repeat=3))
+    print(f"mostly-missing keys: LBYL faster than EAFP: {lbyl_time < eafp_time}")
+
+
 def main() -> None:
     two_styles_demo()
     print()
     race_demo()
+    print()
+    when_lbyl_wins_demo()
 
 
 if __name__ == "__main__":
