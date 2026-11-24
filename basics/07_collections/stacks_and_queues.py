@@ -132,12 +132,34 @@ def heap_demo() -> None:
     print(f"max-heap via negatives pops {-heapq.heappop(max_heap)} first")
 
 
+JOBS = [(2, "email"), (1, "backup"), (3, "report"), (1, "deploy")]
+
+
+def which_one_demo() -> None:
+    stack = [name for _, name in JOBS]
+    print(f"stack (LIFO):     {[stack.pop() for _ in range(len(stack))]}")
+
+    queue = deque(name for _, name in JOBS)
+    print(f"queue (FIFO):     {[queue.popleft() for _ in range(len(queue))]}")
+
+    heap = [(priority, i, name) for i, (priority, name) in enumerate(JOBS)]
+    heapq.heapify(heap)
+    print(f"heap (priority):  {[heapq.heappop(heap)[2] for _ in range(len(heap))]}")
+
+    print("pick by what should come out next:")
+    print("  most recent first   -> list as a stack (undo, backtracking, parsing)")
+    print("  oldest first        -> deque (task lines, breadth-first search)")
+    print("  most urgent first   -> heapq (schedulers, shortest-path, top-k)")
+
+
 def main() -> None:
     stack_demo()
     print()
     queue_demo()
     print()
     heap_demo()
+    print()
+    which_one_demo()
 
 
 if __name__ == "__main__":
