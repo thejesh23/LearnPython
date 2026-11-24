@@ -82,11 +82,28 @@ def check_collatz_steps() -> None:
     report("4. collatz_steps", EXERCISES["test_collatz_steps"], collatz_steps)
 
 
+def is_prime(n: int) -> bool:
+    # Anything below 2 is not prime. Otherwise look for a divisor up to
+    # sqrt(n): a larger divisor would pair with a smaller one already
+    # tried. Returning from inside the loop stops the search at once.
+    if n < 2:
+        return False
+    for d in range(2, int(n**0.5) + 1):
+        if n % d == 0:
+            return False
+    return True
+
+
+def check_is_prime() -> None:
+    report("5. is_prime", EXERCISES["test_is_prime"], is_prime)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
     check_first_index()
     check_collatz_steps()
+    check_is_prime()
 
 
 if __name__ == "__main__":
