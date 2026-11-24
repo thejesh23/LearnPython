@@ -88,11 +88,38 @@ def check_run_python() -> None:
     report("4. run_python", EXERCISES["test_run_python"], run_python)
 
 
+def linecount(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(prog="linecount")
+    parser.add_argument("files", nargs="+")  # "+" means one or more
+    parser.add_argument("--total", action="store_true")
+    args = parser.parse_args(argv)
+
+    exit_code, total = 0, 0
+    for name in args.files:
+        try:
+            count = len(Path(name).read_text(encoding="utf-8").splitlines())
+        except FileNotFoundError:
+            # Errors go to stderr so `linecount ... > counts.txt` stays clean.
+            print(f"linecount: {name}: no such file", file=sys.stderr)
+            exit_code = 1
+            continue
+        total += count
+        print(f"{count} {name}")
+    if args.total:
+        print(f"{total} total")
+    return exit_code
+
+
+def check_linecount() -> None:
+    report("5. linecount", EXERCISES["test_linecount"], linecount)
+
+
 def main() -> None:
     check_env_settings()
     check_build_parser()
     check_find_files()
     check_run_python()
+    check_linecount()
 
 
 if __name__ == "__main__":
