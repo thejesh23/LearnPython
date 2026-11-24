@@ -117,9 +117,39 @@ def check_unique_in_order() -> None:
     report("2. unique_in_order", test_unique_in_order, unique_in_order)
 
 
+def word_counts(text: str) -> dict[str, int]:
+    """Count how often each word appears, ignoring case.
+
+    Words are separated by whitespace; there is no punctuation. The keys
+    are the lower-case words.
+
+    word_counts("the cat and the hat") -> {"the": 2, "cat": 1, "and": 1, "hat": 1}
+    word_counts("Go go GO")            -> {"go": 3}
+    word_counts("")                    -> {}
+    """
+    raise NotImplementedError
+
+
+def test_word_counts(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("the cat and the hat", {"the": 2, "cat": 1, "and": 1, "hat": 1}),
+        ("Go go GO", {"go": 3}),
+        ("", {}),
+        ("  one\ttwo\n two  ", {"one": 1, "two": 2}),
+    ]
+    for text, want in cases:
+        got = fn(text)
+        assert got == want, f"word_counts({text!r}) returned {got!r}, expected {want!r}"
+
+
+def check_word_counts() -> None:
+    report("3. word_counts", test_word_counts, word_counts)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
+    check_word_counts()
 
 
 if __name__ == "__main__":
