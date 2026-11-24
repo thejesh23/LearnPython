@@ -17,6 +17,7 @@ in exercises/solutions/ch12_modules_io.py: try first, peek second. The lessons
 for this chapter are in basics/12_modules_io/.
 """
 
+import csv
 import json
 import tempfile
 from collections.abc import Callable
@@ -174,10 +175,53 @@ def check_load_settings() -> None:
     report("3. load_settings", test_load_settings, load_settings)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def csv_totals(path: Path) -> dict[str, float]:
+    """Sum the amount column of a CSV file per category.
+
+    The file has a header row "category,amount,note". Notes may contain
+    commas and quotes, so do not split lines by hand: use csv.DictReader,
+    and open the file with newline="" as the csv docs ask.
+
+        category,amount,note
+        food,12.5,"lunch, with Bo"
+        rent,700,
+        food,3.25,coffee
+    gives {"food": 15.75, "rent": 700.0}.
+    """
+    raise NotImplementedError
+
+
+def test_csv_totals(impl: Callable[[Path], dict[str, float]]) -> None:
+    rows = [
+        ["category", "amount", "note"],
+        ["food", "12.5", "lunch, with Bo"],
+        ["rent", "700", ""],
+        ["food", "3.25", 'the "good" coffee'],
+        ["fun", "20", "film, popcorn, bus"],
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "spending.csv"
+        with path.open("w", newline="", encoding="utf-8") as f:
+            csv.writer(f).writerows(rows)
+        got = impl(path)
+        expected = {"food": 15.75, "rent": 700.0, "fun": 20.0}
+        assert got == expected, f"expected {expected}, got {got}"
+        path.write_text("category,amount,note\n", encoding="utf-8")
+        got = impl(path)
+        assert got == {}, f"a file with only a header should give {{}}, got {got}"
+
+
+def check_csv_totals() -> None:
+    report("4. csv_totals", test_csv_totals, csv_totals)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
     check_load_settings()
+    check_csv_totals()
 
 
 if __name__ == "__main__":
