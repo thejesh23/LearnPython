@@ -25,6 +25,7 @@ import subprocess
 import sys
 import sysconfig
 import tempfile
+import venv
 from pathlib import Path
 
 
@@ -75,10 +76,34 @@ def create_venv_demo() -> None:
         print(f"the venv's python says it is in a venv: {result.stdout.strip()}")
 
 
+def env_builder_demo() -> None:
+    # The venv module can do the same thing from Python code.
+    with tempfile.TemporaryDirectory() as tmp:
+        env_dir = Path(tmp) / "env"
+        venv.EnvBuilder(with_pip=False).create(env_dir)
+        scripts = venv_python(env_dir).parent
+        print(f"EnvBuilder made {scripts.name}/ with an activate script: "
+              f"{any(p.name.startswith('activate') for p in scripts.iterdir())}")
+
+        # "Activating" is only a shell convenience: it puts the venv's bin/
+        # first on PATH (and sets VIRTUAL_ENV) so that typing `python` finds
+        # the venv's interpreter. We can do the same by editing PATH ourselves.
+        env = dict(os.environ, VIRTUAL_ENV=str(env_dir))
+        env["PATH"] = str(scripts) + os.pathsep + env.get("PATH", "")
+        code = ("import os, sys; "
+                "print(os.path.samefile(sys.prefix, os.environ['VIRTUAL_ENV']))")
+        result = subprocess.run(["python", "-c", code], env=env,
+                                capture_output=True, text=True, check=True)
+        print(f"`python` on the new PATH runs the venv: {result.stdout.strip()}")
+    print("tip: you can skip activation and call .venv/bin/python directly")
+
+
 def main() -> None:
     where_am_i_demo()
     print()
     create_venv_demo()
+    print()
+    env_builder_demo()
 
 
 if __name__ == "__main__":
