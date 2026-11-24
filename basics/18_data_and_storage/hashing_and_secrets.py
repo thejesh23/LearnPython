@@ -20,6 +20,8 @@ shape rather than the values themselves.
 """
 
 import hashlib
+import tempfile
+from pathlib import Path
 
 
 def sha256_demo() -> None:
@@ -43,8 +45,40 @@ def sha256_demo() -> None:
     print(f"md5 (checksum only)    = {md5}")
 
 
+def hash_file(path: Path, chunk_size: int = 64 * 1024) -> str:
+    """Hash a file of any size while holding only one chunk in memory."""
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        # iter(callable, sentinel) calls f.read until it returns b"" (the end).
+        for chunk in iter(lambda: f.read(chunk_size), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def file_hash_demo() -> None:
+    with tempfile.TemporaryDirectory() as folder:
+        path = Path(folder) / "download.bin"
+        path.write_bytes(bytes(range(256)) * 4096)  # 1 MiB of sample data
+        ours = hash_file(path)
+        print(f"sha256 of the 1 MiB file: {ours[:16]}...")
+
+        # Python 3.11+ has hashlib.file_digest, which does the same loop.
+        with path.open("rb") as f:
+            builtin = hashlib.file_digest(f, "sha256").hexdigest()
+        print(f"hashlib.file_digest agrees: {builtin == ours}")
+
+        # A download page publishes the expected hash; compare against it.
+        expected = ours
+        with path.open("r+b") as f:
+            f.seek(500_000)
+            f.write(b"\xff")  # one corrupted byte in the middle
+        print(f"after one corrupted byte, still matches: {hash_file(path) == expected}")
+
+
 def main() -> None:
     sha256_demo()
+    print()
+    file_hash_demo()
 
 
 if __name__ == "__main__":
