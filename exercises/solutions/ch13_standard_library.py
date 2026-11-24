@@ -17,6 +17,7 @@ import runpy
 from collections import Counter
 from collections import defaultdict
 from collections import deque
+from datetime import date, timedelta
 from pathlib import Path
 
 
@@ -65,10 +66,26 @@ def check_moving_average() -> None:
     report("3. moving_average", EXERCISES["test_moving_average"], moving_average)
 
 
+def add_business_days(start: date, days: int) -> date:
+    current = start
+    remaining = days
+    while remaining > 0:
+        current += timedelta(days=1)
+        if current.weekday() < 5:  # Monday=0 ... Friday=4
+            remaining -= 1
+    return current
+
+
+def check_add_business_days() -> None:
+    report("4. add_business_days", EXERCISES["test_add_business_days"],
+           add_business_days)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
     check_moving_average()
+    check_add_business_days()
 
 
 if __name__ == "__main__":
