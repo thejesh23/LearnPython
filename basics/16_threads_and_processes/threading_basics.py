@@ -96,12 +96,36 @@ def subclass_demo() -> None:
     print(f"total: {sum(w.result for w in workers)}")
 
 
+def heartbeat(beats: list[int]) -> None:
+    # Loops forever. A normal thread like this would stop the program from
+    # ever exiting; a daemon thread is simply stopped when the program ends.
+    while True:
+        beats.append(1)
+        time.sleep(0.01)
+
+
+def daemon_demo() -> None:
+    beats: list[int] = []
+    t = threading.Thread(target=heartbeat, args=(beats,), daemon=True)
+    t.start()
+
+    t.join(timeout=0.1)  # wait at most 0.1s, then carry on regardless
+    print(f"daemon={t.daemon}, still running after join(timeout): {t.is_alive()}")
+    print(f"it has beaten at least a few times: {len(beats) >= 3}")
+    # When main() returns, the program exits and the daemon is killed mid-loop.
+    # Because it gets no chance to clean up (no finally, no flushing files),
+    # keep daemons for background chores whose work can safely be lost.
+    print("main is finishing; the daemon thread will not hold the program open")
+
+
 def main() -> None:
     start_join_demo()
     print()
     current_thread_demo()
     print()
     subclass_demo()
+    print()
+    daemon_demo()
 
 
 if __name__ == "__main__":
