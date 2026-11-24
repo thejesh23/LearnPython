@@ -66,10 +66,30 @@ def exceptions_demo() -> None:
     run(StackErrors)
 
 
+class StackWithFixture(unittest.TestCase):
+    def setUp(self) -> None:
+        # Runs before *each* test, so no test can leak state into another.
+        self.stack = Stack()
+        for n in [10, 20, 30]:
+            self.stack.push(n)
+
+    def test_pop_order_is_last_in_first_out(self) -> None:
+        self.assertEqual([self.stack.pop() for _ in range(3)], [30, 20, 10])
+
+    def test_starts_with_three_items(self) -> None:
+        self.assertEqual(len(self.stack), 3)  # unaffected by the other test
+
+
+def fixtures_demo() -> None:
+    run(StackWithFixture)
+
+
 def main() -> None:
     first_tests_demo()
     print()
     exceptions_demo()
+    print()
+    fixtures_demo()
 
 
 if __name__ == "__main__":
