@@ -49,9 +49,25 @@ def check_fetch_all() -> None:
     report("2. fetch_all", EXERCISES["test_fetch_all"], fetch_all)
 
 
+async def with_timeout(
+    make: Callable[[], Awaitable[str]], seconds: float, default: str
+) -> str:
+    try:
+        # On timeout the inner await is cancelled and TimeoutError is raised.
+        async with asyncio.timeout(seconds):
+            return await make()
+    except TimeoutError:
+        return default  # catch only the timeout; other errors propagate
+
+
+def check_with_timeout() -> None:
+    report("3. with_timeout", EXERCISES["test_with_timeout"], with_timeout)
+
+
 def main() -> None:
     check_add_later()
     check_fetch_all()
+    check_with_timeout()
 
 
 if __name__ == "__main__":
