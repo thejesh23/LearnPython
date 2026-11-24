@@ -168,11 +168,48 @@ def check_collatz_steps() -> None:
     report("4. collatz_steps", test_collatz_steps, collatz_steps)
 
 
+def is_prime(n: int) -> bool:
+    """Return True when n is a prime number.
+
+    A prime is a whole number above 1 whose only divisors are 1 and itself.
+    You only need to try divisors up to the square root of n.
+
+    is_prime(2)  -> True
+    is_prime(91) -> False    7 * 13
+    is_prime(97) -> True
+    is_prime(1)  -> False
+    """
+    raise NotImplementedError
+
+
+def test_is_prime(fn: Callable[..., Any]) -> None:
+    cases = [
+        (2, True),
+        (3, True),
+        (97, True),
+        (7919, True),
+        (0, False),
+        (1, False),
+        (4, False),
+        (9, False),
+        (91, False),
+        (-7, False),
+    ]
+    for n, want in cases:
+        got = fn(n)
+        assert got == want, f"is_prime({n}) returned {got!r}, expected {want!r}"
+
+
+def check_is_prime() -> None:
+    report("5. is_prime", test_is_prime, is_prime)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
     check_first_index()
     check_collatz_steps()
+    check_is_prime()
 
 
 if __name__ == "__main__":
