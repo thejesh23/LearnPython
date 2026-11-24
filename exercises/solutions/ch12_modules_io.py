@@ -12,6 +12,7 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import csv
 import json
 import runpy
 from pathlib import Path
@@ -62,10 +63,25 @@ def check_load_settings() -> None:
     report("3. load_settings", EXERCISES["test_load_settings"], load_settings)
 
 
+def csv_totals(path: Path) -> dict[str, float]:
+    totals: dict[str, float] = {}
+    with path.open(newline="", encoding="utf-8") as f:
+        # DictReader uses the header row as keys and handles quoted commas.
+        for row in csv.DictReader(f):
+            category = row["category"]
+            totals[category] = totals.get(category, 0.0) + float(row["amount"])
+    return totals
+
+
+def check_csv_totals() -> None:
+    report("4. csv_totals", EXERCISES["test_csv_totals"], csv_totals)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
     check_load_settings()
+    check_csv_totals()
 
 
 if __name__ == "__main__":
