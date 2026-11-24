@@ -19,6 +19,7 @@ never dumps the whole of `os.environ`.
 import contextlib
 import os
 import platform
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -110,12 +111,39 @@ def cwd_demo() -> None:
     # To find files that ship with your script, build paths from __file__.
 
 
+def path_demo() -> None:
+    # PATH is one string: folders joined by os.pathsep (':' on Unix, ';' on
+    # Windows). The OS tries each folder in order and runs the first match.
+    folders = os.environ.get("PATH", "").split(os.pathsep)
+    print(f"PATH separator: {os.pathsep!r}, number of folders: {len(folders)}")
+
+    # shutil.which performs the same search from Python.
+    found = shutil.which("python3") or shutil.which("python")
+    print(f"a 'python3' or 'python' command is on PATH: {found is not None}")
+    print(f"which('surely-not-a-command'): {shutil.which('surely-not-a-command')}")
+
+    # Make our own tiny "command" and search a PATH that we control.
+    with tempfile.TemporaryDirectory() as folder:
+        tool = Path(folder) / "hello-tool"
+        tool.write_text("#!/bin/sh\necho hello\n", encoding="utf-8")
+        before = shutil.which("hello-tool", path=folder)
+        print(f"before chmod, found: {before is not None}")
+        tool.chmod(0o755)  # only executable files count
+        hit = shutil.which("hello-tool", path=folder)
+        if hit:
+            print(f"after chmod, found: True, name: {Path(hit).name}")
+        else:
+            print("not found: on Windows a command also needs an extension like .bat")
+
+
 def main() -> None:
     environ_demo()
     print()
     interpreter_demo()
     print()
     cwd_demo()
+    print()
+    path_demo()
 
 
 if __name__ == "__main__":
