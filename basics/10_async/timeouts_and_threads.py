@@ -16,6 +16,7 @@ not run in parallel (because of the GIL); use a process pool instead.
 """
 
 import asyncio
+import threading
 import time
 
 
@@ -102,12 +103,37 @@ def to_thread_demo() -> None:
     asyncio.run(to_thread_main())
 
 
+def slow_job(finished: threading.Event) -> None:
+    time.sleep(0.15)
+    finished.set()
+
+
+async def timeout_thread_main() -> None:
+    finished = threading.Event()
+    try:
+        async with asyncio.timeout(0.03):
+            await asyncio.to_thread(slow_job, finished)
+    except TimeoutError:
+        print(f"timed out; job finished yet? {finished.is_set()}")
+
+    # Python cannot kill a thread. The job carries on in the background, so
+    # blocking work that may hang needs its own timeout (e.g. a socket timeout).
+    await asyncio.sleep(0.2)
+    print(f"a moment later, job finished?  {finished.is_set()}")
+
+
+def timeout_thread_demo() -> None:
+    asyncio.run(timeout_thread_main())
+
+
 def main() -> None:
     timeout_block_demo()
     print()
     blocking_demo()
     print()
     to_thread_demo()
+    print()
+    timeout_thread_demo()
 
 
 if __name__ == "__main__":
