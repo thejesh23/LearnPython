@@ -44,8 +44,47 @@ def capture_demo() -> None:
     print(f"printed again on second import: {bool(again.getvalue())}")
 
 
+def shipping_nested(order: dict[str, object]) -> str:
+    if order.get("paid"):
+        if order.get("items"):
+            if order.get("address"):
+                return "ship it"
+            else:
+                return "no address"
+        else:
+            return "empty order"
+    else:
+        return "not paid"
+
+
+def shipping_flat(order: dict[str, object]) -> str:
+    # Guard clauses: deal with each problem and leave early. The happy path
+    # ends up at the bottom, at the left margin, not four levels deep.
+    if not order.get("paid"):
+        return "not paid"
+    if not order.get("items"):
+        return "empty order"
+    if not order.get("address"):
+        return "no address"
+    return "ship it"
+
+
+def flat_demo() -> None:
+    print(zen_line("Flat"))
+    orders = [
+        {"paid": True, "items": ["book"], "address": "1 Main St"},
+        {"paid": True, "items": []},
+        {"paid": False},
+    ]
+    for order in orders:
+        nested, flat = shipping_nested(order), shipping_flat(order)
+        print(f"  {flat:<12} same answer: {nested == flat}")
+
+
 def main() -> None:
     capture_demo()
+    print()
+    flat_demo()
 
 
 if __name__ == "__main__":
