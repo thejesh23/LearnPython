@@ -87,8 +87,39 @@ def check_squares_of_evens() -> None:
     report("1. squares_of_evens", test_squares_of_evens, squares_of_evens)
 
 
+def unique_in_order(items: list[Any]) -> list[Any]:
+    """Return the items with duplicates removed, keeping first-seen order.
+
+    unique_in_order(["b", "a", "b", "c", "a"]) -> ["b", "a", "c"]
+    unique_in_order([1, 1, 1])                 -> [1]
+
+    Note: set(items) drops duplicates but also loses the order.
+    """
+    raise NotImplementedError
+
+
+def test_unique_in_order(fn: Callable[..., Any]) -> None:
+    cases = [
+        (["b", "a", "b", "c", "a"], ["b", "a", "c"]),
+        ([1, 1, 1], [1]),
+        ([3, 2, 1], [3, 2, 1]),
+        ([], []),
+        ([5, 4, 5, 3, 4, 5], [5, 4, 3]),
+    ]
+    for items, want in cases:
+        got = fn(items)
+        assert got == want, (
+            f"unique_in_order({items!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_unique_in_order() -> None:
+    report("2. unique_in_order", test_unique_in_order, unique_in_order)
+
+
 def main() -> None:
     check_squares_of_evens()
+    check_unique_in_order()
 
 
 if __name__ == "__main__":
