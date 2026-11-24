@@ -15,6 +15,8 @@ The usual shape is *producer / consumer*: some threads make work, others do it.
 """
 
 import queue
+import threading
+import time
 
 
 def basics_demo() -> None:
@@ -43,8 +45,47 @@ def basics_demo() -> None:
     print(f"PriorityQueue gives back: {urgent.get()}")
 
 
+STOP = None  # a "sentinel": a special item that means "no more work"
+
+
+def producer(q: queue.Queue[int | None], count: int, consumers: int) -> None:
+    for n in range(1, count + 1):
+        q.put(n)
+        time.sleep(0.005)  # work trickles in over time
+    # One sentinel per consumer, so every consumer is told to stop.
+    for _ in range(consumers):
+        q.put(STOP)
+
+
+def consumer(q: queue.Queue[int | None], done: list[tuple[str, int]]) -> None:
+    name = threading.current_thread().name
+    while True:
+        item = q.get()  # waits here while the queue is empty
+        if item is STOP:
+            return
+        done.append((name, item * item))
+
+
+def producer_consumer_demo() -> None:
+    q: queue.Queue[int | None] = queue.Queue()
+    done: list[tuple[str, int]] = []
+    consumers = [threading.Thread(target=consumer, args=(q, done), name=f"c{i}")
+                 for i in range(2)]
+    for c in consumers:
+        c.start()
+    producer(q, count=8, consumers=len(consumers))
+    for c in consumers:
+        c.join()
+
+    # Which consumer got which item varies; the set of results does not.
+    print(f"squares: {sorted(value for _, value in done)}")
+    print(f"both consumers took part: {len({name for name, _ in done}) == 2}")
+
+
 def main() -> None:
     basics_demo()
+    print()
+    producer_consumer_demo()
 
 
 if __name__ == "__main__":
