@@ -23,6 +23,7 @@ Uses:
     13_standard_library    random with a seed
 """
 
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
 
@@ -77,8 +78,53 @@ def questions_demo() -> None:
         print(f"reply {reply!r:8} correct: {first.is_correct(reply)}")
 
 
+@dataclass
+class Result:
+    question: Question
+    reply: str
+    correct: bool
+    points: int
+
+
+def play(questions: list[Question], ask: Callable[[str], str]) -> list[Result]:
+    results = []
+    streak = 0
+    for number, q in enumerate(questions, start=1):
+        if number > 1:
+            print()
+        reply = ask(f"Q{number}. {q.render()}\nyour answer: ")
+        correct = q.is_correct(reply)
+        streak = streak + 1 if correct else 0
+        # 10 points per right answer, +5 for each answer in a row after the first.
+        points = 10 + 5 * (streak - 1) if correct else 0
+        results.append(Result(q, reply, correct, points))
+        print("  correct!" if correct else f"  no, it was {q.answer}")
+    return results
+
+
+def scripted(replies: list[str]) -> Callable[[str], str]:
+    """An ask function that echoes the prompt and gives canned replies."""
+    it: Iterator[str] = iter(replies)
+
+    def ask(prompt: str) -> str:
+        reply = next(it)
+        print(f"{prompt}{reply}")
+        return reply
+
+    return ask
+
+
+def scoring_demo() -> None:
+    questions = load_questions(QUESTIONS)[:3]
+    results = play(questions, scripted(["b", "5", "list"]))
+    print(f"points per question: {[r.points for r in results]}")
+    print(f"total: {sum(r.points for r in results)}")
+
+
 def main() -> None:
     questions_demo()
+    print()
+    scoring_demo()
 
 
 if __name__ == "__main__":
