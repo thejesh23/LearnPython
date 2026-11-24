@@ -18,6 +18,7 @@ goes further into float limits and precision contexts.
 
 import math
 from decimal import Decimal
+from decimal import ROUND_HALF_EVEN
 from decimal import ROUND_HALF_UP
 
 
@@ -75,10 +76,32 @@ def decimal_money_demo() -> None:
         print(f"TypeError: {exc}")
 
 
+def rounding_modes_demo() -> None:
+    # Python's round() uses "banker's rounding": a tie goes to the even
+    # neighbour. Over many values this avoids always pushing totals upward.
+    print(f"round(0.5), round(1.5), round(2.5) = "
+          f"{round(0.5)}, {round(1.5)}, {round(2.5)}")
+
+    # Decimal lets you choose the rule. Shops and tax forms often want HALF_UP.
+    whole = Decimal("1")
+    print(f"{'value':>6} {'HALF_EVEN':>10} {'HALF_UP':>8}")
+    for text in ["0.5", "1.5", "2.5", "2.6"]:
+        value = Decimal(text)
+        even = value.quantize(whole, rounding=ROUND_HALF_EVEN)
+        up = value.quantize(whole, rounding=ROUND_HALF_UP)
+        print(f"{text:>6} {even!s:>10} {up!s:>8}")
+
+    # Floats surprise you here too: 2.675 is stored a hair below 2.675.
+    print(f"round(2.675, 2) = {round(2.675, 2)}   (float)")
+    print(f"Decimal quantize = {to_cents(Decimal('2.675'))}   (Decimal, HALF_UP)")
+
+
 def main() -> None:
     float_error_demo()
     print()
     decimal_money_demo()
+    print()
+    rounding_modes_demo()
 
 
 if __name__ == "__main__":
