@@ -60,11 +60,22 @@ def check_is_vowel() -> None:
     report("4. is_vowel", EXERCISES["test_is_vowel"], is_vowel)
 
 
+def is_leap_year(year: int) -> bool:
+    # Divisible by 4, and either not a century or a century divisible by
+    # 400. The parentheses matter: `and` binds tighter than `or`.
+    return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+
+
+def check_is_leap_year() -> None:
+    report("5. is_leap_year", EXERCISES["test_is_leap_year"], is_leap_year)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
     check_display_name()
     check_is_vowel()
+    check_is_leap_year()
 
 
 if __name__ == "__main__":
