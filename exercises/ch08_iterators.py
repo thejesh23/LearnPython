@@ -1,0 +1,112 @@
+"""Practice exercises for basics/08_iterators: next(), generators, itertools.
+
+How to work through them:
+  1. Read the next exercise's docstring. It says what the function must
+     return and gives examples.
+  2. Replace its `raise NotImplementedError` line with your own code.
+  3. Run this file:  python3 exercises/ch08_iterators.py
+  4. Read the report. Each exercise prints one line:
+       [solved]       every check passed
+       [not yet] ...  a check failed; the message shows the input, what
+                      your function returned, and what was expected
+       [todo]         not attempted yet
+Aim for every line to say [solved]. The exercises get harder as you go
+down. Under each one is a test_ function showing exactly what is checked:
+read it when a message puzzles you, but leave it unchanged.
+
+Several exercises ask for a generator: a function that uses `yield`. The
+tests turn its output into a list to check it, and some feed it endless or
+one-shot input to make sure it really works lazily, one value at a time.
+Nothing here needs more than basics/00 to basics/08 cover.
+
+Worked solutions, with a note on each approach, are in
+exercises/solutions/ch08_iterators.py. Try each exercise yourself first.
+"""
+
+from collections.abc import Callable, Iterable, Iterator
+from typing import Any
+
+
+def verdict(error: BaseException) -> str:
+    """Turn the exception a test raised into a short status."""
+    # A stub raises NotImplementedError. Other errors may wrap it, so follow
+    # the chain of causes (and look inside exception groups) before deciding.
+    link: BaseException | None = error
+    for _ in range(20):
+        if link is None:
+            break
+        if isinstance(link, NotImplementedError):
+            return "[todo] not attempted"
+        if isinstance(link, BaseExceptionGroup) and link.subgroup(
+            NotImplementedError
+        ):
+            return "[todo] not attempted"
+        link = link.__cause__ or link.__context__
+    if isinstance(error, AssertionError):
+        return f"[not yet] {str(error) or 'a check failed'}"
+    return f"[not yet] {type(error).__name__}: {error}"
+
+
+def report(title: str, test: Callable[[Any], None], impl: Any) -> None:
+    """Run one test against one implementation and print a one-line status."""
+    try:
+        test(impl)
+        status = "[solved]"
+    except KeyboardInterrupt:
+        raise
+    except BaseException as error:  # never crash: one line per exercise
+        status = verdict(error)
+    print(f"{title:<40} {status}")
+
+
+def first_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
+    """Return the first item of any iterable, or default when it is empty.
+
+    It must work on endless iterators too, so do not turn the input into a
+    list: take just the one item you need.
+
+    first_or_default([3, 4])             -> 3
+    first_or_default([])                 -> None
+    first_or_default("", "nothing")      -> "nothing"
+    first_or_default(itertools.count(5)) -> 5     an endless iterator
+    """
+    raise NotImplementedError
+
+
+def test_first_or_default(fn: Callable[..., Any]) -> None:
+    got = fn([3, 4])
+    assert got == 3, f"first_or_default([3, 4]) returned {got!r}, expected 3"
+    got = fn([])
+    assert got is None, f"first_or_default([]) returned {got!r}, expected None"
+    got = fn("abc")
+    assert got == "a", f"first_or_default('abc') returned {got!r}, expected 'a'"
+    got = fn("", "nothing")
+    assert got == "nothing", (
+        f"first_or_default('', 'nothing') returned {got!r}, expected 'nothing'"
+    )
+    got = fn(n * n for n in [9, 10])
+    assert got == 81, f"first_or_default on a generator returned {got!r}, expected 81"
+
+    def five_then_stop() -> Iterator[int]:
+        # Stands in for an endless stream: reading a second value is a bug.
+        yield 5
+        raise RuntimeError(
+            "first_or_default read past the first item; take just one with next()"
+        )
+
+    got = fn(five_then_stop())
+    assert got == 5, (
+        f"first_or_default on a stream starting with 5 returned {got!r}, expected 5"
+    )
+
+
+def check_first_or_default() -> None:
+    report("1. first_or_default", test_first_or_default, first_or_default)
+
+
+def main() -> None:
+    check_first_or_default()
+
+
+if __name__ == "__main__":
+    main()
