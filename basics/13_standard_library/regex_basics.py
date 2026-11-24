@@ -40,10 +40,25 @@ def groups_demo() -> None:
         print(f"as a dict: {m.groupdict()}")
 
 
+def find_all_demo() -> None:
+    log = "user=ana id=17; user=bo id=4; user=cy id=230"
+    # With no groups, findall returns the matched strings.
+    numbers = re.findall(r"\d+", log)
+    print(f"numbers: {numbers}")
+    # With groups, it returns tuples of the groups.
+    pairs = re.findall(r"user=(\w+) id=(\d+)", log)
+    print(f"pairs: {pairs}")
+    # finditer yields match objects, which also know their positions.
+    for m in re.finditer(r"id=(\d+)", log):
+        print(f"  id {m.group(1)} at columns {m.start()}-{m.end()}")
+
+
 def main() -> None:
     matching_demo()
     print()
     groups_demo()
+    print()
+    find_all_demo()
 
 
 if __name__ == "__main__":
