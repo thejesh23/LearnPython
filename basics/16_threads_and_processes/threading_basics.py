@@ -46,8 +46,33 @@ def start_join_demo() -> None:
     print(f"three 0.1s downloads overlapped (took < 0.2s): {elapsed < 0.2}")
 
 
+def report(seen: list[str]) -> None:
+    # current_thread() returns the Thread object running this very line, so
+    # the same function can tell which of the workers is calling it.
+    seen.append(threading.current_thread().name)
+
+
+def current_thread_demo() -> None:
+    print(f"the program starts in: {threading.current_thread().name}")
+    print(f"is that the main thread: "
+          f"{threading.current_thread() is threading.main_thread()}")
+
+    seen: list[str] = []
+    # Naming threads makes logs and tracebacks far easier to read.
+    workers = [threading.Thread(target=report, args=(seen,), name=f"worker-{i}")
+               for i in range(3)]
+    for t in workers:
+        t.start()
+    for t in workers:
+        t.join()
+    print(f"threads that ran report(): {sorted(seen)}")
+    print(f"still alive after join: {[t.is_alive() for t in workers]}")
+
+
 def main() -> None:
     start_join_demo()
+    print()
+    current_thread_demo()
 
 
 if __name__ == "__main__":
