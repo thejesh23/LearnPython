@@ -69,10 +69,39 @@ def current_thread_demo() -> None:
     print(f"still alive after join: {[t.is_alive() for t in workers]}")
 
 
+class SquareSum(threading.Thread):
+    """A Thread subclass: put the work in run() and keep the result on self.
+
+    Thread targets cannot return a value to the caller, so storing the answer
+    on the object (or in a shared list or queue) is how results come back.
+    """
+
+    def __init__(self, numbers: list[int]) -> None:
+        super().__init__()
+        self.numbers = numbers
+        self.result = 0
+
+    def run(self) -> None:  # start() calls run() in the new thread
+        self.result = sum(n * n for n in self.numbers)
+
+
+def subclass_demo() -> None:
+    chunks = [[1, 2, 3], [4, 5], [6]]
+    workers = [SquareSum(chunk) for chunk in chunks]
+    for w in workers:
+        w.start()
+    for w in workers:
+        w.join()  # only read .result after join, or it may not be set yet
+    print(f"partial sums: {[w.result for w in workers]}")
+    print(f"total: {sum(w.result for w in workers)}")
+
+
 def main() -> None:
     start_join_demo()
     print()
     current_thread_demo()
+    print()
+    subclass_demo()
 
 
 if __name__ == "__main__":
