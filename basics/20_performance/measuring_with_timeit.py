@@ -93,12 +93,37 @@ def repeat_demo() -> None:
     print(f"and it ran more than once: {number > 1}")
 
 
+def fair_comparison_demo() -> None:
+    data = list(range(10_000))
+    target = 5_000
+    lookup_set = set(data)
+
+    in_list = min(timeit.repeat(lambda: target in data, number=200, repeat=3))
+    # UNFAIR: this also times building the set, on every single run.
+    unfair = min(timeit.repeat(lambda: target in set(data), number=200, repeat=3))
+    # FAIR: the set is built once, outside the timing, like in a real program
+    # that builds it once and then looks things up many times.
+    fair = min(timeit.repeat(lambda: target in lookup_set, number=200, repeat=3))
+
+    print(f"set lookup faster than list (set rebuilt each time): {unfair < in_list}")
+    print(f"set lookup faster than list (set built once)       : {fair < in_list}")
+    # Same question, opposite answers: what you include in the timing matters.
+    # Checklist for a fair comparison:
+    #   same input data for both versions, built outside the timed code
+    #   enough runs (number=) and rounds (repeat=); keep the minimum
+    #   check both versions return the same answer before timing them
+    agree = (target in data) == (target in lookup_set)
+    print(f"both versions agree on the answer: {agree}")
+
+
 def main() -> None:
     perf_counter_demo()
     print()
     timeit_demo()
     print()
     repeat_demo()
+    print()
+    fair_comparison_demo()
 
 
 if __name__ == "__main__":
