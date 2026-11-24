@@ -26,6 +26,7 @@ from collections.abc import Callable
 from collections.abc import Hashable
 from collections.abc import Iterable
 from collections.abc import Iterator
+from itertools import islice
 from typing import Any
 
 
@@ -155,9 +156,53 @@ def check_common_words() -> None:
     report("2. common_words", test_common_words, common_words)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def parse_readings(lines: Iterable[str]) -> Iterator[float]:
+    """Turn lines of text into numbers, lazily.
+
+    Strip each line; skip it if it is empty or starts with "#"; otherwise
+    produce float(line). parse_readings(["1.5\n", "\n", "# note\n", " 2 "])
+    gives 1.5 and 2.0.
+
+    `lines` may be a huge file or an endless sensor feed, so do not build a
+    list: write a generator function (with `yield`) or return a generator
+    expression. Then each line is read only when the caller asks for the
+    next number, and memory use stays flat however long the input is.
+    """
+    raise NotImplementedError
+
+
+def test_parse_readings(impl: Callable[[Iterable[str]], Iterator[float]]) -> None:
+    got = list(impl(["1.5\n", "\n", "# note\n", " 2 ", "-3e2", "   \n"]))
+    want = [1.5, 2.0, -300.0]
+    assert got == want, f"expected {want}, got {got}"
+
+    read: list[str] = []
+
+    def long_feed() -> Iterator[str]:
+        # 100,000 lines; a real feed might never end at all.
+        for n in range(1, 100_001):
+            line = "# heartbeat\n" if n % 3 == 0 else f"{n}.5\n"
+            read.append(line)
+            yield line
+
+    readings = impl(long_feed())
+    assert iter(readings) is readings, "return an iterator (a generator), not a list"
+    assert read == [], "nothing should be read before the first number is asked for"
+    first = list(islice(readings, 4))
+    assert first == [1.5, 2.5, 4.5, 5.5], f"the first four readings were {first}"
+    assert len(read) == 5, f"5 lines give 4 readings, but {len(read)} were read"
+
+
+def check_parse_readings() -> None:
+    report("3. parse_readings", test_parse_readings, parse_readings)
+
+
 def main() -> None:
     check_has_duplicates()
     check_common_words()
+    check_parse_readings()
 
 
 if __name__ == "__main__":
