@@ -53,12 +53,27 @@ def find_all_demo() -> None:
         print(f"  id {m.group(1)} at columns {m.start()}-{m.end()}")
 
 
+def substitute_demo() -> None:
+    # sub replaces every match; \1 in the replacement refers to group 1.
+    print(re.sub(r"(\w+)@(\w+)\.com", r"\1 at \2", "mail ana@example.com"))
+
+    # The replacement can be a function that receives each match.
+    prices = "apple 1.20, pear 0.80"
+    doubled = re.sub(r"\d+\.\d+", lambda m: f"{float(m.group()) * 2:.2f}", prices)
+    print(f"doubled: {doubled}")
+
+    # Collapse runs of whitespace into a single space.
+    print(re.sub(r"\s+", " ", "too    many\n\nspaces   here"))
+
+
 def main() -> None:
     matching_demo()
     print()
     groups_demo()
     print()
     find_all_demo()
+    print()
+    substitute_demo()
 
 
 if __name__ == "__main__":
