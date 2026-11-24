@@ -52,10 +52,34 @@ def str_vs_bytes_demo() -> None:
         print(f"TypeError: {exc}")
 
 
+def utf8_lengths_demo() -> None:
+    # UTF-8 is variable width: the higher the code point, the more bytes.
+    print(f"{'code point':<11} {'bytes':<6} {'encoded':<12} char")
+    for ch in ["A", "é", "€", "\U0001D11E"]:
+        encoded = ch.encode("utf-8")
+        point = f"U+{ord(ch):04X}"
+        print(f"{point:<11} {len(encoded):<6} {encoded.hex(' '):<12} {ch}")
+
+    # So len() of a string and len() of its bytes can differ a lot.
+    word = "naïve café"
+    print(f"{word!r}: {len(word)} characters, "
+          f"{len(word.encode('utf-8'))} UTF-8 bytes, "
+          f"{len(word.encode('utf-16-le'))} UTF-16 bytes")
+
+    # Cutting bytes in the middle of a character makes them undecodable.
+    cut = "€".encode("utf-8")[:2]
+    try:
+        cut.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        print(f"UnicodeDecodeError: {exc}")
+
+
 def main() -> None:
     code_points_demo()
     print()
     str_vs_bytes_demo()
+    print()
+    utf8_lengths_demo()
 
 
 if __name__ == "__main__":
