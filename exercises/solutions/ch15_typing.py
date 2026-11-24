@@ -13,6 +13,7 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import runpy
+from collections.abc import Callable
 from pathlib import Path
 from typing import Literal, cast, get_args
 from typing import overload
@@ -66,10 +67,22 @@ def check_double() -> None:
     report("3. double with @overload", EXERCISES["test_double"], double)
 
 
+def compose[A, B, C](f: Callable[[A], B], g: Callable[[B], C]) -> Callable[[A], C]:
+    def composed(x: A) -> C:
+        return g(f(x))  # f runs only when composed is called
+
+    return composed
+
+
+def check_compose() -> None:
+    report("4. compose[A, B, C]", EXERCISES["test_compose"], compose)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
     check_double()
+    check_compose()
 
 
 if __name__ == "__main__":
