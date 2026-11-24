@@ -20,6 +20,7 @@ for this chapter are in basics/15_typing/.
 from collections.abc import Callable
 from typing import Any
 from typing import Literal
+from typing import get_overloads
 
 
 def verdict(error: BaseException) -> str:
@@ -125,9 +126,45 @@ def check_parse_mode() -> None:
     report("2. parse_mode", test_parse_mode, parse_mode)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def double(value: int | str) -> int | str:
+    """Double a number, or repeat a string twice.
+
+    The hint `int | str -> int | str` loses information: double(2) is
+    always an int and double("ab") always a str. Add two @typing.overload
+    signatures directly above this function (bodies are just ...):
+        @overload
+        def double(value: int) -> int: ...
+    and the same for str. The real function stays as it is below them.
+
+    >>> double(21), double("ab")
+    (42, 'abab')
+    """
+    raise NotImplementedError
+
+
+def test_double(impl: Callable[[Any], Any]) -> None:
+    assert impl(21) == 42, "double(21) should be 42"
+    assert impl("ab") == "abab", "double('ab') should be 'abab'"
+    assert impl(0) == 0 and impl("") == "", "zero and '' stay as they are"
+    signatures = [o.__annotations__ for o in get_overloads(impl)]
+    expected = [{"value": int, "return": int}, {"value": str, "return": str}]
+    assert len(signatures) == 2, (
+        f"add two @overload signatures above double, found {len(signatures)}"
+    )
+    for wanted in expected:
+        assert wanted in signatures, f"missing an overload with hints {wanted}"
+
+
+def check_double() -> None:
+    report("3. double with @overload", test_double, double)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
+    check_double()
 
 
 if __name__ == "__main__":
