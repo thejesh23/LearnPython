@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_453 runnable samples across 54 directories._
+_485 runnable samples across 56 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -351,6 +351,42 @@ _453 runnable samples across 54 directories._
 - [sos_dp](dynamic_programming/sos_dp.py)
 - [tree_dp](dynamic_programming/tree_dp.py)
 - [word_break](dynamic_programming/word_break.py)
+
+## exercises
+- [ch01_variables](exercises/ch01_variables.py)
+- [ch02_types](exercises/ch02_types.py)
+- [ch03_operators](exercises/ch03_operators.py)
+- [ch04_strings](exercises/ch04_strings.py)
+- [ch05_control_flow](exercises/ch05_control_flow.py)
+- [ch06_functions](exercises/ch06_functions.py)
+- [ch07_collections](exercises/ch07_collections.py)
+- [ch08_iterators](exercises/ch08_iterators.py)
+- [ch09_classes](exercises/ch09_classes.py)
+- [ch10_async](exercises/ch10_async.py)
+- [ch11_errors](exercises/ch11_errors.py)
+- [ch12_modules_io](exercises/ch12_modules_io.py)
+- [ch13_standard_library](exercises/ch13_standard_library.py)
+- [ch14_testing](exercises/ch14_testing.py)
+- [ch15_typing](exercises/ch15_typing.py)
+- [ch16_threads_and_processes](exercises/ch16_threads_and_processes.py)
+
+## exercises/solutions
+- [ch01_variables](exercises/solutions/ch01_variables.py)
+- [ch02_types](exercises/solutions/ch02_types.py)
+- [ch03_operators](exercises/solutions/ch03_operators.py)
+- [ch04_strings](exercises/solutions/ch04_strings.py)
+- [ch05_control_flow](exercises/solutions/ch05_control_flow.py)
+- [ch06_functions](exercises/solutions/ch06_functions.py)
+- [ch07_collections](exercises/solutions/ch07_collections.py)
+- [ch08_iterators](exercises/solutions/ch08_iterators.py)
+- [ch09_classes](exercises/solutions/ch09_classes.py)
+- [ch10_async](exercises/solutions/ch10_async.py)
+- [ch11_errors](exercises/solutions/ch11_errors.py)
+- [ch12_modules_io](exercises/solutions/ch12_modules_io.py)
+- [ch13_standard_library](exercises/solutions/ch13_standard_library.py)
+- [ch14_testing](exercises/solutions/ch14_testing.py)
+- [ch15_typing](exercises/solutions/ch15_typing.py)
+- [ch16_threads_and_processes](exercises/solutions/ch16_threads_and_processes.py)
 
 ## geometry
 - [closest_pair](geometry/closest_pair.py)
