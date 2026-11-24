@@ -19,6 +19,7 @@ mypy, not by Python when the code runs.
 
 from collections.abc import Callable
 from collections.abc import Sequence
+from collections.abc import Sized
 
 
 def first[T](items: Sequence[T]) -> T:
@@ -88,10 +89,43 @@ def class_demo() -> None:
     # tasks.push(42) would still run; mypy would report "expected str".
 
 
+def longest[T: Sized](a: T, b: T) -> T:
+    # A bound says "T can be any type, as long as it is Sized". That lets us
+    # call len() inside, and the caller still gets back their exact type:
+    # longest of two lists is a list, not just "something Sized".
+    return a if len(a) >= len(b) else b
+
+
+def join_twice[S: (str, bytes)](a: S, b: S) -> S:
+    # Constraints say "S is exactly one of these". Mixing them is an error:
+    # join_twice("a", b"b") is rejected by the checker, and here it would
+    # also fail at runtime because str + bytes raises TypeError.
+    return a + b + a + b
+
+
+def bounds_demo() -> None:
+    print(f"longest([1, 2], [3]) = {longest([1, 2], [3])}")
+    print(f"longest('hi', 'hello') = {longest('hi', 'hello')!r}")
+    print(f"join_twice('ab', 'c') = {join_twice('ab', 'c')!r}")
+    print(f"join_twice(b'x', b'y') = {join_twice(b'x', b'y')!r}")
+
+    (t,) = longest.__type_params__
+    (s,) = join_twice.__type_params__
+    print(f"{t} has bound {t.__bound__}")
+    print(f"{s} has constraints {s.__constraints__}")
+
+    try:
+        join_twice("a", b"b")  # type: ignore[type-var]
+    except TypeError as exc:
+        print(f"mixing str and bytes: TypeError: {exc}")
+
+
 def main() -> None:
     function_demo()
     print()
     class_demo()
+    print()
+    bounds_demo()
 
 
 if __name__ == "__main__":
