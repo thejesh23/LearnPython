@@ -16,6 +16,7 @@ exception escapes. Note that `with conn:` does *not* close the connection;
 """
 
 import sqlite3
+from contextlib import closing
 
 
 AUTHORS = [(1, "Ursula K. Le Guin"), (2, "Terry Pratchett"), (3, "Ada Newcomer")]
@@ -118,12 +119,60 @@ def group_by_demo() -> None:
     conn.close()
 
 
+def make_bank() -> sqlite3.Connection:
+    conn = sqlite3.connect(":memory:")
+    # CHECK makes the database itself refuse a negative balance.
+    conn.execute("""CREATE TABLE accounts (
+        name TEXT PRIMARY KEY, balance INTEGER NOT NULL CHECK (balance >= 0))""")
+    conn.executemany("INSERT INTO accounts VALUES (?, ?)",
+                     [("ana", 100), ("bo", 50)])
+    conn.commit()
+    return conn
+
+
+def transfer(conn: sqlite3.Connection, src: str, dst: str, amount: int) -> None:
+    # Both updates happen inside one transaction: all or nothing.
+    with conn:
+        conn.execute("UPDATE accounts SET balance = balance + ? WHERE name = ?",
+                     (amount, dst))
+        conn.execute("UPDATE accounts SET balance = balance - ? WHERE name = ?",
+                     (amount, src))
+
+
+def balances(conn: sqlite3.Connection) -> dict[str, int]:
+    return dict(conn.execute("SELECT name, balance FROM accounts ORDER BY name"))
+
+
+def transaction_demo() -> None:
+    # closing() calls conn.close() at the end; `with conn` alone would not.
+    with closing(make_bank()) as conn:
+        print(f"start:            {balances(conn)}")
+        transfer(conn, "ana", "bo", 30)
+        print(f"after moving 30:  {balances(conn)}")
+
+        # bo gets credited first, then ana's debit breaks the CHECK rule.
+        # The exception leaves the `with conn` block, so both are undone.
+        try:
+            transfer(conn, "ana", "bo", 500)
+        except sqlite3.IntegrityError as exc:
+            print(f"moving 500 failed: IntegrityError: {exc}")
+        print(f"after the failure: {balances(conn)}  (bo's credit was rolled back)")
+
+        # Explicit rollback() undoes everything since the last commit.
+        conn.execute("DELETE FROM accounts")
+        print(f"after DELETE:     {balances(conn)}")
+        conn.rollback()
+        print(f"after rollback(): {balances(conn)}")
+
+
 def main() -> None:
     executemany_demo()
     print()
     join_demo()
     print()
     group_by_demo()
+    print()
+    transaction_demo()
 
 
 if __name__ == "__main__":
