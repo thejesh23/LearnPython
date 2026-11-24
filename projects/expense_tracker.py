@@ -24,9 +24,11 @@ Uses:
     18_data_and_storage    sqlite3 connections, queries, GROUP BY
 """
 
+import random
 import sqlite3
 import tempfile
 from datetime import date
+from datetime import timedelta
 from decimal import Decimal
 from pathlib import Path
 
@@ -194,12 +196,76 @@ def report_demo() -> None:
     tracker.close()
 
 
+CATEGORIES = {  # name -> (typical low, high in whole units, times per month)
+    "groceries": (15, 90, 8),
+    "transport": (2, 25, 10),
+    "eating out": (8, 45, 5),
+    "fun": (10, 60, 3),
+}
+
+
+def load_sample(tracker: Tracker, months: list[date], seed: int = 7) -> int:
+    rng = random.Random(seed)  # same seed, same "random" spending every run
+    count = 0
+    for name in CATEGORIES:
+        tracker.add_category(name)
+    tracker.add_category("rent")
+    for first_day in months:
+        tracker.add(first_day, "950.00", "rent", "monthly rent")
+        count += 1
+        for name, (low, high, times) in CATEGORIES.items():
+            for _ in range(rng.randint(times - 2, times + 2)):
+                day = first_day + timedelta(days=rng.randrange(28))
+                amount = f"{rng.uniform(low, high):.2f}"
+                tracker.add(day, amount, name)
+                count += 1
+    return count
+
+
+def print_report(tracker: Tracker) -> None:
+    summary = monthly_summary(tracker)
+    months = [row["month"] for row in summary]
+    per_month = {m: month_by_category(tracker, m) for m in months}
+    names = sorted({name for totals in per_month.values() for name in totals})
+
+    print(f"{'category':<12}" + "".join(f"{m:>11}" for m in months) + f"{'total':>11}")
+    print("-" * (12 + 11 * (len(months) + 1)))
+    for name in names:
+        cells = [per_month[m].get(name, 0) for m in months]
+        print(f"{name:<12}" + "".join(f"{money(c):>11}" for c in cells)
+              + f"{money(sum(cells)):>11}")
+    print("-" * (12 + 11 * (len(months) + 1)))
+    totals = [row["total"] for row in summary]
+    print(f"{'total':<12}" + "".join(f"{money(t):>11}" for t in totals)
+          + f"{money(sum(totals)):>11}")
+    print(f"{'# expenses':<12}" + "".join(f"{row['n']:>11}" for row in summary))
+    print(f"{'average':<12}"
+          + "".join(f"{money(row['average']):>11}" for row in summary))
+
+    # A tiny bar chart: one # per 100 spent outside rent.
+    print()
+    for m in months:
+        spend = sum(v for k, v in per_month[m].items() if k != "rent")
+        print(f"{m}  {'#' * round(spend / 10000):<15} {money(spend)} besides rent")
+
+
+def session_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        tracker = Tracker(Path(tmp) / "expenses.db")
+        months = [date(2026, 1, 1), date(2026, 2, 1), date(2026, 3, 1)]
+        print(f"loaded {load_sample(tracker, months)} sample expenses\n")
+        print_report(tracker)
+        tracker.close()
+
+
 def main() -> None:
     storage_demo()
     print()
     category_demo()
     print()
     report_demo()
+    print()
+    session_demo()
 
 
 if __name__ == "__main__":
