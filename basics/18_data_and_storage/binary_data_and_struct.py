@@ -16,6 +16,8 @@ smallest byte first (little-endian, used by most CPUs). Both sides must agree,
 so a file format always says which one it uses, and so should your code.
 """
 
+import sys
+
 
 def bytes_demo() -> None:
     # Text becomes bytes through an encoding; bytes become text by decoding.
@@ -44,8 +46,32 @@ def bytes_demo() -> None:
         print(f"each item must fit in a byte: ValueError: {exc}")
 
 
+def endianness_demo() -> None:
+    n = 1000  # 0x03E8
+    big = n.to_bytes(4, "big")
+    little = n.to_bytes(4, "little")
+    print(f"{n} as 4 bytes, big-endian:    {big.hex(' ')}")
+    print(f"{n} as 4 bytes, little-endian: {little.hex(' ')}")
+
+    # Reading with the wrong byte order gives a wrong number, not an error.
+    print(f"read back correctly: {int.from_bytes(little, 'little')}")
+    print(f"read with the wrong order: {int.from_bytes(little, 'big')}")
+
+    # Negative numbers need signed=True (two's complement).
+    print(f"-2 as a signed byte: {(-2).to_bytes(1, 'big', signed=True).hex()}")
+    try:
+        (300).to_bytes(1, "big")
+    except OverflowError:
+        print("300 does not fit in 1 byte -> OverflowError")
+
+    # Your CPU has a native order, but a file format should not depend on it.
+    print(f"this machine is {sys.byteorder}-endian")
+
+
 def main() -> None:
     bytes_demo()
+    print()
+    endianness_demo()
 
 
 if __name__ == "__main__":
