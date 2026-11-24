@@ -14,6 +14,7 @@ shortcuts:
 
 import asyncio
 from collections.abc import AsyncIterator
+from contextlib import AsyncExitStack
 from contextlib import asynccontextmanager
 
 
@@ -59,8 +60,40 @@ def asynccontextmanager_demo() -> None:
     asyncio.run(asynccontextmanager_main())
 
 
+async def query_all(hosts: list[str]) -> list[str]:
+    # One `async with` per host cannot be written when the list length is
+    # only known at runtime. The stack collects them and closes them all,
+    # in reverse order, when its own block ends.
+    async with AsyncExitStack() as stack:
+        conns = [await stack.enter_async_context(connect(h)) for h in hosts]
+        return [await c.query("select 1") for c in conns]
+
+
+async def exit_stack_main() -> None:
+    print("AsyncExitStack over three hosts:")
+    results = await query_all(["east", "west", "north"])
+    print(f"  got {len(results)} results")
+
+    # If opening the third resource fails, the first two are still closed.
+    print("AsyncExitStack with a failure partway through:")
+    try:
+        async with AsyncExitStack() as stack:
+            for host in ["a", "b", "broken"]:
+                if host == "broken":
+                    raise ConnectionError(f"cannot reach {host}")
+                await stack.enter_async_context(connect(host))
+    except ConnectionError as exc:
+        print(f"  ConnectionError: {exc}")
+
+
+def exit_stack_demo() -> None:
+    asyncio.run(exit_stack_main())
+
+
 def main() -> None:
     asynccontextmanager_demo()
+    print()
+    exit_stack_demo()
 
 
 if __name__ == "__main__":
