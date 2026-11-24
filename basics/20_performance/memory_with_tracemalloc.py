@@ -22,6 +22,7 @@ or compare them.
 import linecache
 import sys
 import tracemalloc
+from collections.abc import Callable
 
 
 def deep_size(items: list[str]) -> int:
@@ -66,10 +67,35 @@ def snapshot_demo() -> None:
     print(f"  source: {linecache.getline(frame.filename, frame.lineno).strip()}")
 
 
+def peak_bytes_of(func: Callable[[], object]) -> int:
+    """Run func and return the peak memory it needed, in bytes."""
+    tracemalloc.start()
+    tracemalloc.reset_peak()
+    func()
+    _current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    return peak
+
+
+def list_vs_generator_demo() -> None:
+    n = 200_000
+    # The list comprehension builds all n squares before sum() sees any.
+    list_peak = peak_bytes_of(lambda: sum([x * x for x in range(n)]))
+    # The generator hands sum() one square at a time; each is freed at once.
+    gen_peak = peak_bytes_of(lambda: sum(x * x for x in range(n)))
+
+    print(f"list version peak  : ~{list_peak // 2**20} MB")
+    print(f"generator peak     : under 10 KB: {gen_peak < 10 * 1024}")
+    print(f"list needed over 100x more: {list_peak > 100 * gen_peak}")
+    # The lesson: if you only loop over the values once, do not build a list.
+
+
 def main() -> None:
     getsizeof_demo()
     print()
     snapshot_demo()
+    print()
+    list_vs_generator_demo()
 
 
 if __name__ == "__main__":
