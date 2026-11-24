@@ -1,0 +1,99 @@
+"""Hangman: the word-guessing game, plus a computer player.
+
+You build the game in layers that stay separate: a class that knows the rules
+and the state of one game (and never prints), a function that draws the
+gallows, a loop that feeds guesses into the game, and finally two sources of
+guesses: a computer player that reasons about the word list, and you at the
+keyboard.
+
+Keeping the rules apart from input and output is what makes this testable:
+the same `play()` loop runs a scripted game in the demo and a real one when
+you type.
+
+    python projects/hangman.py          scripted games only
+    python projects/hangman.py --play   the same, then a game for you
+
+Uses:
+    04_strings             str.format with named fields, join, isalpha
+    05_control_flow        while and for loops, match on an enum
+    06_functions           keyword-only options, functions as values
+    07_collections         sets of guessed letters, list filtering
+    08_iterators           generators that produce guesses one at a time
+    09_classes             a class with properties, an Enum for outcomes
+    11_errors              ValueError for bad input, EOFError from input()
+    13_standard_library    random, collections.Counter
+"""
+
+from enum import Enum
+
+
+class Outcome(Enum):
+    HIT = "hit"
+    MISS = "miss"
+    REPEAT = "already guessed"
+
+
+class Hangman:
+    """The rules and state of one game. It never prints or reads input."""
+
+    def __init__(self, word: str, max_misses: int = 6) -> None:
+        if not (word.isascii() and word.isalpha()):
+            raise ValueError(f"the word must be letters a-z, got {word!r}")
+        self.word = word.lower()
+        self.max_misses = max_misses
+        self.guessed: set[str] = set()
+        self.misses: list[str] = []  # a list keeps the order they were made
+
+    @property
+    def masked(self) -> str:
+        return " ".join(c if c in self.guessed else "_" for c in self.word)
+
+    @property
+    def won(self) -> bool:
+        # Every letter of the word is in the guessed set: a subset test.
+        return set(self.word) <= self.guessed
+
+    @property
+    def lost(self) -> bool:
+        return len(self.misses) >= self.max_misses
+
+    @property
+    def over(self) -> bool:
+        return self.won or self.lost
+
+    def guess(self, text: str) -> Outcome:
+        if self.over:
+            raise RuntimeError("the game is already over")
+        letter = text.strip().lower()
+        if len(letter) != 1 or not (letter.isascii() and letter.isalpha()):
+            raise ValueError("guess a single letter a-z")
+        if letter in self.guessed:
+            return Outcome.REPEAT  # not a mistake: no miss is counted
+        self.guessed.add(letter)
+        if letter in self.word:
+            return Outcome.HIT
+        self.misses.append(letter)
+        return Outcome.MISS
+
+
+def game_state_demo() -> None:
+    print("== stage 1: the game state ==")
+    game = Hangman("python")
+    print(f"start:      {game.masked}")
+    for text in ["p", "z", "Y", "p"]:
+        outcome = game.guess(text)
+        shown = f"guess {text!r}:"
+        print(f"{shown:<12}{outcome.value:<16} {game.masked}  misses {game.misses}")
+    try:
+        game.guess("7")
+    except ValueError as exc:
+        print(f"{"guess '7':":<12}ValueError: {exc}")
+    print(f"won {game.won}, lost {game.lost}, over {game.over}")
+
+
+def main() -> None:
+    game_state_demo()
+
+
+if __name__ == "__main__":
+    main()
