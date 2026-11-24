@@ -15,6 +15,7 @@ The mutable *default argument* trap (`def f(items=[])`) is the cousin of the
 last one; it has its own file, basics/06_functions/default_arguments.py.
 """
 
+import math
 from functools import partial
 
 
@@ -86,12 +87,35 @@ def is_and_shadowing_demo() -> None:
     # id, type, sum, max, input, file... Linters flag these for you.
 
 
+def division_demo() -> None:
+    items = ["a", "b", "c", "d", "e"]
+    # `/` ALWAYS returns a float, even when the result is whole.
+    middle = len(items) / 2
+    try:
+        items[middle]  # type: ignore[index]
+    except TypeError as exc:
+        print(f"items[len / 2]  -> TypeError: {exc}")
+    print(f"items[len // 2] -> {items[len(items) // 2]!r}")
+
+    # `//` floors (rounds towards minus infinity); int() truncates towards 0.
+    print(f"-7 // 2 = {-7 // 2}, int(-7 / 2) = {int(-7 / 2)}")
+    # The reverse mistake: // where you wanted a real average.
+    scores = [3, 4]
+    print(f"average with // : {sum(scores) // len(scores)}   <- lost the .5")
+    print(f"average with /  : {sum(scores) / len(scores)}")
+    # Floats are binary fractions, so compare them with a tolerance.
+    total = 0.1 + 0.2
+    print(f"0.1 + 0.2 == 0.3: {total == 0.3}, isclose: {math.isclose(total, 0.3)}")
+
+
 def main() -> None:
     late_binding_demo()
     print()
     mutating_while_iterating_demo()
     print()
     is_and_shadowing_demo()
+    print()
+    division_demo()
 
 
 if __name__ == "__main__":
