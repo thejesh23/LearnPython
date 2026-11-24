@@ -21,6 +21,9 @@ shape rather than the values themselves.
 
 import hashlib
 import hmac
+import random
+import secrets
+import string
 import tempfile
 from pathlib import Path
 
@@ -101,12 +104,40 @@ def hmac_demo() -> None:
     # A plain sha256(key + message) is NOT a safe substitute for hmac.
 
 
+def make_password(length: int = 16) -> str:
+    alphabet = string.ascii_letters + string.digits + "-_.!"
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
+
+def secrets_demo() -> None:
+    # Each call gives a fresh value from the operating system's secure source.
+    hex_token = secrets.token_hex(16)        # 16 random bytes as 32 hex chars
+    url_token = secrets.token_urlsafe(32)    # safe inside a URL
+    print(f"token_hex(16):     {len(hex_token)} chars, all hex: "
+          f"{all(c in string.hexdigits for c in hex_token)}")
+    print(f"token_urlsafe(32): {len(url_token)} chars, no '/' or '+': "
+          f"{'/' not in url_token and '+' not in url_token}")
+    print(f"two tokens differ: {secrets.token_hex(16) != secrets.token_hex(16)}")
+    print(f"a 6-digit code:    {len(f'{secrets.randbelow(10**6):06d}')} digits")
+    print(f"make_password():   {len(make_password())} characters")
+
+    # random is built for simulations: fast and *reproducible*. Anyone who
+    # learns or guesses the seed (or sees enough outputs) can predict it.
+    victim = random.Random(2026)
+    reset_code = victim.randrange(10**6)
+    attacker = random.Random(2026)
+    print(f"attacker with the same seed predicts the code: "
+          f"{attacker.randrange(10**6) == reset_code}")
+
+
 def main() -> None:
     sha256_demo()
     print()
     file_hash_demo()
     print()
     hmac_demo()
+    print()
+    secrets_demo()
 
 
 if __name__ == "__main__":
