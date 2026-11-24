@@ -39,8 +39,28 @@ def base_case_demo() -> None:
     print(f"sum_digits(2024) = {sum_digits(2024)}")
 
 
+def countdown_sum(n: int, depth: int = 0) -> int:
+    """Sum 1..n, printing each call on the way down and each return on the way up."""
+    pad = "  " * depth
+    print(f"{pad}call countdown_sum({n})")
+    if n == 0:
+        print(f"{pad}base case -> 0")
+        return 0
+    result = n + countdown_sum(n - 1, depth + 1)
+    print(f"{pad}return {result}")
+    return result
+
+
+def call_stack_demo() -> None:
+    # Every call waits, paused, until the call it made returns. The paused
+    # calls stack up, then finish in reverse order.
+    countdown_sum(3)
+
+
 def main() -> None:
     base_case_demo()
+    print()
+    call_stack_demo()
 
 
 if __name__ == "__main__":
