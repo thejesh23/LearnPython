@@ -20,8 +20,11 @@ pyproject.toml with `tomllib` (in the standard library since 3.11), and
 imports it without installing anything by putting its folder on `sys.path`.
 """
 
+import sys
 import tempfile
 import tomllib
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 
@@ -121,10 +124,44 @@ def pyproject_demo() -> None:
     print(f"built by: {config['build-system']['build-backend']}")
 
 
+@contextmanager
+def importable(folder: Path) -> Iterator[None]:
+    """Let `folder` be imported from, then undo it so nothing leaks."""
+    sys.path.insert(0, str(folder))
+    try:
+        yield
+    finally:
+        sys.path.remove(str(folder))
+        for name in [m for m in sys.modules if m.split(".")[0] == "greetkit"]:
+            del sys.modules[name]
+
+
+def import_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        write_files(Path(tmp), FILES)
+        with importable(Path(tmp)):
+            import greetkit
+
+            print(greetkit.greet("  ada   lovelace "))
+            print(f"greetkit.__version__ = {greetkit.__version__}")
+            # `from greetkit import *` copies only the names in __all__.
+            namespace: dict[str, object] = {}
+            exec("from greetkit import *", namespace)
+            public = sorted(k for k in namespace if not k.startswith("__"))
+            print(f"star-import gives: {public}")
+            # Internals are still reachable if you ask for them by path.
+            from greetkit._text import tidy
+
+            print(f"internal helper works too: {tidy('grace  hopper')}")
+    print(f"cleaned up: {'greetkit' not in sys.modules}")
+
+
 def main() -> None:
     layout_demo()
     print()
     pyproject_demo()
+    print()
+    import_demo()
 
 
 if __name__ == "__main__":
