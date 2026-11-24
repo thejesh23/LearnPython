@@ -19,6 +19,8 @@ import functools
 import inspect
 from collections.abc import Callable
 from typing import Concatenate
+from typing import get_overloads
+from typing import overload
 
 
 BinaryOp = Callable[[float, float], float]  # an alias keeps hints short
@@ -99,10 +101,37 @@ def paramspec_demo() -> None:
     print(handle("/about"))
 
 
+@overload
+def parse_number(text: str) -> int: ...
+@overload
+def parse_number(text: list[str]) -> list[int]: ...
+def parse_number(text: str | list[str]) -> int | list[int]:
+    # The @overload stubs above are for the checker: they say a str gives an
+    # int and a list gives a list. Without them the only hint would be
+    # "int | list[int]", and every caller would have to check which it got.
+    # Only this last, undecorated definition actually runs.
+    if isinstance(text, str):
+        return int(text)
+    return [int(item) for item in text]
+
+
+def overload_demo() -> None:
+    single = parse_number("42")  # checker: int
+    many = parse_number(["1", "2", "3"])  # checker: list[int]
+    print(f"parse_number('42') = {single!r}, so single + 1 = {single + 1}")
+    print(f"parse_number(['1', '2', '3']) = {many!r}, sum = {sum(many)}")
+
+    # Since Python 3.11 the registered overloads can be listed at runtime.
+    for stub in get_overloads(parse_number):
+        print(f"  overload: {inspect.signature(stub)}")
+
+
 def main() -> None:
     callable_demo()
     print()
     paramspec_demo()
+    print()
+    overload_demo()
 
 
 if __name__ == "__main__":
