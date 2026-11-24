@@ -63,10 +63,41 @@ def submit_demo() -> None:
             print(f"  {n} squared is {future.result()} (took {jobs[n]}s)")
 
 
+def parse_price(text: str) -> float:
+    return float(text)  # raises ValueError for text that is not a number
+
+
+def exceptions_demo() -> None:
+    texts = ["9.99", "free", "4.50"]
+    with ThreadPoolExecutor() as pool:
+        futures = [pool.submit(parse_price, t) for t in texts]
+        for text, future in zip(texts, futures):
+            # The worker's exception is stored in the Future and raised again
+            # here, in our thread, when we ask for the result.
+            try:
+                print(f"  {text!r} -> {future.result()}")
+            except ValueError as exc:
+                print(f"  {text!r} -> ValueError: {exc}")
+
+        # exception() returns the error instead of raising it (or None).
+        print(f"  futures[1].exception() is a ValueError: "
+              f"{isinstance(futures[1].exception(), ValueError)}")
+
+        # With map, the error is raised when iteration reaches that item, and
+        # the remaining results are lost. Use submit when some may fail.
+        try:
+            for price in pool.map(parse_price, texts):
+                print(f"  map gave {price}")
+        except ValueError:
+            print("  map stopped at the bad item")
+
+
 def main() -> None:
     map_demo()
     print()
     submit_demo()
+    print()
+    exceptions_demo()
 
 
 if __name__ == "__main__":
