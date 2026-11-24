@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_373 runnable samples across 44 directories._
+_380 runnable samples across 45 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -107,6 +107,7 @@ _373 runnable samples across 44 directories._
 - [closures_and_scope](basics/06_functions/closures_and_scope.py)
 - [decorators](basics/06_functions/decorators.py)
 - [default_arguments](basics/06_functions/default_arguments.py)
+- [keyword_and_positional_only](basics/06_functions/keyword_and_positional_only.py)
 - [lambdas](basics/06_functions/lambdas.py)
 
 ## basics/07_collections
@@ -126,6 +127,7 @@ _373 runnable samples across 44 directories._
 ## basics/09_classes
 - [abstract_and_protocols](basics/09_classes/abstract_and_protocols.py)
 - [basic_class](basics/09_classes/basic_class.py)
+- [class_and_static_methods](basics/09_classes/class_and_static_methods.py)
 - [dataclasses_intro](basics/09_classes/dataclasses_intro.py)
 - [dunder_methods](basics/09_classes/dunder_methods.py)
 - [enums](basics/09_classes/enums.py)
@@ -139,11 +141,13 @@ _373 runnable samples across 44 directories._
 
 ## basics/11_errors
 - [custom_exceptions](basics/11_errors/custom_exceptions.py)
+- [exception_groups](basics/11_errors/exception_groups.py)
 - [raising_exceptions](basics/11_errors/raising_exceptions.py)
 - [try_except](basics/11_errors/try_except.py)
 
 ## basics/12_modules_io
 - [context_managers](basics/12_modules_io/context_managers.py)
+- [csv_io](basics/12_modules_io/csv_io.py)
 - [files_and_pathlib](basics/12_modules_io/files_and_pathlib.py)
 - [json_io](basics/12_modules_io/json_io.py)
 - [modules_and_imports](basics/12_modules_io/modules_and_imports.py)
@@ -154,6 +158,11 @@ _373 runnable samples across 44 directories._
 - [functools_tools](basics/13_standard_library/functools_tools.py)
 - [logging_basics](basics/13_standard_library/logging_basics.py)
 - [regex_basics](basics/13_standard_library/regex_basics.py)
+
+## basics/14_testing
+- [assert_and_doctest](basics/14_testing/assert_and_doctest.py)
+- [mocking_basics](basics/14_testing/mocking_basics.py)
+- [unittest_basics](basics/14_testing/unittest_basics.py)
 
 ## bit_manipulation
 - [bit_basics](bit_manipulation/bit_basics.py)
