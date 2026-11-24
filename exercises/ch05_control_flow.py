@@ -204,12 +204,54 @@ def check_is_prime() -> None:
     report("5. is_prime", test_is_prime, is_prime)
 
 
+def parse_command(text: str) -> str:
+    """Answer a text-adventure command. Use a match statement on text.split().
+
+    "look"            -> "you look around"
+    "go north"        -> "you walk north"      exactly one word after go
+    "take brass lamp" -> "you pick up the brass lamp"   one or more words
+    "quit" or "exit"  -> "goodbye"
+    anything else     -> "I don't understand"  ("go", "take", "dance", "")
+
+    Hint: patterns like ["go", direction] match a list of a given shape and
+    bind names out of it; a guard (`if ...`) can reject an empty capture.
+    """
+    raise NotImplementedError
+
+
+def test_parse_command(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("look", "you look around"),
+        ("go north", "you walk north"),
+        ("  go   west ", "you walk west"),
+        ("take lamp", "you pick up the lamp"),
+        ("take brass lamp", "you pick up the brass lamp"),
+        ("quit", "goodbye"),
+        ("exit", "goodbye"),
+        ("go", "I don't understand"),
+        ("go north now", "I don't understand"),
+        ("take", "I don't understand"),
+        ("dance", "I don't understand"),
+        ("", "I don't understand"),
+    ]
+    for text, want in cases:
+        got = fn(text)
+        assert got == want, (
+            f"parse_command({text!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_parse_command() -> None:
+    report("6. parse_command", test_parse_command, parse_command)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
     check_first_index()
     check_collatz_steps()
     check_is_prime()
+    check_parse_command()
 
 
 if __name__ == "__main__":
