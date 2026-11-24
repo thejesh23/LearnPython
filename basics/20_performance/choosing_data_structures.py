@@ -19,6 +19,7 @@ an O(1) one. The demos print comparisons, not raw timings.
 """
 
 import timeit
+from collections import deque
 from collections.abc import Callable
 
 
@@ -43,8 +44,37 @@ def membership_demo() -> None:
     print(f"  set beats list at 10,000 items: {results['set'][1] < results['list'][1]}")
 
 
+def drain_list(n: int) -> int:
+    queue = list(range(n))
+    total = 0
+    while queue:
+        total += queue.pop(0)  # shifts every remaining item left: O(n)
+    return total
+
+
+def drain_deque(n: int) -> int:
+    queue = deque(range(n))
+    total = 0
+    while queue:
+        total += queue.popleft()  # O(1): a deque is built for both ends
+    return total
+
+
+def queue_demo() -> None:
+    n = 50_000
+    print(f"same total: {drain_list(n) == drain_deque(n)}")
+    list_time = best_time(lambda: drain_list(n), 1)
+    deque_time = best_time(lambda: drain_deque(n), 1)
+    print(f"deque.popleft faster than list.pop(0): {deque_time < list_time}")
+    # Popping from the END of a list is O(1), so a list is a fine stack.
+    stack = [1, 2, 3]
+    print(f"list as a stack (pop from the end): {stack.pop()}, {stack.pop()}")
+
+
 def main() -> None:
     membership_demo()
+    print()
+    queue_demo()
 
 
 if __name__ == "__main__":
