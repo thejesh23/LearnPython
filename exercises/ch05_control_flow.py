@@ -92,8 +92,32 @@ def check_fizzbuzz() -> None:
     report("1. fizzbuzz", test_fizzbuzz, fizzbuzz)
 
 
+def sum_of_multiples(limit: int) -> int:
+    """Add up every number below limit that is a multiple of 3 or of 5.
+
+    sum_of_multiples(10)   -> 23    3 + 5 + 6 + 9
+    sum_of_multiples(16)   -> 60    3 + 5 + 6 + 9 + 10 + 12 + 15
+    sum_of_multiples(1)    -> 0
+    """
+    raise NotImplementedError
+
+
+def test_sum_of_multiples(fn: Callable[..., Any]) -> None:
+    cases = [(10, 23), (16, 60), (1, 0), (0, 0), (4, 3), (1000, 233168)]
+    for limit, want in cases:
+        got = fn(limit)
+        assert got == want, (
+            f"sum_of_multiples({limit}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_sum_of_multiples() -> None:
+    report("2. sum_of_multiples", test_sum_of_multiples, sum_of_multiples)
+
+
 def main() -> None:
     check_fizzbuzz()
+    check_sum_of_multiples()
 
 
 if __name__ == "__main__":
