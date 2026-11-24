@@ -110,9 +110,45 @@ def check_group_by_length() -> None:
     report("2. group_by_length", test_group_by_length, group_by_length)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def moving_average(values: list[float], window: int) -> list[float]:
+    """Average of each run of `window` consecutive values.
+
+    A collections.deque(maxlen=window) drops its oldest item by itself when
+    a new one is appended. Emit an average once the window is full. A window
+    below 1 makes no sense: raise ValueError.
+
+    >>> moving_average([1, 2, 3, 4, 5], 3)
+    [2.0, 3.0, 4.0]
+    """
+    raise NotImplementedError
+
+
+def test_moving_average(impl: Callable[[list[float], int], list[float]]) -> None:
+    got = impl([1, 2, 3, 4, 5], 3)
+    assert got == [2.0, 3.0, 4.0], f"window 3 over 1..5 gave {got}"
+    got = impl([10, 20, 30], 1)
+    assert got == [10.0, 20.0, 30.0], f"window 1 gives the values, got {got}"
+    got = impl([4, 8], 2)
+    assert got == [6.0], f"window 2 over [4, 8] gave {got}"
+    assert impl([1, 2], 5) == [], "a window larger than the data gives []"
+    try:
+        impl([1, 2, 3], 0)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("window=0 should raise ValueError")
+
+
+def check_moving_average() -> None:
+    report("3. moving_average", test_moving_average, moving_average)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
+    check_moving_average()
 
 
 if __name__ == "__main__":
