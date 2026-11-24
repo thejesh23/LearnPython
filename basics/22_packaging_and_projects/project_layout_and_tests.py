@@ -27,6 +27,10 @@ This file builds such a project in a temporary folder and runs its tests in a
 child process, exactly as you would from a terminal.
 """
 
+import os
+import re
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -102,8 +106,50 @@ def layout_demo() -> None:
         print_tree(Path(tmp))
 
 
+def run_tests(root: Path, src_on_path: bool) -> subprocess.CompletedProcess[str]:
+    env = dict(os.environ)
+    if src_on_path:
+        # What `pip install -e .` would arrange for us: make src/ importable.
+        env["PYTHONPATH"] = str(root / "src")
+    else:
+        env.pop("PYTHONPATH", None)
+    # discover starts in the current folder; -v prints one line per test.
+    command = [sys.executable, "-m", "unittest", "discover", "-v"]
+    return subprocess.run(command, cwd=root, env=env, capture_output=True,
+                          text=True)
+
+
+def tidy_output(text: str) -> list[str]:
+    # unittest reports on stderr; drop the timing so the output is stable.
+    text = re.sub(r" in \d+\.\d+s", "", text)
+    # Each test is named twice ("test_x (tests.test_cart...)"); keep the short one.
+    text = re.sub(r" \(tests\.[\w.]+\)", "", text)
+    return [line for line in text.splitlines() if line.strip()]
+
+
+def discover_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        build_project(root, PROJECT)
+
+        print("$ python -m unittest discover -v   (src/ not on the path)")
+        result = run_tests(root, src_on_path=False)
+        errors = [line for line in tidy_output(result.stderr) if "Error:" in line]
+        for line in (errors[0], errors[-1]):  # what failed, and why
+            print(f"  {line}")
+        print(f"  exit code {result.returncode}: the package is not installed")
+
+        print("$ PYTHONPATH=src python -m unittest discover -v")
+        result = run_tests(root, src_on_path=True)
+        for line in tidy_output(result.stderr):
+            print(f"  {line}")
+        print(f"  exit code {result.returncode}")
+
+
 def main() -> None:
     layout_demo()
+    print()
+    discover_demo()
 
 
 if __name__ == "__main__":
