@@ -20,11 +20,13 @@ pyproject.toml with `tomllib` (in the standard library since 3.11), and
 imports it without installing anything by putting its folder on `sys.path`.
 """
 
+import importlib
 import sys
 import tempfile
 import tomllib
 from collections.abc import Iterator
 from contextlib import contextmanager
+from importlib import metadata
 from pathlib import Path
 
 
@@ -156,12 +158,41 @@ def import_demo() -> None:
     print(f"cleaned up: {'greetkit' not in sys.modules}")
 
 
+def run_entry_point(target: str, argv: list[str]) -> int:
+    # "greetkit.cli:main" means: import greetkit.cli, call its main().
+    # This is what the `greet` script that pip creates does for you.
+    module_name, func_name = target.split(":")
+    func = getattr(importlib.import_module(module_name), func_name)
+    old_argv, sys.argv = sys.argv, ["greet", *argv]
+    try:
+        return func()
+    finally:
+        sys.argv = old_argv
+
+
+def entry_point_demo() -> None:
+    config = tomllib.loads(PYPROJECT)
+    with tempfile.TemporaryDirectory() as tmp:
+        write_files(Path(tmp), FILES)
+        with importable(Path(tmp)):
+            for command, target in config["project"]["scripts"].items():
+                print(f"$ {command} ada linus   # runs {target}")
+                code = run_entry_point(target, ["ada", "linus"])
+                print(f"exit code {code}")
+    # Installed packages register their commands the same way.
+    scripts = metadata.entry_points(group="console_scripts")
+    names = sorted(ep.name for ep in scripts)[:3]
+    print(f"some installed console scripts: {names or 'none'}")
+
+
 def main() -> None:
     layout_demo()
     print()
     pyproject_demo()
     print()
     import_demo()
+    print()
+    entry_point_demo()
 
 
 if __name__ == "__main__":
