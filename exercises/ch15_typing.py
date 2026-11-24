@@ -203,11 +203,73 @@ def check_compose() -> None:
     report("4. compose[A, B, C]", test_compose, compose)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+class Registry:
+    """Named items of one type, e.g. a Registry[int] of settings.
+
+    - register(name, item) stores the item; a name used twice raises
+      ValueError.
+    - get(name) returns the item; an unknown name raises KeyError(name).
+    - names() returns the registered names, sorted.
+    Then make the class generic with the 3.12 syntax, `class Registry[T]:`,
+    and replace the Any hints below with T.
+
+    >>> ports = Registry[int]()
+    >>> ports.register("http", 80)
+    >>> ports.get("http"), ports.names()
+    (80, ['http'])
+    """
+
+    def __init__(self) -> None:
+        raise NotImplementedError
+
+    def register(self, name: str, item: Any) -> None:
+        raise NotImplementedError
+
+    def get(self, name: str) -> Any:
+        raise NotImplementedError
+
+    def names(self) -> list[str]:
+        raise NotImplementedError
+
+
+def test_registry(impl: type) -> None:
+    ports = impl()
+    ports.register("https", 443)
+    ports.register("http", 80)
+    assert ports.get("http") == 80, "get('http') should return 80"
+    assert ports.names() == ["http", "https"], f"names() gave {ports.names()}"
+    try:
+        ports.register("http", 8080)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("registering a name twice should raise ValueError")
+    try:
+        ports.get("ftp")
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("get() of an unknown name should raise KeyError")
+    assert impl().names() == [], "each registry starts empty"
+    params = getattr(impl, "__type_params__", ())
+    assert len(params) == 1, "make it generic: class Registry[T]:"
+    T = params[0]
+    assert impl.get.__annotations__.get("return") is T, "get() should return T"
+    assert impl[str]().names() == [], "Registry[str]() should work too"
+
+
+def check_registry() -> None:
+    report("5. Registry[T]", test_registry, Registry)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
     check_double()
     check_compose()
+    check_registry()
 
 
 if __name__ == "__main__":
