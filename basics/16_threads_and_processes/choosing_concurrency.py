@@ -19,6 +19,7 @@ The rough guide this file measures:
 The standard build that most people run still has it.)
 """
 
+import asyncio
 import os
 import sys
 import time
@@ -101,12 +102,36 @@ def cpu_bound_processes_demo() -> None:
         print(f"  processes beat running one by one: {in_processes < one_by_one}")
 
 
+async def wait_async() -> None:
+    await asyncio.sleep(0.1)  # a coroutine waiting costs almost nothing
+
+
+async def many_waits(count: int) -> None:
+    await asyncio.gather(*(wait_async() for _ in range(count)))
+
+
+def asyncio_demo() -> None:
+    # 2,000 threads would each need their own stack and OS thread. 2,000
+    # asyncio tasks are small objects taking turns on a single thread.
+    elapsed = timed(lambda: asyncio.run(many_waits(2_000)))
+    print("asyncio: 2,000 waits of 0.1s on one thread")
+    print(f"  all overlapped (took < 0.5s): {elapsed < 0.5}")
+    print()
+    print("Rule of thumb:")
+    print("  waiting, dozens at a time    -> threads (ThreadPoolExecutor)")
+    print("  waiting, thousands at a time -> asyncio (with async libraries)")
+    print("  computing in pure Python     -> processes (ProcessPoolExecutor)")
+    print("  not sure yet                 -> measure first, then choose")
+
+
 def main() -> None:
     io_bound_demo()
     print()
     cpu_bound_threads_demo()
     print()
     cpu_bound_processes_demo()
+    print()
+    asyncio_demo()
 
 
 if __name__ == "__main__":
