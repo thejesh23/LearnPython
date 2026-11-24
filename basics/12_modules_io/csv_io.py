@@ -12,6 +12,7 @@ Every value comes back as a string; converting types is up to you.
 """
 
 import csv
+import io
 import tempfile
 from pathlib import Path
 
@@ -41,8 +42,31 @@ def lists_demo() -> None:
         print(f"naive split of row 2: {naive}")
 
 
+def dicts_demo() -> None:
+    # io.StringIO behaves like an open text file, without touching the disk.
+    text = "name,price,qty\nkettle,24.50,2\nmug,6.00,4\n"
+    reader = csv.DictReader(io.StringIO(text))
+    total = 0.0
+    for row in reader:
+        # Values are strings; convert before doing arithmetic.
+        line_total = float(row["price"]) * int(row["qty"])
+        total += line_total
+        print(f"{row['name']:<8} {line_total:6.2f}")
+    print(f"{'total':<8} {total:6.2f}")
+
+    out = io.StringIO()
+    writer = csv.DictWriter(out, fieldnames=["name", "in_stock"])
+    writer.writeheader()
+    writer.writerows([{"name": "kettle", "in_stock": True},
+                      {"name": "mug", "in_stock": False}])
+    print("written:")
+    print(out.getvalue().rstrip())
+
+
 def main() -> None:
     lists_demo()
+    print()
+    dicts_demo()
 
 
 if __name__ == "__main__":
