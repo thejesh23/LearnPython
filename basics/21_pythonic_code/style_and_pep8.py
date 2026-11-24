@@ -24,6 +24,9 @@ not part of the standard library):
             before the code runs. `mypy yourfile.py`
 """
 
+import keyword
+import re
+
 
 # BEFORE: it works, but every line makes the reader stop and decode it.
 def CalcStats( l,Flag = False ):
@@ -63,8 +66,40 @@ def before_after_demo() -> None:
     # loop over range(len(...)) became a comprehension.
 
 
+NAMING_RULES = {
+    "function": re.compile(r"_?[a-z][a-z0-9_]*"),  # snake_case
+    "variable": re.compile(r"_?[a-z][a-z0-9_]*"),
+    "class": re.compile(r"_?[A-Z][a-zA-Z0-9]*"),  # PascalCase
+    "constant": re.compile(r"_?[A-Z][A-Z0-9_]*"),  # UPPER_CASE
+}
+
+
+def check_name(kind: str, name: str) -> str:
+    """Return "ok" or a short complaint, like a linter would."""
+    if keyword.iskeyword(name):
+        return "is a keyword"
+    if not NAMING_RULES[kind].fullmatch(name):
+        return f"not a good {kind} name"
+    if len(name) == 1 and name in "lOI":
+        return "looks like 1 or 0"  # PEP 8 bans these three on their own
+    return "ok"
+
+
+def naming_demo() -> None:
+    examples = [
+        ("function", "calc_stats"), ("function", "CalcStats"),
+        ("class", "ShoppingCart"), ("class", "shopping_cart"),
+        ("constant", "MAX_RETRIES"), ("constant", "maxRetries"),
+        ("variable", "l"), ("variable", "_cache"),
+    ]
+    for kind, name in examples:
+        print(f"  {kind:<9} {name:<14} {check_name(kind, name)}")
+
+
 def main() -> None:
     before_after_demo()
+    print()
+    naming_demo()
 
 
 if __name__ == "__main__":
