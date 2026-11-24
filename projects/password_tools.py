@@ -23,6 +23,7 @@ Uses:
     13_standard_library    secrets, math.log2, re, random (and its weakness)
 """
 
+import math
 import re
 import secrets
 import string
@@ -185,10 +186,82 @@ def checker_demo() -> None:
             print(f"    - {problem}")
 
 
+GUESSES_PER_SECOND = 1e10  # an offline attack on a fast hash with a few GPUs
+
+
+def pool_size(password: str) -> int:
+    """How many symbols an attacker must try per position, judged by classes."""
+    size = 0
+    for cls in (string.ascii_lowercase, string.ascii_uppercase, string.digits,
+                string.punctuation):
+        if any(c in cls for c in password):
+            size += len(cls)
+    # Anything else (spaces, accented letters) widens the pool a bit.
+    if any(c not in string.printable or c == " " for c in password):
+        size += 32
+    return size
+
+
+def entropy_bits(password: str) -> float:
+    """Upper-bound estimate: assumes every character was chosen at random."""
+    return len(password) * math.log2(pool_size(password)) if password else 0.0
+
+
+def passphrase_bits(words: int, wordlist_size: int = len(WORDLIST)) -> float:
+    """Exact for a passphrase: each word is a random pick from the list."""
+    return words * math.log2(wordlist_size)
+
+
+def crack_time(bits: float) -> str:
+    seconds = 2**bits / 2 / GUESSES_PER_SECOND  # half the space on average
+    if seconds > 4.4e17:  # the age of the universe, about 13.8 billion years
+        return "longer than the age of the universe"
+    for unit, size in [("years", 365 * 86400), ("days", 86400), ("hours", 3600),
+                       ("minutes", 60)]:
+        if seconds >= size:
+            return f"{seconds / size:,.0f} {unit}"
+    return "under a minute"
+
+
+def assess(password: str) -> str:
+    bits = entropy_bits(password)
+    result = check(password)
+    # The estimate assumes randomness; a rule failure means the password was
+    # not random, so the estimate is far too generous. Rules win.
+    if not result.ok:
+        rating = "weak"
+    elif bits >= 80:
+        rating = "strong"
+    elif bits >= 60:
+        rating = "fair"
+    else:
+        rating = "weak"
+    return f"{bits:6.1f} bits  {rating:<7} {crack_time(bits) if result.ok else '-'}"
+
+
+def entropy_demo() -> None:
+    print("== stage 3: entropy ==")
+    for pw in ["hunter2", "Summer2024!", "k8#Tq", "tR9!vX2#pL7@"]:
+        print(f"{pw:<16} pool {pool_size(pw):>3}  {assess(pw)}")
+    for length in (8, 12, 16, 20):
+        bits = length * math.log2(94)
+        print(f"random {length:>2} chars of 94: {bits:5.1f} bits, {crack_time(bits)}")
+    # The formula is generous to "Summer2024!": it assumes every character was
+    # random. The rules know better, so the verdict is still weak.
+
+    # Passphrase strength depends on the size of the list. The demo list is
+    # tiny (6 bits a word); real tools use the EFF list of 7776 words.
+    for words, size in [(5, len(WORDLIST)), (5, 7776), (7, 7776)]:
+        bits = passphrase_bits(words, size)
+        print(f"{words} words from {size:>4}:   {bits:5.1f} bits, {crack_time(bits)}")
+
+
 def main() -> None:
     generator_demo()
     print()
     checker_demo()
+    print()
+    entropy_demo()
 
 
 if __name__ == "__main__":
