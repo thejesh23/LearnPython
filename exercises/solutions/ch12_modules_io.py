@@ -12,8 +12,10 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import json
 import runpy
 from pathlib import Path
+from typing import Any
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -46,9 +48,24 @@ def check_write_scores() -> None:
     report("2. write_scores", EXERCISES["test_write_scores"], write_scores)
 
 
+def load_settings(path: Path, defaults: dict[str, Any]) -> dict[str, Any]:
+    try:
+        with path.open(encoding="utf-8") as f:
+            from_file = json.load(f)
+    except FileNotFoundError:
+        from_file = {}
+    # {**a, **b} builds a new dict, so `defaults` is never modified.
+    return {**defaults, **from_file}
+
+
+def check_load_settings() -> None:
+    report("3. load_settings", EXERCISES["test_load_settings"], load_settings)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
+    check_load_settings()
 
 
 if __name__ == "__main__":
