@@ -73,10 +73,32 @@ def timeit_demo() -> None:
     print(f"sorting 1000 ints takes under a millisecond: {per_call < 0.001}")
 
 
+def repeat_demo() -> None:
+    # repeat() returns one total per round. The rounds differ because of noise.
+    runs = timeit.repeat(lambda: slow_square_sum(5_000), number=50, repeat=5)
+    best, worst = min(runs), max(runs)
+    print(f"5 rounds measured, best <= worst: {best <= worst}")
+    print(f"noise made some round slower than the best: {worst > best}")
+    # The per-call cost is the best round divided by number=.
+    per_call = best / 50
+    print(f"one call of slow_square_sum(5_000) takes under 10 ms: {per_call < 0.01}")
+
+    # Not sure what number= to use? autorange() keeps increasing it until one
+    # round takes at least 0.2 seconds, which is long enough to trust.
+    timer = timeit.Timer(lambda: slow_square_sum(1_000))
+    number, total = timer.autorange()
+    # number depends on the machine (1, 2, 5, 10, 20, 50, ...), so it is not
+    # printed here; the guarantee is about the round's total time.
+    print(f"autorange found a number= whose round takes >= 0.2s: {total >= 0.2}")
+    print(f"and it ran more than once: {number > 1}")
+
+
 def main() -> None:
     perf_counter_demo()
     print()
     timeit_demo()
+    print()
+    repeat_demo()
 
 
 if __name__ == "__main__":
