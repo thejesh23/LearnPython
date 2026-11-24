@@ -162,9 +162,69 @@ def check_bank_account() -> None:
     report("2. BankAccount", test_bank_account, BankAccount)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+class Vector:
+    """A 2D vector that works with Python's operators.
+
+    Store x and y, then implement these dunder methods:
+        Vector(1, 2) == Vector(1, 2)     True              __eq__
+        repr(Vector(1, 2))               'Vector(1, 2)'    __repr__
+        Vector(1, 2) + Vector(3, 4)      Vector(4, 6)      __add__
+        Vector(1, 2) * 3                 Vector(3, 6)      __mul__
+        abs(Vector(3, 4))                5.0               __abs__
+
+    When the other operand is not a Vector (or, for *, not a number), return
+    the special value NotImplemented: Python then raises TypeError for you,
+    and Vector(1, 2) == (1, 2) is simply False.
+    """
+
+    def __init__(self, x: float, y: float) -> None:
+        raise NotImplementedError
+
+    def __eq__(self, other: object) -> bool:
+        raise NotImplementedError
+
+    def __repr__(self) -> str:
+        raise NotImplementedError
+
+    def __add__(self, other: "Vector") -> "Vector":
+        raise NotImplementedError
+
+    def __mul__(self, factor: float) -> "Vector":
+        raise NotImplementedError
+
+    def __abs__(self) -> float:
+        raise NotImplementedError
+
+
+def test_vector(impl: type) -> None:
+    a, b = impl(1, 2), impl(3, 4)
+    assert (a.x, a.y) == (1, 2), "store x and y as attributes"
+    assert a == impl(1, 2), "two vectors with the same x and y should be =="
+    assert a != b, "Vector(1, 2) and Vector(3, 4) should not be equal"
+    assert repr(a) == "Vector(1, 2)", f"repr should be 'Vector(1, 2)', got {a!r}"
+    assert a + b == impl(4, 6), f"Vector(1, 2) + Vector(3, 4) gave {a + b!r}"
+    assert a * 3 == impl(3, 6), f"Vector(1, 2) * 3 gave {a * 3!r}"
+    assert abs(b) == 5.0, f"abs(Vector(3, 4)) should be 5.0, got {abs(b)}"
+    assert (a == (1, 2)) is False, "comparing with a tuple should give False"
+    try:
+        a + 5
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("Vector + 5 should raise TypeError")
+    assert (a.x, a.y) == (1, 2), "operators must return new vectors, not mutate"
+
+
+def check_vector() -> None:
+    report("3. Vector", test_vector, Vector)
+
+
 def main() -> None:
     check_rectangle()
     check_bank_account()
+    check_vector()
 
 
 if __name__ == "__main__":
