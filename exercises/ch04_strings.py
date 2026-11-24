@@ -116,9 +116,42 @@ def check_initials() -> None:
     report("2. initials", test_initials, initials)
 
 
+def is_palindrome(text: str) -> bool:
+    """Return True when text reads the same backwards, ignoring case and spaces.
+
+    is_palindrome("racecar")           -> True
+    is_palindrome("Never odd or even") -> True
+    is_palindrome("Python")            -> False
+    is_palindrome("")                  -> True
+    """
+    raise NotImplementedError
+
+
+def test_is_palindrome(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("racecar", True),
+        ("Never odd or even", True),
+        ("Was it a car or a cat I saw", True),
+        ("Python", False),
+        ("ab", False),
+        ("A", True),
+        ("", True),
+    ]
+    for text, want in cases:
+        got = fn(text)
+        assert got == want, (
+            f"is_palindrome({text!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_is_palindrome() -> None:
+    report("3. is_palindrome", test_is_palindrome, is_palindrome)
+
+
 def main() -> None:
     check_format_price()
     check_initials()
+    check_is_palindrome()
 
 
 if __name__ == "__main__":
