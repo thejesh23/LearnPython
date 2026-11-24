@@ -115,12 +115,32 @@ def errors_demo() -> None:
     print(f"  empty setting falls back to {port}")
 
 
+def no_guessing_demo() -> None:
+    print(zen_line("In the face"))
+    # Some languages guess that "3" + 4 means 7 or "34". Python refuses,
+    # because either guess is wrong half the time.
+    try:
+        "3" + 4  # type: ignore[operator]
+    except TypeError as exc:
+        print(f"  '3' + 4 -> TypeError: {exc}")
+    # You state the meaning you want, and the code says it too.
+    print(f"  int('3') + 4 = {int('3') + 4}")
+    print(f"  '3' + str(4) = {'3' + str(4)}")
+
+    print(zen_line("Explicit"))
+    # Bytes and text are not mixed up silently either: name the encoding.
+    data = "café".encode("utf-8")
+    print(f"  {data!r} decoded as utf-8 = {data.decode('utf-8')!r}")
+
+
 def main() -> None:
     capture_demo()
     print()
     flat_demo()
     print()
     errors_demo()
+    print()
+    no_guessing_demo()
 
 
 if __name__ == "__main__":
