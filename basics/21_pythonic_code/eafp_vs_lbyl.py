@@ -17,6 +17,10 @@ be undone halfway, and when a broad `try` would hide unrelated bugs. Both
 styles belong in your toolbox; this file shows when to reach for which.
 """
 
+import tempfile
+from collections.abc import Callable
+from pathlib import Path
+
 
 def price_lbyl(prices: dict[str, float], item: str) -> float | None:
     if item in prices:  # look...
@@ -56,8 +60,41 @@ def two_styles_demo() -> None:
         print(f"{type(thing).__name__}: {said}")
 
 
+def read_lbyl(path: Path, meanwhile: Callable[[], None]) -> str:
+    if path.exists():
+        meanwhile()  # stands in for "another process ran right now"
+        return path.read_text()  # the check above is already out of date
+    return "(no file)"
+
+
+def read_eafp(path: Path, meanwhile: Callable[[], None]) -> str:
+    meanwhile()
+    try:
+        return path.read_text()  # one step: it either works or it does not
+    except FileNotFoundError:
+        return "(no file)"
+
+
+def race_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        for reader in (read_lbyl, read_eafp):
+            path = Path(tmp) / "settings.txt"
+            path.write_text("theme=dark")
+            # Deleting the file at the worst possible moment. In real life
+            # this is rare and random, which makes the bug hard to reproduce.
+            try:
+                result = reader(path, meanwhile=path.unlink)
+            except FileNotFoundError as exc:
+                result = f"crashed: FileNotFoundError {exc.strerror}"
+            print(f"{reader.__name__}: {result}")
+    # The same race exists for "if not os.path.exists(d): os.mkdir(d)", which
+    # is why Path.mkdir(exist_ok=True) does the check and the act as one step.
+
+
 def main() -> None:
     two_styles_demo()
+    print()
+    race_demo()
 
 
 if __name__ == "__main__":
