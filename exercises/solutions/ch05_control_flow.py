@@ -68,10 +68,25 @@ def check_first_index() -> None:
     report("3. first_index", EXERCISES["test_first_index"], first_index)
 
 
+def collatz_steps(n: int) -> int:
+    # The number of steps is not known up front, so this is a while loop.
+    # Every pass changes n, which is what eventually ends the loop.
+    steps = 0
+    while n != 1:
+        n = n // 2 if n % 2 == 0 else 3 * n + 1
+        steps += 1
+    return steps
+
+
+def check_collatz_steps() -> None:
+    report("4. collatz_steps", EXERCISES["test_collatz_steps"], collatz_steps)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
     check_first_index()
+    check_collatz_steps()
 
 
 if __name__ == "__main__":
