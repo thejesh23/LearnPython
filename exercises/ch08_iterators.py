@@ -104,8 +104,36 @@ def check_first_or_default() -> None:
     report("1. first_or_default", test_first_or_default, first_or_default)
 
 
+def countdown(n: int) -> Iterator[int]:
+    """A generator that yields n, n - 1, ... down to 1.
+
+    Use `yield`: the function should hand out one number at a time rather
+    than build and return a list.
+
+    list(countdown(3)) -> [3, 2, 1]
+    list(countdown(0)) -> []
+    """
+    raise NotImplementedError
+
+
+def test_countdown(fn: Callable[..., Any]) -> None:
+    result = fn(3)
+    assert hasattr(result, "__next__"), (
+        f"countdown(3) returned {type(result).__name__} {result!r}; "
+        "it should be a generator that yields its values"
+    )
+    for n, want in [(3, [3, 2, 1]), (1, [1]), (0, []), (5, [5, 4, 3, 2, 1])]:
+        got = list(fn(n))
+        assert got == want, f"list(countdown({n})) gave {got!r}, expected {want!r}"
+
+
+def check_countdown() -> None:
+    report("2. countdown", test_countdown, countdown)
+
+
 def main() -> None:
     check_first_or_default()
+    check_countdown()
 
 
 if __name__ == "__main__":
