@@ -67,10 +67,38 @@ def order_demo() -> None:
     print(f"{x} == {y} -> {x == y}")
 
 
+DEFAULTS = {"theme": "light", "font_size": 12, "autosave": True}
+
+
+def merge_demo() -> None:
+    user = {"font_size": 14, "theme": "dark"}
+
+    # d1 | d2 makes a new dict. On a clash, the right-hand value wins, so put
+    # the defaults on the left and the overrides on the right.
+    settings = DEFAULTS | user
+    print(f"DEFAULTS | user = {settings}")
+    print(f"DEFAULTS unchanged: {DEFAULTS}")
+
+    # |= updates the left dict in place, like .update().
+    settings |= {"autosave": False}
+    print(f"after |=:         {settings}")
+
+    # Unpacking does the same as | and also works for more than two dicts.
+    cli = {"theme": "contrast"}
+    print(f"three dicts unpacked: { {**DEFAULTS, **user, **cli} }")
+
+    # The merge is shallow: nested dicts are replaced, not combined.
+    a = {"db": {"host": "x", "port": 1}}
+    b = {"db": {"port": 2}}
+    print(f"shallow merge loses host: {a | b}")
+
+
 def main() -> None:
     views_demo()
     print()
     order_demo()
+    print()
+    merge_demo()
 
 
 if __name__ == "__main__":
