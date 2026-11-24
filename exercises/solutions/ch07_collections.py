@@ -81,12 +81,24 @@ def check_common_items() -> None:
     report("5. common_items", EXERCISES["test_common_items"], common_items)
 
 
+def top_scorers(scores: dict[str, int], n: int) -> list[str]:
+    # Iterating a dict gives its keys. The tuple key sorts by score
+    # descending (negated), then by name; a slice past the end just stops.
+    ranked = sorted(scores, key=lambda name: (-scores[name], name))
+    return ranked[:n]
+
+
+def check_top_scorers() -> None:
+    report("6. top_scorers", EXERCISES["test_top_scorers"], top_scorers)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
     check_word_counts()
     check_group_by_length()
     check_common_items()
+    check_top_scorers()
 
 
 if __name__ == "__main__":
