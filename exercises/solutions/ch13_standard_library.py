@@ -13,6 +13,7 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import re
 import runpy
 from collections import Counter
 from collections import defaultdict
@@ -81,11 +82,25 @@ def check_add_business_days() -> None:
            add_business_days)
 
 
+# Compile once at import time; \b keeps 112/31/20267 from matching.
+US_DATE = re.compile(r"\b(\d{2})/(\d{2})/(\d{4})\b")
+
+
+def us_to_iso(text: str) -> str:
+    # \3, \1, \2 put the captured year, month and day back in a new order.
+    return US_DATE.sub(r"\3-\1-\2", text)
+
+
+def check_us_to_iso() -> None:
+    report("5. us_to_iso", EXERCISES["test_us_to_iso"], us_to_iso)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
     check_moving_average()
     check_add_business_days()
+    check_us_to_iso()
 
 
 if __name__ == "__main__":
