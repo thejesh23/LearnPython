@@ -230,11 +230,73 @@ def check_run_python() -> None:
     report("4. run_python", test_run_python, run_python)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def linecount(argv: list[str]) -> int:
+    """A tiny `wc -l`: count the lines of each file named in argv.
+
+    argv holds the arguments only (no program name), so call
+    parser.parse_args(argv). It takes one or more file paths and an
+    optional --total flag:
+
+        linecount ["a.txt", "b.txt"]             prints "3 a.txt" and "1 b.txt"
+        linecount ["--total", "a.txt", "b.txt"]  adds a last line "4 total"
+
+    - Print each path exactly as it was given, after its line count.
+    - The line count is len(text.splitlines()).
+    - A file that does not exist: print "linecount: <path>: no such file"
+      to sys.stderr (not stdout), carry on with the other files, and leave
+      it out of the total.
+    - Return the exit code instead of calling sys.exit: 0 when every file
+      was read, 1 when any was missing. With no files at all, let argparse
+      reject the call (it raises SystemExit with code 2).
+    """
+    raise NotImplementedError
+
+
+def test_linecount(impl: Callable[[list[str]], int]) -> None:
+    def run(argv: list[str]) -> tuple[int, str, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = impl(argv)
+        return code, out.getvalue(), err.getvalue()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        a, b = Path(tmp) / "a.txt", Path(tmp) / "b.txt"
+        a.write_text("one\ntwo\nthree\n")
+        b.write_text("only line")
+        missing = str(Path(tmp) / "missing.txt")
+
+        code, out, err = run([str(a), str(b)])
+        want = f"3 {a}\n1 {b}\n"
+        assert out == want, f"stdout should be {want!r}, got {out!r}"
+        assert (code, err) == (0, ""), f"all files found: exit 0, got {code}"
+
+        code, out, err = run(["--total", str(a), missing, str(b)])
+        want = f"3 {a}\n1 {b}\n4 total\n"
+        assert out == want, f"with --total, stdout should be {want!r}, got {out!r}"
+        want_err = f"linecount: {missing}: no such file\n"
+        assert err == want_err, f"stderr should be {want_err!r}, got {err!r}"
+        assert code == 1, f"a missing file should give exit code 1, got {code}"
+
+        try:
+            run([])
+        except SystemExit as exit_:
+            assert exit_.code == 2, f"no files: exit code 2, got {exit_.code}"
+        else:
+            raise AssertionError("no files at all should be an argparse error")
+
+
+def check_linecount() -> None:
+    report("5. linecount", test_linecount, linecount)
+
+
 def main() -> None:
     check_env_settings()
     check_build_parser()
     check_find_files()
     check_run_python()
+    check_linecount()
 
 
 if __name__ == "__main__":
