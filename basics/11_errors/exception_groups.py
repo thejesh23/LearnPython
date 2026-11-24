@@ -35,8 +35,22 @@ def group_demo() -> None:
             print(f"type problem: {err}")
 
 
+def split_demo() -> None:
+    # except* that handles only some types re-raises a smaller group with
+    # the rest, so no failure is silently lost.
+    try:
+        try:
+            raise ExceptionGroup("batch", [KeyError("x"), OSError("disk full")])
+        except* KeyError:
+            print("handled the KeyError")
+    except ExceptionGroup as rest:
+        print(f"still unhandled: {rest.exceptions!r}")
+
+
 def main() -> None:
     group_demo()
+    print()
+    split_demo()
 
 
 if __name__ == "__main__":
