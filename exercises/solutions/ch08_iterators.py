@@ -82,12 +82,33 @@ def check_run_lengths() -> None:
     report("5. run_lengths", EXERCISES["test_run_lengths"], run_lengths)
 
 
+def interleave(*iterables: Iterable[Any]) -> Iterator[Any]:
+    # A private sentinel object marks "this iterator is finished"; it cannot
+    # be confused with a real item, even None. Each round keeps only the
+    # iterators that still had something to give.
+    done = object()
+    iterators = [iter(it) for it in iterables]
+    while iterators:
+        still_going = []
+        for it in iterators:
+            item = next(it, done)
+            if item is not done:
+                yield item
+                still_going.append(it)
+        iterators = still_going
+
+
+def check_interleave() -> None:
+    report("6. interleave", EXERCISES["test_interleave"], interleave)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
     check_running_total()
     check_chunks()
     check_run_lengths()
+    check_interleave()
 
 
 if __name__ == "__main__":
