@@ -21,6 +21,7 @@ a server at all.
 production traffic; use a real web framework and server for that.
 """
 
+import json
 import threading
 import urllib.request
 from collections.abc import Iterator
@@ -95,8 +96,57 @@ def get_demo() -> None:
             print(f"body   : {response.read().decode('utf-8')}")
 
 
+class NotesHandler(GreetingHandler):
+    """Adds POST /notes, which stores a JSON note and returns it with an id."""
+
+    # Class attributes on purpose: the server builds a NEW handler object for
+    # every request, so anything stored on self would be gone next time. The
+    # lock matters because ThreadingHTTPServer runs requests in parallel.
+    notes: list[dict[str, object]] = []
+    lock = threading.Lock()
+
+    def do_POST(self) -> None:
+        if self.path != "/notes":
+            self.send_text(404, f"cannot POST to {self.path}")
+            return
+        # The body is only as long as Content-Length says; never read "all".
+        length = int(self.headers.get("Content-Length", "0"))
+        try:
+            note = json.loads(self.rfile.read(length))
+        except json.JSONDecodeError:
+            self.send_text(400, "body must be JSON")
+            return
+        with self.lock:
+            note["id"] = len(self.notes) + 1
+            self.notes.append(note)
+        body = json.dumps(note).encode("utf-8")
+        self.send_response(201)  # 201 Created
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Location", f"/notes/{note['id']}")
+        self.end_headers()
+        self.wfile.write(body)
+
+
+def post_demo() -> None:
+    with running_server(NotesHandler) as base:
+        for text in ("buy milk", "call mum"):
+            # Passing data= makes urllib send a POST instead of a GET.
+            request = urllib.request.Request(
+                f"{base}/notes",
+                data=json.dumps({"text": text}).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+            )
+            with OPENER.open(request, timeout=5) as response:
+                created = json.loads(response.read())
+                where = response.headers["Location"]
+                print(f"{response.status} created {created} at {where}")
+
+
 def main() -> None:
     get_demo()
+    print()
+    post_demo()
 
 
 if __name__ == "__main__":
