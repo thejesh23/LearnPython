@@ -113,12 +113,39 @@ def returning_functions_demo() -> None:
     print(f"rolls valid: {[is_dice_roll(r) for r in (0, 3, 6, 7)]}")
 
 
+def is_even(n: int) -> bool:
+    return n % 2 == 0
+
+
+def map_filter_demo() -> None:
+    nums = [1, 2, 3, 4, 5, 6]
+
+    # map and filter are higher-order built-ins. They return lazy iterators.
+    doubled = map(double, nums)
+    print(f"map returns {type(doubled).__name__}; list(...) -> {list(doubled)}")
+    print(f"filter(is_even) -> {list(filter(is_even, nums))}")
+
+    # The same results as comprehensions, which most Python code prefers
+    # because the expression and the condition sit in one readable line.
+    print(f"comprehension    -> {[double(n) for n in nums if is_even(n)]}")
+
+    # map still reads well when the function already exists by name...
+    print(f"map(int, ...)    -> {list(map(int, ['7', '8', '9']))}")
+    # ...and it can walk several sequences in step.
+    print(f"map(add, a, b)   -> {list(map(add, [1, 2, 3], [10, 20, 30]))}")
+
+    # filter(None, ...) keeps only the truthy items.
+    print(f"filter(None)     -> {list(filter(None, ['a', '', 'b', None, 'c']))}")
+
+
 def main() -> None:
     functions_as_values_demo()
     print()
     passing_functions_demo()
     print()
     returning_functions_demo()
+    print()
+    map_filter_demo()
 
 
 if __name__ == "__main__":
