@@ -183,11 +183,45 @@ def check_add_business_days() -> None:
     report("4. add_business_days", test_add_business_days, add_business_days)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def us_to_iso(text: str) -> str:
+    r"""Rewrite every MM/DD/YYYY date in text as YYYY-MM-DD.
+
+    Only exact two-digit month and day and four-digit year count, standing
+    as a whole word (use \b at both ends). Capture the parts with groups and
+    put them back in a new order with re.sub; leave all other text alone.
+
+    >>> us_to_iso("due 12/31/2026, paid 01/02/2027")
+    'due 2026-12-31, paid 2027-01-02'
+    """
+    raise NotImplementedError
+
+
+def test_us_to_iso(impl: Callable[[str], str]) -> None:
+    cases = [
+        ("due 12/31/2026, paid 01/02/2027", "due 2026-12-31, paid 2027-01-02"),
+        ("no dates here", "no dates here"),
+        ("short 1/2/2026 stays", "short 1/2/2026 stays"),
+        ("too long 112/31/20267 stays", "too long 112/31/20267 stays"),
+        ("(07/04/1776)", "(1776-07-04)"),
+        ("", ""),
+    ]
+    for text, expected in cases:
+        got = impl(text)
+        assert got == expected, f"us_to_iso({text!r}) gave {got!r}, not {expected!r}"
+
+
+def check_us_to_iso() -> None:
+    report("5. us_to_iso", test_us_to_iso, us_to_iso)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
     check_moving_average()
     check_add_business_days()
+    check_us_to_iso()
 
 
 if __name__ == "__main__":
