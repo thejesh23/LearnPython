@@ -55,9 +55,23 @@ def check_sum_of_multiples() -> None:
            sum_of_multiples)
 
 
+def first_index(items: list[Any] | str, target: Any) -> int:
+    # Return from inside the loop at the first match; reaching the end of
+    # the loop means there was none.
+    for i, item in enumerate(items):
+        if item == target:
+            return i
+    return -1
+
+
+def check_first_index() -> None:
+    report("3. first_index", EXERCISES["test_first_index"], first_index)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
+    check_first_index()
 
 
 if __name__ == "__main__":
