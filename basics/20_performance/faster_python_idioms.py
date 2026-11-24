@@ -17,6 +17,7 @@ comparison here goes through one helper that
 The verdicts are deliberately coarse so they hold on any machine.
 """
 
+import math
 import random
 import timeit
 from collections.abc import Callable
@@ -77,8 +78,34 @@ def builtins_demo() -> None:
             lambda: [n * 2 for n in NUMBERS])
 
 
+def roots_global() -> float:
+    total = 0.0
+    for n in NUMBERS:
+        total += math.sqrt(n)  # global `math`, then attribute `.sqrt`, each time
+    return total
+
+
+def roots_local() -> float:
+    sqrt = math.sqrt  # look it up once; local names are the fastest to read
+    total = 0.0
+    for n in NUMBERS:
+        total += sqrt(n)
+    return total
+
+
+def local_names_demo() -> None:
+    # Local variables live in a fixed array slot; globals and attributes need a
+    # dict lookup. Binding a hot function to a local used to be a common
+    # speed trick. Modern CPython caches these lookups, so check first.
+    print("local alias for math.sqrt:")
+    ratio = compare("local sqrt vs math.sqrt", roots_global, roots_local)
+    print(f"  worth making the code uglier for: {ratio >= 1.5}")
+
+
 def main() -> None:
     builtins_demo()
+    print()
+    local_names_demo()
 
 
 if __name__ == "__main__":
