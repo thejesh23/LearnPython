@@ -97,8 +97,57 @@ def check_parallel_map() -> None:
     report("1. parallel_map", test_parallel_map, parallel_map)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+class SafeCounter:
+    """A counter that many threads can increment at the same time.
+
+    `self.value += 1` is three steps (read, add, write). Two threads can both
+    read 5 and both write 6, losing an increment. Store a threading.Lock()
+    on the instance and hold it (`with self._lock:`) while changing value.
+
+    - SafeCounter() starts at value 0.
+    - increment(amount=1) adds amount to value.
+    """
+
+    def __init__(self) -> None:
+        raise NotImplementedError
+
+    def increment(self, amount: int = 1) -> None:
+        raise NotImplementedError
+
+
+def test_safe_counter(impl: type) -> None:
+    counter = impl()
+    assert counter.value == 0, f"a new counter should be 0, got {counter.value}"
+    counter.increment()
+    counter.increment(5)
+    assert counter.value == 6, f"after +1 and +5 expected 6, got {counter.value}"
+    lock_types = (type(threading.Lock()), type(threading.RLock()))
+    assert any(isinstance(v, lock_types) for v in vars(counter).values()), (
+        "store a threading.Lock() on the instance, e.g. self._lock"
+    )
+
+    def hammer() -> None:
+        for _ in range(2000):
+            counter.increment()
+
+    threads = [threading.Thread(target=hammer) for _ in range(8)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    expected = 6 + 8 * 2000
+    assert counter.value == expected, f"expected {expected}, got {counter.value}"
+
+
+def check_safe_counter() -> None:
+    report("2. SafeCounter", test_safe_counter, SafeCounter)
+
+
 def main() -> None:
     check_parallel_map()
+    check_safe_counter()
 
 
 if __name__ == "__main__":
