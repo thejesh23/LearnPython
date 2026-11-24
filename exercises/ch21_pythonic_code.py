@@ -124,9 +124,41 @@ def check_remove_short() -> None:
     report("2. remove_short", test_remove_short, remove_short)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def make_multipliers(n: int) -> list[Callable[[int], int]]:
+    """Return n functions; the k-th one (counting from 0) multiplies by k.
+
+        times = make_multipliers(4)
+        [f(10) for f in times]  ->  [0, 10, 20, 30]
+
+    The tempting one-liner gives [30, 30, 30, 30]:
+        return [lambda x: x * k for k in range(n)]
+    Each lambda looks k up when it is *called*, and by then the loop has
+    finished and k is 3. Make each function remember its own k: a default
+    argument (lambda x, k=k: ...) or functools.partial both work.
+    """
+    raise NotImplementedError
+
+
+def test_make_multipliers(impl: Callable[[int], list[Callable[[int], int]]]) -> None:
+    times = impl(4)
+    assert len(times) == 4, f"make_multipliers(4) gave {len(times)} functions, not 4"
+    got = [f(10) for f in times]
+    assert got == [0, 10, 20, 30], f"[f(10) for f in times] gave {got}"
+    got = [f(1) for f in impl(3)]
+    assert got == [0, 1, 2], f"make_multipliers(3) on 1 gave {got}"
+    assert impl(0) == [], "make_multipliers(0) should give []"
+
+
+def check_make_multipliers() -> None:
+    report("3. make_multipliers", test_make_multipliers, make_multipliers)
+
+
 def main() -> None:
     check_scoreboard()
     check_remove_short()
+    check_make_multipliers()
 
 
 if __name__ == "__main__":
