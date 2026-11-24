@@ -16,6 +16,7 @@ from dataclasses import fields
 from typing import ClassVar
 from typing import Final
 from typing import NewType
+from typing import Self
 from typing import final
 
 
@@ -110,12 +111,44 @@ def final_and_classvar_demo() -> None:
     print(f"@final sets a marker: Settings.__final__ = {Settings.__final__}")
 
 
+class QueryBuilder:
+    def __init__(self) -> None:
+        self.parts: list[str] = []
+
+    def where(self, condition: str) -> Self:
+        # Returning Self (not "QueryBuilder") means a subclass calling this
+        # gets its own type back, so chained calls keep the subclass methods.
+        self.parts.append(f"WHERE {condition}")
+        return self
+
+    @classmethod
+    def from_table(cls, table: str) -> Self:
+        query = cls()
+        query.parts.append(f"FROM {table}")
+        return query
+
+
+class PagedQuery(QueryBuilder):
+    def page(self, number: int, size: int = 20) -> Self:
+        self.parts.append(f"LIMIT {size} OFFSET {(number - 1) * size}")
+        return self
+
+
+def self_demo() -> None:
+    # from_table and where are inherited, yet the checker knows the result is
+    # a PagedQuery, so .page() is allowed at the end of the chain.
+    query = PagedQuery.from_table("users").where("active").page(3)
+    print(f"{type(query).__name__}: {' '.join(query.parts)}")
+
+
 def main() -> None:
     type_statement_demo()
     print()
     newtype_demo()
     print()
     final_and_classvar_demo()
+    print()
+    self_demo()
 
 
 if __name__ == "__main__":
