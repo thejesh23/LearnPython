@@ -16,6 +16,7 @@ import runpy
 from collections.abc import Callable
 from pathlib import Path
 from typing import Literal, cast, get_args
+from typing import get_type_hints
 from typing import overload
 
 
@@ -98,12 +99,31 @@ def check_registry() -> None:
     report("5. Registry[T]", EXERCISES["test_registry"], Registry)
 
 
+def type_errors(data: dict[str, object], schema: type) -> list[str]:
+    # get_type_hints resolves the class's annotations into real types.
+    fields = get_type_hints(schema)
+    errors: list[str] = []
+    for name, expected in fields.items():
+        if name not in data:
+            errors.append(f"missing: {name}")
+        elif not isinstance(data[name], expected):
+            actual = type(data[name]).__name__
+            errors.append(f"{name}: expected {expected.__name__}, got {actual}")
+    errors.extend(f"unexpected: {key}" for key in data if key not in fields)
+    return errors
+
+
+def check_type_errors() -> None:
+    report("6. type_errors", EXERCISES["test_type_errors"], type_errors)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
     check_double()
     check_compose()
     check_registry()
+    check_type_errors()
 
 
 if __name__ == "__main__":
