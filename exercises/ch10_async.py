@@ -230,11 +230,53 @@ def check_countdown() -> None:
     report("4. countdown", test_countdown, countdown)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+async def bounded_map(
+    func: Callable[[int], Awaitable[int]], items: list[int], limit: int
+) -> list[int]:
+    """Run `await func(item)` for every item, at most `limit` at a time.
+
+    Real code does this to stay polite to a server: start everything, but let
+    only a few requests be in flight at once. Wrap each call in
+    `async with semaphore:` (an asyncio.Semaphore(limit)) and gather them.
+    Results come back in the same order as items.
+    """
+    raise NotImplementedError
+
+
+def test_bounded_map(impl: Callable[..., Any]) -> None:
+    running = peak = 0
+
+    async def double(n: int) -> int:
+        nonlocal running, peak
+        running += 1
+        peak = max(peak, running)
+        await asyncio.sleep(0.005)
+        running -= 1
+        return n * 2
+
+    for limit in (3, 1, 50):
+        running = peak = 0
+        items = list(range(10))
+        result = asyncio.run(impl(double, items, limit))
+        assert result == [n * 2 for n in items], f"limit={limit}: got {result}"
+        expected_peak = min(limit, len(items))
+        assert peak == expected_peak, (
+            f"limit={limit}: expected {expected_peak} running at once, saw {peak}"
+        )
+
+
+def check_bounded_map() -> None:
+    report("5. bounded_map", test_bounded_map, bounded_map)
+
+
 def main() -> None:
     check_add_later()
     check_fetch_all()
     check_with_timeout()
     check_countdown()
+    check_bounded_map()
 
 
 if __name__ == "__main__":
