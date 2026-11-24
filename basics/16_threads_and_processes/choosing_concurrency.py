@@ -19,6 +19,7 @@ The rough guide this file measures:
 The standard build that most people run still has it.)
 """
 
+import sys
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -48,8 +49,42 @@ def io_bound_demo() -> None:
     # Six threads waiting at once took about as long as one wait.
 
 
+def crunch(n: int) -> int:
+    # Pure Python arithmetic: holds the GIL the whole time it runs.
+    total = 0
+    for i in range(n):
+        total += i * i % 7
+    return total
+
+
+WORK = [2_000_000] * 4  # about a quarter of a second in total
+
+
+def gil_enabled() -> bool:
+    # sys._is_gil_enabled exists from 3.13; older versions always have a GIL.
+    check = getattr(sys, "_is_gil_enabled", None)
+    return True if check is None else check()
+
+
+def cpu_bound_threads_demo() -> None:
+    one_by_one = timed(lambda: [crunch(n) for n in WORK])
+
+    def with_threads() -> None:
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            list(pool.map(crunch, WORK))
+
+    threaded = timed(with_threads)
+    print("CPU-bound: four pure-Python loops")
+    print(f"  this interpreter has a GIL: {gil_enabled()}")
+    if gil_enabled():
+        # Allow some noise: the point is "not meaningfully faster".
+        print(f"  threads were no real help: {threaded > one_by_one * 0.7}")
+
+
 def main() -> None:
     io_bound_demo()
+    print()
+    cpu_bound_threads_demo()
 
 
 if __name__ == "__main__":
