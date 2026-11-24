@@ -13,8 +13,11 @@ Each one guarantees its cleanup runs however the block ends, which is the
 whole point of `with`.
 """
 
+import io
+import sys
 import tempfile
 from contextlib import ExitStack
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 
@@ -38,8 +41,33 @@ def exit_stack_demo() -> None:
         print(f"merged: {merge_files(paths)}")
 
 
+def chatty_report() -> int:
+    """Prints instead of returning text: common in older or quick code."""
+    print("line 1 of the report")
+    print("line 2 of the report")
+    return 2
+
+
+def redirect_demo() -> None:
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):  # print() now writes into the buffer
+        lines = chatty_report()
+    captured = buffer.getvalue()
+    print(f"captured {lines} lines: {captured.splitlines()}")
+
+    # redirect_stderr works the same way for error output.
+    errors = io.StringIO()
+    with redirect_stderr(errors):
+        print("something went wrong", file=sys.stderr)
+    print(f"captured stderr: {errors.getvalue().strip()!r}")
+    # Only Python-level writes are redirected; output from a subprocess or a
+    # C library goes straight to the real stdout.
+
+
 def main() -> None:
     exit_stack_demo()
+    print()
+    redirect_demo()
 
 
 if __name__ == "__main__":
