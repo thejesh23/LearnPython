@@ -23,6 +23,7 @@ Worked solutions, with a note on each approach, are in
 exercises/solutions/ch08_iterators.py. Try each exercise yourself first.
 """
 
+import itertools
 from collections.abc import Callable, Iterable, Iterator
 from typing import Any
 
@@ -131,9 +132,50 @@ def check_countdown() -> None:
     report("2. countdown", test_countdown, countdown)
 
 
+def running_total(numbers: Iterable[int]) -> Iterator[int]:
+    """Yield the running total after each number.
+
+    numbers may be endless, so yield each total as soon as you have it;
+    never collect the input first.
+
+    list(running_total([1, 2, 3, 4])) -> [1, 3, 6, 10]
+    list(running_total([]))           -> []
+    first four of running_total(itertools.count(1)) -> [1, 3, 6, 10]
+    """
+    raise NotImplementedError
+
+
+def test_running_total(fn: Callable[..., Any]) -> None:
+    cases = [([1, 2, 3, 4], [1, 3, 6, 10]), ([], []), ([5, -5, 2], [5, 0, 2])]
+    for numbers, want in cases:
+        got = list(fn(numbers))
+        assert got == want, (
+            f"list(running_total({numbers!r})) gave {got!r}, expected {want!r}"
+        )
+
+    def four_then_stop() -> Iterator[int]:
+        # Stands in for an endless stream: reading a fifth value is a bug.
+        yield from [1, 2, 3, 4]
+        raise RuntimeError(
+            "running_total read past the numbers it needed; "
+            "yield each total before reading the next number"
+        )
+
+    got = list(itertools.islice(fn(four_then_stop()), 4))
+    assert got == [1, 3, 6, 10], (
+        f"the first four running totals of 1, 2, 3, 4 were {got!r}, "
+        "expected [1, 3, 6, 10]"
+    )
+
+
+def check_running_total() -> None:
+    report("3. running_total", test_running_total, running_total)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
+    check_running_total()
 
 
 if __name__ == "__main__":
