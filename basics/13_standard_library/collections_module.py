@@ -14,6 +14,7 @@ Each one removes a few lines of fiddly code, and the bugs that hide in them.
 from collections import Counter
 from collections import defaultdict
 from collections import deque
+from collections import namedtuple
 
 
 def counter_demo() -> None:
@@ -73,12 +74,32 @@ def deque_demo() -> None:
     print(f"rotated by 2: {list(ring)}")
 
 
+def namedtuple_demo() -> None:
+    # point[0] and point[1] say nothing about meaning; point.x and point.y do.
+    # A namedtuple is still a tuple: immutable, unpackable, usable as a dict key.
+    Point = namedtuple("Point", ["x", "y"])
+    p = Point(3, 4)
+    print(f"{p}, x = {p.x}, y = {p[1]}")
+
+    x, y = p                       # unpacks like any tuple
+    print(f"unpacked: {x}, {y}")
+
+    # Tuples cannot change, so _replace returns a *new* record.
+    moved = p._replace(x=10)
+    print(f"moved: {moved}, original still {p}")
+    print(f"as a dict: {p._asdict()}")
+    # For records with defaults, methods or type hints, prefer @dataclass
+    # (see basics/09_classes/dataclasses_intro.py).
+
+
 def main() -> None:
     counter_demo()
     print()
     defaultdict_demo()
     print()
     deque_demo()
+    print()
+    namedtuple_demo()
 
 
 if __name__ == "__main__":
