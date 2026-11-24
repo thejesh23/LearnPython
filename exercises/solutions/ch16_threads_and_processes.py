@@ -13,6 +13,7 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import queue
 import runpy
 import threading
 from collections.abc import Callable
@@ -86,11 +87,44 @@ def check_fastest() -> None:
     report("4. fastest", EXERCISES["test_fastest"], fastest)
 
 
+def process_queue(
+    func: Callable[[int], int], items: list[int], workers: int
+) -> list[int]:
+    tasks: queue.Queue[int | None] = queue.Queue()
+    results: list[int] = []
+    results_lock = threading.Lock()
+
+    def worker() -> None:
+        while True:
+            item = tasks.get()  # blocks until something is on the queue
+            if item is None:  # the sentinel: no more work for this thread
+                return
+            value = func(item)
+            with results_lock:
+                results.append(value)
+
+    threads = [threading.Thread(target=worker) for _ in range(workers)]
+    for thread in threads:
+        thread.start()
+    for item in items:
+        tasks.put(item)
+    for _ in threads:
+        tasks.put(None)  # one stop signal per worker
+    for thread in threads:
+        thread.join()
+    return sorted(results)
+
+
+def check_process_queue() -> None:
+    report("5. process_queue", EXERCISES["test_process_queue"], process_queue)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
     check_run_all()
     check_fastest()
+    check_process_queue()
 
 
 if __name__ == "__main__":
