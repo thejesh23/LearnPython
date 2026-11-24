@@ -89,10 +89,41 @@ def join_demo() -> None:
     conn.close()
 
 
+def group_by_demo() -> None:
+    conn = make_library()
+    # Aggregates over the whole table give a single row.
+    count, oldest, best = conn.execute(
+        "SELECT COUNT(*), MIN(year), MAX(rating) FROM books").fetchone()
+    print(f"{count} books, oldest from {oldest}, best rating {best}")
+
+    # GROUP BY gives one row per group. The database does the counting,
+    # so this stays fast even with millions of books.
+    rows = conn.execute("""
+        SELECT authors.name, COUNT(books.id) AS n, ROUND(AVG(books.rating), 2)
+        FROM authors
+        LEFT JOIN books ON books.author_id = authors.id
+        GROUP BY authors.id
+        ORDER BY n DESC
+    """).fetchall()
+    print("per author: books, average rating")
+    for name, n, avg in rows:
+        print(f"  {name:<18} {n}  {avg}")
+
+    # WHERE filters rows before grouping; HAVING filters the groups after.
+    rows = conn.execute("""
+        SELECT author_id, COUNT(*) FROM books
+        GROUP BY author_id HAVING COUNT(*) >= ?
+    """, (3,)).fetchall()
+    print(f"authors with 3 or more books (HAVING): {rows}")
+    conn.close()
+
+
 def main() -> None:
     executemany_demo()
     print()
     join_demo()
+    print()
+    group_by_demo()
 
 
 if __name__ == "__main__":
