@@ -15,7 +15,10 @@ line by line; if the tests pass, it is a valid solution.
 import runpy
 from pathlib import Path
 from urllib.parse import parse_qs
+from urllib.parse import parse_qsl
+from urllib.parse import urlencode
 from urllib.parse import urlsplit
+from urllib.parse import urlunsplit
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -37,8 +40,22 @@ def check_get_param() -> None:
     report("1. get_param", EXERCISES["test_get_param"], get_param)
 
 
+def add_params(url: str, params: dict[str, str | int]) -> str:
+    parts = urlsplit(url)
+    # A dict keeps insertion order, and updating an existing key keeps its
+    # place, which is exactly the ordering the task asks for.
+    query = dict(parse_qsl(parts.query, keep_blank_values=True))
+    query.update({name: str(value) for name, value in params.items()})
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+def check_add_params() -> None:
+    report("2. add_params", EXERCISES["test_add_params"], add_params)
+
+
 def main() -> None:
     check_get_param()
+    check_add_params()
 
 
 if __name__ == "__main__":
