@@ -1,0 +1,99 @@
+"""Practice: the operating system and the command line (chapter 17).
+
+How to work through this file:
+  1. Read an exercise's docstring, then replace each `raise NotImplementedError`
+     line in it with your own code.
+  2. Run the file:  python exercises/ch17_os_and_command_line.py
+  3. Every exercise prints one line:
+         [solved]                 all checks passed
+         [not yet] <message>      a check failed; the message says which one
+         [todo] not attempted     the stub still raises NotImplementedError
+  4. Aim for all [solved]. The test_... function under each exercise shows
+     exactly what is checked; read it when a message is unclear, but do not
+     edit it.
+
+The exercises go from easy to a bit challenging. Stuck? Worked solutions are
+in exercises/solutions/ch17_os_and_command_line.py: try first, peek second.
+The lessons for this chapter are in basics/17_os_and_command_line/.
+"""
+
+from collections.abc import Callable
+from collections.abc import Mapping
+from typing import Any
+
+
+def verdict(error: BaseException) -> str:
+    """Turn the exception a test raised into a short status."""
+    # A stub raises NotImplementedError. Other errors may wrap it, so follow
+    # the chain of causes (and look inside exception groups) before deciding.
+    link: BaseException | None = error
+    for _ in range(20):
+        if link is None:
+            break
+        if isinstance(link, NotImplementedError):
+            return "[todo] not attempted"
+        if isinstance(link, BaseExceptionGroup) and link.subgroup(
+            NotImplementedError
+        ):
+            return "[todo] not attempted"
+        link = link.__cause__ or link.__context__
+    if isinstance(error, AssertionError):
+        return f"[not yet] {str(error) or 'a check failed'}"
+    return f"[not yet] {type(error).__name__}: {error}"
+
+
+def report(title: str, test: Callable[[Any], None], impl: Any) -> None:
+    """Run one test against one implementation and print a one-line status."""
+    try:
+        test(impl)
+        status = "[solved]"
+    except KeyboardInterrupt:
+        raise
+    except BaseException as error:  # never crash: one line per exercise
+        status = verdict(error)
+    print(f"{title:<40} {status}")
+
+
+# --- Exercise 1 -------------------------------------------------------------
+
+def env_settings(environ: Mapping[str, str], prefix: str) -> dict[str, str]:
+    """Collect the environment variables that start with `prefix`.
+
+    Return them as a dict whose keys have the prefix removed and are in
+    lower case. Values stay exactly as they are (always strings).
+
+        env_settings({"APP_PORT": "80", "APP_DEBUG": "1", "HOME": "/home/ada"},
+                     "APP_")  ->  {"port": "80", "debug": "1"}
+
+    A real program would call env_settings(os.environ, "APP_"). Taking the
+    mapping as a parameter keeps the function easy to test.
+    """
+    raise NotImplementedError
+
+
+def test_env_settings(impl: Callable[[Mapping[str, str], str], dict[str, str]]) -> None:
+    environ = {
+        "APP_PORT": "8080",
+        "APP_DEBUG": "yes",
+        "APP_LOG_LEVEL": "info",
+        "HOME": "/home/ada",
+        "MYAPP_PORT": "1",
+    }
+    got = impl(environ, "APP_")
+    expected = {"port": "8080", "debug": "yes", "log_level": "info"}
+    assert got == expected, f"expected {expected}, got {got}"
+    assert "APP_PORT" in environ, "the environ mapping must not change"
+    got = impl(environ, "NOPE_")
+    assert got == {}, f"no matching variables should give {{}}, got {got}"
+
+
+def check_env_settings() -> None:
+    report("1. env_settings", test_env_settings, env_settings)
+
+
+def main() -> None:
+    check_env_settings()
+
+
+if __name__ == "__main__":
+    main()
