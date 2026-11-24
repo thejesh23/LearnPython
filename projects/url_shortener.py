@@ -32,11 +32,20 @@ Uses:
 import sqlite3
 import string
 import tempfile
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from http.server import BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer
 from pathlib import Path
+from typing import Any
+from urllib.error import HTTPError
+from urllib.parse import parse_qs
+from urllib.parse import urlencode
 from urllib.parse import urlsplit
+from urllib.request import ProxyHandler
+from urllib.request import build_opener
 
 
 # 10 digits + 26 lower + 26 upper = 62 characters, all safe in a URL.
@@ -196,10 +205,114 @@ def storage_demo() -> None:
         print(f"reopened the file: {reopened.lookup(code)}")
 
 
+class ShortenerHandler(BaseHTTPRequestHandler):
+    """Handles one request. The server makes a new handler for each one."""
+
+    server: "ShortenerServer"  # tells type checkers what self.server is
+
+    def do_GET(self) -> None:
+        code = self.path.lstrip("/")
+        if not code:
+            self.send_text(200, "URL shortener. POST url=... to /shorten\n")
+            return
+        link = self.server.store.follow(code)
+        if link is None:
+            self.send_text(404, f"no link with code {code!r}\n")
+            return
+        self.send_response(301 if link.permanent else 302)
+        self.send_header("Location", link.url)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def do_POST(self) -> None:
+        if self.path != "/shorten":
+            self.send_text(404, "POST to /shorten\n")
+            return
+        # The body is a form: url=...&permanent=1, URL-encoded like a query.
+        length = int(self.headers.get("Content-Length", 0))
+        form = parse_qs(self.rfile.read(length).decode("utf-8"))
+        url = form.get("url", [""])[0]
+        permanent = form.get("permanent") == ["1"]
+        try:
+            code = self.server.store.shorten(url, permanent=permanent)
+        except InvalidURL as exc:
+            self.send_text(400, f"{exc}\n")
+            return
+        self.send_text(201, f"{self.server.base_url}/{code}\n")
+
+    def send_text(self, status: int, text: str) -> None:
+        body = text.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, fmt: str, *args: Any) -> None:
+        pass  # the default prints every request to stderr; keep output clean
+
+
+class ShortenerServer(ThreadingHTTPServer):
+    def __init__(self, store: LinkStore) -> None:
+        # Port 0 asks the operating system for any free port.
+        super().__init__(("127.0.0.1", 0), ShortenerHandler)
+        self.store = store
+
+    @property
+    def base_url(self) -> str:
+        host, port = self.server_address[:2]
+        return f"http://{host}:{port}"
+
+
+@contextmanager
+def running_server(store: LinkStore) -> Iterator[ShortenerServer]:
+    """Serve in a background thread; always shut down, even after an error."""
+    server = ShortenerServer(store)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield server
+    finally:
+        server.shutdown()  # stops serve_forever()
+        server.server_close()  # releases the port
+        thread.join()
+
+
+# An empty ProxyHandler ignores any proxy settings on this machine: we only
+# ever talk to our own server on 127.0.0.1.
+client = build_opener(ProxyHandler({}))
+
+
+def post_link(base_url: str, url: str, permanent: bool = False) -> str:
+    form = {"url": url, "permanent": "1" if permanent else "0"}
+    data = urlencode(form).encode("ascii")  # passing data makes it a POST
+    with client.open(f"{base_url}/shorten", data=data, timeout=5) as response:
+        return response.read().decode("utf-8").strip()
+
+
+def server_demo() -> None:
+    print("== stage 3: the server ==")
+    with tempfile.TemporaryDirectory() as tmp:
+        store = LinkStore(Path(tmp) / "links.db")
+        with running_server(store) as server:
+            port = server.server_address[1]
+            print(f"listening on 127.0.0.1, the OS picked a real port: {port > 0}")
+            short = post_link(server.base_url, "https://www.python.org/")
+            # Print only the path: the port number changes from run to run.
+            print(f"POST /shorten -> 201, short link path {urlsplit(short).path}")
+            try:
+                post_link(server.base_url, "not a url")
+            except HTTPError as exc:
+                print(f"POST bad url  -> {exc.code}: {exc.read().decode().strip()}")
+        print("server shut down")
+
+
 def main() -> None:
     base62_demo()
     print()
     storage_demo()
+    print()
+    server_demo()
 
 
 if __name__ == "__main__":
