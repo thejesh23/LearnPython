@@ -18,6 +18,8 @@ The examples run `sys.executable -c "..."`, which is the same Python that runs
 this file, so they work on every operating system.
 """
 
+import os
+import shlex
 import subprocess
 import sys
 
@@ -86,12 +88,45 @@ def timeout_demo() -> None:
     print(f"a fast program finishes normally: {quick.stdout.strip()!r}")
 
 
+SHOW_ARGS = "import sys; print(sys.argv[1:])"
+
+
+def shell_demo() -> None:
+    # Imagine this came from a user, a file name or a web form.
+    user_input = "report.txt; echo INJECTED"
+
+    # As a list item it is one argument, odd characters and all.
+    safe = subprocess.run([sys.executable, "-c", SHOW_ARGS, user_input],
+                          capture_output=True, text=True)
+    print(f"list form, the child received: {safe.stdout.strip()}")
+
+    if os.name != "posix":
+        print("(the shell=True half of this demo uses a Unix shell; skipped)")
+        return
+
+    # With shell=True the string goes to /bin/sh, which reads ';' as "then run
+    # another command". Here the injected command is a harmless echo; an
+    # attacker would choose something else.
+    unsafe = subprocess.run(f"echo {user_input}", shell=True,
+                            capture_output=True, text=True)
+    print("shell=True with that input ran two commands:")
+    for line in unsafe.stdout.splitlines():
+        print(f"  {line}")
+
+    # If a shell is truly needed, shlex.quote makes a value one literal word.
+    quoted = subprocess.run(f"echo {shlex.quote(user_input)}", shell=True,
+                            capture_output=True, text=True)
+    print(f"with shlex.quote: {quoted.stdout.strip()!r}")
+
+
 def main() -> None:
     run_demo()
     print()
     check_demo()
     print()
     timeout_demo()
+    print()
+    shell_demo()
 
 
 if __name__ == "__main__":
