@@ -203,12 +203,49 @@ def check_common_items() -> None:
     report("5. common_items", test_common_items, common_items)
 
 
+def top_scorers(scores: dict[str, int], n: int) -> list[str]:
+    """Return the names of the n highest scorers, best first.
+
+    Equal scores are ordered by name, alphabetically. If n is larger than
+    the number of people, return them all.
+
+    scores = {"Ada": 95, "Alan": 83, "Grace": 95, "Linus": 70}
+    top_scorers(scores, 3) -> ["Ada", "Grace", "Alan"]
+
+    Hint: a key function can return a tuple, and negating a number flips
+    its sort order.
+    """
+    raise NotImplementedError
+
+
+def test_top_scorers(fn: Callable[..., Any]) -> None:
+    scores = {"Grace": 95, "Alan": 83, "Ada": 95, "Linus": 70}
+    cases = [
+        (3, ["Ada", "Grace", "Alan"]),
+        (1, ["Ada"]),
+        (10, ["Ada", "Grace", "Alan", "Linus"]),
+        (0, []),
+    ]
+    for n, want in cases:
+        got = fn(scores, n)
+        assert got == want, (
+            f"top_scorers({scores!r}, {n}) returned {got!r}, expected {want!r}"
+        )
+    got = fn({}, 3)
+    assert got == [], f"top_scorers({{}}, 3) returned {got!r}, expected []"
+
+
+def check_top_scorers() -> None:
+    report("6. top_scorers", test_top_scorers, top_scorers)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
     check_word_counts()
     check_group_by_length()
     check_common_items()
+    check_top_scorers()
 
 
 if __name__ == "__main__":
