@@ -14,6 +14,7 @@ line by line; if the tests pass, it is a valid solution.
 
 import runpy
 from collections.abc import Callable
+from collections.abc import Iterator
 from pathlib import Path
 
 
@@ -100,12 +101,39 @@ def check_validate_order() -> None:
     report("5. validate_order", EXERCISES["test_validate_order"], validate_order)
 
 
+def leaves(group: BaseExceptionGroup) -> Iterator[BaseException]:
+    """Yield the plain exceptions in a group, depth first, left to right."""
+    for exc in group.exceptions:
+        if isinstance(exc, BaseExceptionGroup):
+            yield from leaves(exc)
+        else:
+            yield exc
+
+
+def split_errors(group: ExceptionGroup) -> tuple[list[str], list[str]]:
+    values: list[str] = []
+    types: list[str] = []
+    try:
+        raise group
+    except* ValueError as matched:  # `matched` keeps the nesting, so walk it
+        values = [str(exc) for exc in leaves(matched)]
+    except* TypeError as matched:
+        types = [str(exc) for exc in leaves(matched)]
+    # Anything not matched above (say a KeyError) was re-raised already.
+    return values, types
+
+
+def check_split_errors() -> None:
+    report("6. split_errors", EXERCISES["test_split_errors"], split_errors)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
     check_insufficient_funds()
     check_retry()
     check_validate_order()
+    check_split_errors()
 
 
 if __name__ == "__main__":
