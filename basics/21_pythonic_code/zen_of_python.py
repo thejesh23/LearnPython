@@ -81,10 +81,46 @@ def flat_demo() -> None:
         print(f"  {flat:<12} same answer: {nested == flat}")
 
 
+def parse_port_silent(text: str) -> int:
+    try:
+        return int(text)
+    except Exception:  # swallows everything, even bugs, and hides the cause
+        return 0
+
+
+def parse_port_loud(text: str) -> int:
+    port = int(text)  # let a ValueError for "abc" reach the caller
+    if not 0 < port < 65536:
+        raise ValueError(f"port out of range: {port}")
+    return port
+
+
+def errors_demo() -> None:
+    print(zen_line("Errors should"))
+    print(zen_line("Unless"))
+    for text in ("8080", "abc", "70000"):
+        silent = parse_port_silent(text)
+        try:
+            loud: object = parse_port_loud(text)
+        except ValueError as exc:
+            loud = f"ValueError: {exc}"
+        print(f"  {text!r:>8}: silent -> {silent!r:<6} loud -> {loud}")
+    # "Explicitly silenced" is fine: catch the ONE error you expect, on
+    # purpose, and say what happens instead.
+    fallback = 8080
+    try:
+        port = parse_port_loud("")
+    except ValueError:
+        port = fallback  # deliberate: an empty setting means "use the default"
+    print(f"  empty setting falls back to {port}")
+
+
 def main() -> None:
     capture_demo()
     print()
     flat_demo()
+    print()
+    errors_demo()
 
 
 if __name__ == "__main__":
