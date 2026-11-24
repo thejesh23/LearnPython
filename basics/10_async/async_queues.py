@@ -54,8 +54,43 @@ def sentinel_demo() -> None:
     asyncio.run(sentinel_main())
 
 
+async def worker(queue: asyncio.Queue[int], results: list[str]) -> None:
+    while True:
+        n = await queue.get()
+        try:
+            await asyncio.sleep(0)  # pretend to do some I/O
+            results.append(f"{n}^2={n * n}")
+        finally:
+            queue.task_done()  # always mark the item finished, even on error
+
+
+async def workers_main() -> None:
+    queue: asyncio.Queue[int] = asyncio.Queue()
+    for n in range(1, 7):
+        queue.put_nowait(n)
+
+    results: list[str] = []
+    workers = [asyncio.create_task(worker(queue, results)) for _ in range(3)]
+    # join() returns once task_done() has been called for every item.
+    await queue.join()
+    print(f"all items processed, queue empty: {queue.empty()}")
+    print(f"results: {sorted(results, key=lambda r: int(r.split('^')[0]))}")
+
+    # The workers loop forever waiting for more, so cancel them explicitly.
+    for w in workers:
+        w.cancel()
+    await asyncio.gather(*workers, return_exceptions=True)
+    print(f"workers cancelled: {all(w.cancelled() for w in workers)}")
+
+
+def workers_demo() -> None:
+    asyncio.run(workers_main())
+
+
 def main() -> None:
     sentinel_demo()
+    print()
+    workers_demo()
 
 
 if __name__ == "__main__":
