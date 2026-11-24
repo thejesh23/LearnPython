@@ -52,10 +52,22 @@ def check_ends() -> None:
     report("3. ends", EXERCISES["test_ends"], ends)
 
 
+def head_and_tail(items: list[Any] | tuple[Any, ...]) -> tuple[Any, list[Any]]:
+    # A starred name always receives a list, even from a tuple or when
+    # there is nothing left over, which is exactly what the tail needs.
+    head, *tail = items
+    return head, tail
+
+
+def check_head_and_tail() -> None:
+    report("4. head_and_tail", EXERCISES["test_head_and_tail"], head_and_tail)
+
+
 def main() -> None:
     check_swap()
     check_rotate_left()
     check_ends()
+    check_head_and_tail()
 
 
 if __name__ == "__main__":
