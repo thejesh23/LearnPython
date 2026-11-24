@@ -88,10 +88,33 @@ def registry_demo() -> None:
         print(Exporter.for_format(fmt).export(rows))
 
 
+class Command:
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # Fail when the class is *defined*, not later when someone uses it.
+        if not isinstance(cls.__dict__.get("name"), str):
+            raise TypeError(f"{cls.__name__} must set a class attribute 'name'")
+
+
+class Greet(Command):
+    name = "greet"
+
+
+def subclass_check_demo() -> None:
+    print(f"Greet is a valid command named {Greet.name!r}")
+    try:
+        class Broken(Command):  # forgot name
+            pass
+    except TypeError as exc:
+        print(f"TypeError while defining the class: {exc}")
+
+
 def main() -> None:
     class_decorator_demo()
     print()
     registry_demo()
+    print()
+    subclass_check_demo()
 
 
 if __name__ == "__main__":
