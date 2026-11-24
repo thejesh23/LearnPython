@@ -146,10 +146,37 @@ def discover_demo() -> None:
         print(f"  exit code {result.returncode}")
 
 
+BUGGY_CART = PROJECT["src/shopcart/cart.py"].replace(
+    "old_qty + qty", "qty"  # forget the quantity already in the cart
+)
+
+
+def failing_test_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        build_project(root, PROJECT | {"src/shopcart/cart.py": BUGGY_CART})
+        result = run_tests(root, src_on_path=True)
+        print("with a bug in Cart.add, the summary says:")
+        for line in tidy_output(result.stderr):
+            if line.startswith(("FAIL:", "AssertionError", "Ran", "FAILED")):
+                print(f"  {line}")
+        print(f"  exit code {result.returncode} (CI treats non-zero as failure)")
+
+        # Name one test (module.Class.method) to rerun only that test.
+        one = "tests.test_cart.CartTests.test_empty_cart_costs_nothing"
+        env = dict(os.environ, PYTHONPATH=str(root / "src"))
+        rerun = subprocess.run([sys.executable, "-m", "unittest", one], cwd=root,
+                               env=env, capture_output=True, text=True)
+        print(f"$ python -m unittest {one}")
+        print("  " + ", ".join(tidy_output(rerun.stderr)[-2:]))
+
+
 def main() -> None:
     layout_demo()
     print()
     discover_demo()
+    print()
+    failing_test_demo()
 
 
 if __name__ == "__main__":
