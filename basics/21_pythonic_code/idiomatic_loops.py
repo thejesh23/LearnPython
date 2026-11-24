@@ -73,10 +73,58 @@ def dict_items_demo() -> None:
     print(f"  'pears' in STOCK: {'pears' in STOCK}")
 
 
+ORDERS = [
+    {"id": 1, "total": 40.0, "paid": True},
+    {"id": 2, "total": 15.5, "paid": False},
+    {"id": 3, "total": 99.9, "paid": True},
+]
+
+
+def summary_before() -> tuple[bool, bool, float, int]:
+    has_unpaid = False
+    for order in ORDERS:
+        if not order["paid"]:
+            has_unpaid = True
+            break
+    all_positive = True
+    for order in ORDERS:
+        if order["total"] <= 0:
+            all_positive = False
+    revenue = 0.0
+    for order in ORDERS:
+        if order["paid"]:
+            revenue += order["total"]
+    biggest = ORDERS[0]
+    for order in ORDERS:
+        if order["total"] > biggest["total"]:
+            biggest = order
+    return has_unpaid, all_positive, revenue, biggest["id"]
+
+
+def summary_after() -> tuple[bool, bool, float, int]:
+    # Each loop above answered one question; each line below names it.
+    has_unpaid = any(not o["paid"] for o in ORDERS)  # stops at first True
+    all_positive = all(o["total"] > 0 for o in ORDERS)  # stops at first False
+    revenue = sum(o["total"] for o in ORDERS if o["paid"])
+    biggest = max(ORDERS, key=lambda o: o["total"])
+    return has_unpaid, all_positive, revenue, biggest["id"]
+
+
+def any_all_sum_demo() -> None:
+    print(f"same result: {summary_before() == summary_after()}")
+    has_unpaid, all_positive, revenue, biggest = summary_after()
+    print(f"  unpaid orders: {has_unpaid}, all positive: {all_positive}")
+    print(f"  paid revenue: {revenue}, biggest order id: {biggest}")
+    # Edge cases worth knowing: any([]) is False, all([]) is True.
+    print(f"  any([]) = {any([])}, all([]) = {all([])}")
+
+
 def main() -> None:
     enumerate_zip_demo()
     print()
     dict_items_demo()
+    print()
+    any_all_sum_demo()
 
 
 if __name__ == "__main__":
