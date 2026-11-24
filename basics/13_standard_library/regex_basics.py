@@ -66,6 +66,27 @@ def substitute_demo() -> None:
     print(re.sub(r"\s+", " ", "too    many\n\nspaces   here"))
 
 
+EMAIL = re.compile(
+    r"""
+    ^[\w.+-]+      # the name part
+    @
+    [\w-]+          # domain
+    (\.[\w-]+)+$    # one or more .suffix parts
+    """,
+    re.VERBOSE,
+)
+
+
+def compiled_demo() -> None:
+    # re.compile builds the pattern once; VERBOSE allows spaces and comments.
+    for address in ["ana@example.com", "bo.smith+news@mail.co.uk", "no-at-sign.com"]:
+        print(f"{address:<26} valid: {bool(EMAIL.match(address))}")
+
+    # IGNORECASE is one of several flags.
+    found = re.findall(r"python", "Python PYTHON python", re.IGNORECASE)
+    print(f"case-insensitive: {found}")
+
+
 def main() -> None:
     matching_demo()
     print()
@@ -74,6 +95,8 @@ def main() -> None:
     find_all_demo()
     print()
     substitute_demo()
+    print()
+    compiled_demo()
 
 
 if __name__ == "__main__":
