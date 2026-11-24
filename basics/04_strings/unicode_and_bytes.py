@@ -29,8 +29,33 @@ def code_points_demo() -> None:
     print(f"HAL shifted by one: {shifted}")
 
 
+def str_vs_bytes_demo() -> None:
+    text = "café"
+    data = text.encode("utf-8")
+    print(f"str   {text!r}: type {type(text).__name__}, len {len(text)}")
+    print(f"bytes {data!r}: type {type(data).__name__}, len {len(data)}")
+
+    # Indexing bytes gives an int, not a one-character string.
+    print(f"text[0] = {text[0]!r}, data[0] = {data[0]!r}")
+    print(f"list(data) = {list(data)}")
+
+    # A b"..." literal may only contain ASCII; anything else needs escapes.
+    print(f"b'hi' == 'hi'.encode() -> {b'hi' == 'hi'.encode()}")
+
+    # Decoding with the same encoding round-trips exactly.
+    print(f"decoded back: {data.decode('utf-8')!r}")
+
+    # The two types never mix by accident.
+    try:
+        "price: " + b"10"  # type: ignore[operator]
+    except TypeError as exc:
+        print(f"TypeError: {exc}")
+
+
 def main() -> None:
     code_points_demo()
+    print()
+    str_vs_bytes_demo()
 
 
 if __name__ == "__main__":
