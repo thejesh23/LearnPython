@@ -15,6 +15,7 @@ shortcuts:
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import AsyncExitStack
+from contextlib import aclosing
 from contextlib import asynccontextmanager
 
 
@@ -90,10 +91,47 @@ def exit_stack_demo() -> None:
     asyncio.run(exit_stack_main())
 
 
+async def read_rows(log: list[str]) -> AsyncIterator[int]:
+    log.append("open cursor")
+    try:
+        for n in range(100):
+            await asyncio.sleep(0)
+            yield n
+    finally:
+        log.append("close cursor")
+
+
+async def aclosing_main() -> None:
+    print("stopping an async generator early:")
+    log: list[str] = []
+    rows = read_rows(log)
+    async for n in rows:
+        if n == 2:
+            break  # stop early: the generator is paused, not finished
+    print(f"  after break:     {log}")
+    # Its finally block runs only when the generator is closed: explicitly,
+    # or whenever the garbage collector and event loop get round to it.
+    await rows.aclose()
+    print(f"  after aclose():  {log}")
+
+    log.clear()
+    async with aclosing(read_rows(log)) as rows:
+        async for n in rows:
+            if n == 2:
+                break
+    print(f"  with aclosing(): {log}")
+
+
+def aclosing_demo() -> None:
+    asyncio.run(aclosing_main())
+
+
 def main() -> None:
     asynccontextmanager_demo()
     print()
     exit_stack_demo()
+    print()
+    aclosing_demo()
 
 
 if __name__ == "__main__":
