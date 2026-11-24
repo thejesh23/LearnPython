@@ -108,6 +108,34 @@ def division_demo() -> None:
     print(f"0.1 + 0.2 == 0.3: {total == 0.3}, isclose: {math.isclose(total, 0.3)}")
 
 
+class BuggyCart:
+    items: list[str] = []  # ONE list, created once, shared by all carts
+
+    def add(self, item: str) -> None:
+        self.items.append(item)  # mutates the shared class-level list
+
+
+class Cart:
+    def __init__(self) -> None:
+        self.items: list[str] = []  # a new list for each instance
+
+    def add(self, item: str) -> None:
+        self.items.append(item)
+
+
+def class_attribute_demo() -> None:
+    ana, ben = BuggyCart(), BuggyCart()
+    ana.add("milk")
+    print(f"BuggyCart: ben's items = {ben.items}   <- ben never added milk")
+    print(f"  same list object: {ana.items is ben.items}")
+
+    ana, ben = Cart(), Cart()
+    ana.add("milk")
+    print(f"Cart     : ben's items = {ben.items}")
+    # Class attributes are fine for constants (numbers, strings, tuples).
+    # Anything you will mutate belongs on self, created in __init__.
+
+
 def main() -> None:
     late_binding_demo()
     print()
@@ -116,6 +144,8 @@ def main() -> None:
     is_and_shadowing_demo()
     print()
     division_demo()
+    print()
+    class_attribute_demo()
 
 
 if __name__ == "__main__":
