@@ -63,11 +63,22 @@ def check_head_and_tail() -> None:
     report("4. head_and_tail", EXERCISES["test_head_and_tail"], head_and_tail)
 
 
+def life_summary(record: tuple[str, str, str, int, int]) -> str:
+    # Unpack every field by position; `_` marks the one we do not need.
+    first, last, _, born, died = record
+    return f"{first} {last} lived {died - born} years"
+
+
+def check_life_summary() -> None:
+    report("5. life_summary", EXERCISES["test_life_summary"], life_summary)
+
+
 def main() -> None:
     check_swap()
     check_rotate_left()
     check_ends()
     check_head_and_tail()
+    check_life_summary()
 
 
 if __name__ == "__main__":
