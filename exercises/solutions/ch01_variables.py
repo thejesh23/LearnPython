@@ -33,8 +33,18 @@ def check_swap() -> None:
     report("1. swap", EXERCISES["test_swap"], swap)
 
 
+def rotate_left(a: Any, b: Any, c: Any) -> tuple[Any, Any, Any]:
+    # Same idea as swap, with three names: the commas make the tuple.
+    return b, c, a
+
+
+def check_rotate_left() -> None:
+    report("2. rotate_left", EXERCISES["test_rotate_left"], rotate_left)
+
+
 def main() -> None:
     check_swap()
+    check_rotate_left()
 
 
 if __name__ == "__main__":
