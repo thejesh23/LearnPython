@@ -82,10 +82,45 @@ def producer_consumer_demo() -> None:
     print(f"both consumers took part: {len({name for name, _ in done}) == 2}")
 
 
+def resize_worker(q: queue.Queue[str], finished: list[str]) -> None:
+    # A daemon worker that loops forever. No sentinel needed: main waits on
+    # q.join() instead, and the daemon dies quietly when the program exits.
+    while True:
+        image = q.get()
+        time.sleep(0.01)  # pretend to resize the image
+        finished.append(image)
+        q.task_done()  # without this, q.join() below would wait forever
+
+
+def join_and_maxsize_demo() -> None:
+    q: queue.Queue[str] = queue.Queue()
+    finished: list[str] = []
+    for i in range(3):
+        threading.Thread(target=resize_worker, args=(q, finished), daemon=True).start()
+
+    for n in range(6):
+        q.put(f"photo{n}.jpg")
+    q.join()  # returns once task_done() has been called for all 6 items
+    print(f"photos resized when q.join() returned: {len(finished)} of 6")
+
+    # maxsize limits the queue. When it is full, put() waits, which slows a
+    # fast producer down to the consumers' pace instead of piling up memory.
+    small: queue.Queue[int] = queue.Queue(maxsize=2)
+    small.put(1)
+    small.put(2)
+    print(f"small queue full: {small.full()}")
+    try:
+        small.put(3, timeout=0.05)  # wait a little, then give up
+    except queue.Full:
+        print("put() on a full queue timed out with queue.Full")
+
+
 def main() -> None:
     basics_demo()
     print()
     producer_consumer_demo()
+    print()
+    join_and_maxsize_demo()
 
 
 if __name__ == "__main__":
