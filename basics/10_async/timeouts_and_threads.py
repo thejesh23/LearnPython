@@ -16,6 +16,7 @@ not run in parallel (because of the GIL); use a process pool instead.
 """
 
 import asyncio
+import time
 
 
 async def step(name: str, seconds: float, done: list[str]) -> None:
@@ -46,8 +47,36 @@ def timeout_block_demo() -> None:
     asyncio.run(timeout_block_main())
 
 
+async def heartbeat(ticks: list[int]) -> None:
+    """Stands in for everything else the program should keep doing."""
+    while True:
+        ticks.append(len(ticks))
+        await asyncio.sleep(0.01)
+
+
+async def blocking_main() -> None:
+    ticks: list[int] = []
+    beat = asyncio.create_task(heartbeat(ticks))
+    await asyncio.sleep(0)  # let the heartbeat start
+
+    before = len(ticks)
+    time.sleep(0.1)  # WRONG inside async code: no await, the loop is stuck
+    print(f"heartbeat ticked during time.sleep:    {len(ticks) > before}")
+
+    before = len(ticks)
+    await asyncio.sleep(0.1)  # the loop runs other tasks while we wait
+    print(f"heartbeat ticked during asyncio.sleep: {len(ticks) > before}")
+    beat.cancel()
+
+
+def blocking_demo() -> None:
+    asyncio.run(blocking_main())
+
+
 def main() -> None:
     timeout_block_demo()
+    print()
+    blocking_demo()
 
 
 if __name__ == "__main__":
