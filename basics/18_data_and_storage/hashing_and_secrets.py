@@ -20,6 +20,7 @@ shape rather than the values themselves.
 """
 
 import hashlib
+import hmac
 import tempfile
 from pathlib import Path
 
@@ -75,10 +76,37 @@ def file_hash_demo() -> None:
         print(f"after one corrupted byte, still matches: {hash_file(path) == expected}")
 
 
+def sign(key: bytes, message: bytes) -> str:
+    return hmac.new(key, message, hashlib.sha256).hexdigest()
+
+
+def verify(key: bytes, message: bytes, signature: str) -> bool:
+    # compare_digest takes the same time whether the first or the last
+    # character differs, so an attacker cannot guess one character at a time.
+    return hmac.compare_digest(sign(key, message), signature)
+
+
+def hmac_demo() -> None:
+    # Imagine a web server signing a cookie so a user cannot edit it.
+    key = b"server-side secret key, never sent to users"
+    cookie = b"user=ana;role=member"
+    signature = sign(key, cookie)
+    print(f"cookie: {cookie.decode()}  signature: {signature[:16]}...")
+    print(f"unchanged cookie verifies:   {verify(key, cookie, signature)}")
+
+    # The user edits the cookie but cannot make a new signature without the key.
+    forged = b"user=ana;role=admin"
+    print(f"edited cookie verifies:      {verify(key, forged, signature)}")
+    print(f"right data, wrong key:       {verify(b'guess', cookie, signature)}")
+    # A plain sha256(key + message) is NOT a safe substitute for hmac.
+
+
 def main() -> None:
     sha256_demo()
     print()
     file_hash_demo()
+    print()
+    hmac_demo()
 
 
 if __name__ == "__main__":
