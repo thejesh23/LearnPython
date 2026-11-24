@@ -81,8 +81,33 @@ def check_swap() -> None:
     report("1. swap", test_swap, swap)
 
 
+def rotate_left(a: Any, b: Any, c: Any) -> tuple[Any, Any, Any]:
+    """Move every value one place to the left; the first wraps to the end.
+
+    rotate_left(1, 2, 3)       -> (2, 3, 1)
+    rotate_left("a", "b", "c") -> ("b", "c", "a")
+    """
+    raise NotImplementedError
+
+
+def test_rotate_left(fn: Callable[..., Any]) -> None:
+    cases = [
+        ((1, 2, 3), (2, 3, 1)),
+        (("a", "b", "c"), ("b", "c", "a")),
+        ((0, 0, 1), (0, 1, 0)),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"rotate_left{args} returned {got!r}, expected {want!r}"
+
+
+def check_rotate_left() -> None:
+    report("2. rotate_left", test_rotate_left, rotate_left)
+
+
 def main() -> None:
     check_swap()
+    check_rotate_left()
 
 
 if __name__ == "__main__":
