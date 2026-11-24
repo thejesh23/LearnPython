@@ -10,6 +10,7 @@ the two can never disagree about what "correct" means. Every line should
 say [solved].
 """
 
+import functools
 import runpy
 from collections.abc import Callable
 from pathlib import Path
@@ -87,12 +88,28 @@ def check_make_accumulator() -> None:
            make_accumulator)
 
 
+def uppercase_result(fn: Callable[..., str]) -> Callable[..., str]:
+    # *args and **kwargs forward any call unchanged; functools.wraps copies
+    # the name and docstring onto the wrapper.
+    @functools.wraps(fn)
+    def wrapper(*args: object, **kwargs: object) -> str:
+        return fn(*args, **kwargs).upper()
+
+    return wrapper
+
+
+def check_uppercase_result() -> None:
+    report("6. uppercase_result", EXERCISES["test_uppercase_result"],
+           uppercase_result)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
     check_append_to()
     check_by_last_name()
     check_make_accumulator()
+    check_uppercase_result()
 
 
 if __name__ == "__main__":
