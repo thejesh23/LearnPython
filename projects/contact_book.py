@@ -150,12 +150,50 @@ def csv_demo() -> None:
         print(f"round trip equal: {copy.all() == book.all()}")
 
 
+MESSY_CSV = """\
+name,email,phone,tags
+Ada Lovelace,ada@example.com,+44 20 7946 0000,math;friend
+Katherine Johnson,KJ@nasa.gov,,math; work
+,nobody@example.com,,
+Dennis Ritchie,dmr@bell-labs,,work
+Ken Thompson,ken@bell-labs.com,(555) 123-4567,work
+Ada Lovelace,ADA@example.com,,
+Barbara Liskov,barbara@mit.edu,12,
+"""
+
+
+def print_table(contacts: list[Contact]) -> None:
+    print(f"{'Name':<18} {'Email':<20} {'Phone':<17} Tags")
+    print("-" * 66)
+    for c in contacts:
+        print(f"{c.name:<18} {c.email:<20} {c.phone or '-':<17} "
+              f"{', '.join(c.tags)}")
+
+
+def session_demo() -> None:
+    book = ContactBook()
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "messy.csv"
+        path.write_text(MESSY_CSV)
+        problems = import_csv(book, path)
+    print(f"imported {len(book)} contacts, skipped {len(problems)} rows:")
+    for problem in problems:
+        print(f"  {problem}")
+    print()
+    print_table(book.all())
+    print()
+    print("tagged 'math':")
+    print_table(book.search("math"))
+
+
 def main() -> None:
     contact_demo()
     print()
     book_demo()
     print()
     csv_demo()
+    print()
+    session_demo()
 
 
 if __name__ == "__main__":
