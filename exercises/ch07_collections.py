@@ -146,10 +146,41 @@ def check_word_counts() -> None:
     report("3. word_counts", test_word_counts, word_counts)
 
 
+def group_by_length(words: list[str]) -> dict[int, list[str]]:
+    """Group words by their length, keeping each group in original order.
+
+    group_by_length(["hi", "cat", "yo", "a"])
+        -> {2: ["hi", "yo"], 3: ["cat"], 1: ["a"]}
+
+    Hint: dict.setdefault(key, []) returns the list for key, creating it
+    the first time.
+    """
+    raise NotImplementedError
+
+
+def test_group_by_length(fn: Callable[..., Any]) -> None:
+    cases = [
+        (["hi", "cat", "yo", "a"], {2: ["hi", "yo"], 3: ["cat"], 1: ["a"]}),
+        (["same", "size", "word"], {4: ["same", "size", "word"]}),
+        ([], {}),
+        (["", "x"], {0: [""], 1: ["x"]}),
+    ]
+    for words, want in cases:
+        got = fn(words)
+        assert got == want, (
+            f"group_by_length({words!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_group_by_length() -> None:
+    report("4. group_by_length", test_group_by_length, group_by_length)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
     check_word_counts()
+    check_group_by_length()
 
 
 if __name__ == "__main__":
