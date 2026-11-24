@@ -82,6 +82,7 @@ Follow the numbered folders in order. Inside each folder, read the files in alph
 | 11 | `11_errors/` | `try`/`except`/`else`/`finally`, raising, custom exceptions |
 | 12 | `12_modules_io/` | Imports, `pathlib`, context managers, JSON |
 | 13 | `13_standard_library/` | `collections`, `functools`, `datetime`, `re`, `logging` |
+| 14 | `14_testing/` | `assert`, doctest, `unittest`, `unittest.mock` |
 
 ## Algorithm categories
 
