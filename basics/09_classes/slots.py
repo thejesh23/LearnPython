@@ -77,10 +77,41 @@ def memory_demo() -> None:
     print(f"10,000 slotted points used less memory: {slotted < plain}")
 
 
+class Point3D(PointSlots):
+    __slots__ = ("z",)  # list only the *new* names; x and y are inherited
+
+    def __init__(self, x: float, y: float, z: float) -> None:
+        super().__init__(x, y)
+        self.z = z
+
+
+class Labelled(PointSlots):
+    """Forgot __slots__: this subclass quietly gets a __dict__ again."""
+
+
+def slots_gotchas_demo() -> None:
+    p = Point3D(1, 2, 3)
+    print(f"Point3D ({p.x}, {p.y}, {p.z}) has __dict__? {hasattr(p, '__dict__')}")
+
+    lab = Labelled(1, 2)
+    lab.name = "origin-ish"
+    print(f"Labelled has __dict__? {hasattr(lab, '__dict__')}: {lab.__dict__}")
+
+    # A slot name cannot also have a class-level default value.
+    try:
+        class Bad:
+            __slots__ = ("x",)
+            x = 0
+    except ValueError as exc:
+        print(f"ValueError: {exc}")
+
+
 def main() -> None:
     no_dict_demo()
     print()
     memory_demo()
+    print()
+    slots_gotchas_demo()
 
 
 if __name__ == "__main__":
