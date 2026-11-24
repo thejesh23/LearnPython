@@ -15,6 +15,8 @@ for wrapping a function).
 """
 
 from collections.abc import Callable
+from dataclasses import dataclass
+from operator import attrgetter
 
 
 def add(a: float, b: float) -> float:
@@ -138,6 +140,40 @@ def map_filter_demo() -> None:
     print(f"filter(None)     -> {list(filter(None, ['a', '', 'b', None, 'c']))}")
 
 
+@dataclass
+class Book:
+    title: str
+    year: int
+    pages: int
+
+
+BOOKS = [
+    Book("Dune", 1965, 412),
+    Book("Neuromancer", 1984, 271),
+    Book("Hyperion", 1989, 482),
+    Book("Foundation", 1951, 255),
+]
+
+
+def reading_hours(book: Book) -> float:
+    """A named key function: easier to test and reuse than an inline lambda."""
+    return book.pages / 40
+
+
+def key_functions_demo() -> None:
+    # sorted, min and max call the key once per item and compare the results.
+    print(f"oldest:   {min(BOOKS, key=attrgetter('year')).title}")
+    print(f"longest:  {max(BOOKS, key=attrgetter('pages')).title}")
+    by_time = sorted(BOOKS, key=reading_hours)
+    print(f"quickest reads: {[b.title for b in by_time]}")
+
+    # Any one-argument function works as a key, including built-ins.
+    titles = ["dune", "Neuromancer", "hyperion", "Foundation"]
+    print(f"plain sort:       {sorted(titles)}")
+    print(f"key=str.lower:    {sorted(titles, key=str.lower)}")
+    print(f"key=len:          {sorted(titles, key=len)}")
+
+
 def main() -> None:
     functions_as_values_demo()
     print()
@@ -146,6 +182,8 @@ def main() -> None:
     returning_functions_demo()
     print()
     map_filter_demo()
+    print()
+    key_functions_demo()
 
 
 if __name__ == "__main__":
