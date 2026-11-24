@@ -17,6 +17,7 @@ import runpy
 import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import as_completed
 from pathlib import Path
 from typing import Any
 
@@ -73,10 +74,23 @@ def check_run_all() -> None:
     report("3. run_all", EXERCISES["test_run_all"], run_all)
 
 
+def fastest(tasks: dict[str, Callable[[], Any]]) -> str:
+    with ThreadPoolExecutor(max_workers=len(tasks)) as pool:
+        names = {pool.submit(func): name for name, func in tasks.items()}
+        # as_completed yields each future as soon as it is done.
+        winner = next(as_completed(names))
+    return names[winner]
+
+
+def check_fastest() -> None:
+    report("4. fastest", EXERCISES["test_fastest"], fastest)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
     check_run_all()
+    check_fastest()
 
 
 if __name__ == "__main__":
