@@ -18,6 +18,7 @@ This file never actually opens pdb, because pdb waits for keyboard input.
 
 import inspect
 import io
+import logging
 import os
 import sys
 import traceback
@@ -132,6 +133,31 @@ def breakpoint_demo() -> None:
         print(f"    {command:7} {meaning}")
 
 
+log = logging.getLogger("debugging_tools")
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter("  %(levelname)s %(funcName)s: %(message)s"))
+log.addHandler(handler)
+log.propagate = False
+
+
+def apply_discount(price: float, percent: float) -> float:
+    log.debug("price=%s percent=%s", price, percent)
+    return price * (1 - percent / 100)
+
+
+def print_vs_logging_demo() -> None:
+    print("print vs logging:")
+    # Quick and temporary: f"{expr=}" prints the expression and its value.
+    price, percent = 80.0, 15
+    print(f"  {price=}, {percent=}, {price * percent / 100=}")
+
+    # Lasting: debug logging stays in the code and is switched by level.
+    log.setLevel(logging.INFO)
+    print(f"  at INFO:  {apply_discount(80.0, 15)} (debug line hidden)")
+    log.setLevel(logging.DEBUG)
+    print(f"  at DEBUG: {apply_discount(80.0, 15)}")
+
+
 def main() -> None:
     read_traceback_demo()
     print()
@@ -140,6 +166,8 @@ def main() -> None:
     inspect_stack_demo()
     print()
     breakpoint_demo()
+    print()
+    print_vs_logging_demo()
 
 
 if __name__ == "__main__":
