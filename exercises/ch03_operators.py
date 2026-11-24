@@ -202,12 +202,46 @@ def check_is_leap_year() -> None:
     report("5. is_leap_year", test_is_leap_year, is_leap_year)
 
 
+def ceil_div(a: int, b: int) -> int:
+    """Divide a by b (b > 0) and round the answer up to a whole number.
+
+    Handy for "how many boxes of 6 do I need for 14 eggs?" (3 boxes).
+
+    ceil_div(14, 6) -> 3
+    ceil_div(12, 6) -> 2
+    ceil_div(-7, 2) -> -3    up means towards positive infinity
+
+    It must be exact even for huge numbers, so avoid `/`, which makes a
+    float. Hint: // rounds down. What does it do to a negated number?
+    """
+    raise NotImplementedError
+
+
+def test_ceil_div(fn: Callable[..., Any]) -> None:
+    cases = [
+        ((14, 6), 3),
+        ((12, 6), 2),
+        ((0, 5), 0),
+        ((1, 5), 1),
+        ((-7, 2), -3),
+        ((10**20 + 1, 10**20), 2),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"ceil_div{args} returned {got!r}, expected {want!r}"
+
+
+def check_ceil_div() -> None:
+    report("6. ceil_div", test_ceil_div, ceil_div)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
     check_display_name()
     check_is_vowel()
     check_is_leap_year()
+    check_ceil_div()
 
 
 if __name__ == "__main__":
