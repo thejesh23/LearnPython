@@ -214,11 +214,61 @@ def check_fastest() -> None:
     report("4. fastest", test_fastest, fastest)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def process_queue(
+    func: Callable[[int], int], items: list[int], workers: int
+) -> list[int]:
+    """Process items with `workers` threads that share a queue.Queue.
+
+    This is the classic producer/consumer pattern, built by hand:
+      1. Start `workers` threading.Thread objects. Each loops: take an item
+         with queue.get(); stop when it gets None; otherwise append
+         func(item) to a shared results list (guard it with a Lock, or use
+         a second Queue).
+      2. Put every item on the queue, then one None per worker so each
+         worker knows when to stop.
+      3. join() every thread, then return the results sorted.
+    """
+    raise NotImplementedError
+
+
+def test_process_queue(impl: Callable[..., list[int]]) -> None:
+    lock = threading.Lock()
+    thread_names: set[str] = set()
+
+    def slow_triple(n: int) -> int:
+        with lock:
+            thread_names.add(threading.current_thread().name)
+        time.sleep(0.005)
+        return n * 3
+
+    threads_before = threading.active_count()
+    got = impl(slow_triple, [5, 1, 4, 2, 3, 0, 9, 8, 7, 6, 11, 10], 3)
+    assert got == [n * 3 for n in range(12)], f"got {got}"
+    assert threading.main_thread().name not in thread_names, (
+        "func should run in the worker threads, not in the main thread"
+    )
+    assert 1 < len(thread_names) <= 3, (
+        f"2 or 3 workers should share the items, saw {len(thread_names)}"
+    )
+    assert threading.active_count() == threads_before, (
+        "every worker should have stopped: send one None per worker and join()"
+    )
+    assert impl(slow_triple, [], 2) == [], "no items should give []"
+    assert threading.active_count() == threads_before, "workers should stop"
+
+
+def check_process_queue() -> None:
+    report("5. process_queue", test_process_queue, process_queue)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
     check_run_all()
     check_fastest()
+    check_process_queue()
 
 
 if __name__ == "__main__":
