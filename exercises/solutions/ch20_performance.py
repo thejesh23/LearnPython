@@ -12,6 +12,8 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import cProfile
+import pstats
 import runpy
 from collections.abc import Callable
 from collections.abc import Hashable
@@ -87,11 +89,30 @@ def check_memoize() -> None:
     report("4. memoize", EXERCISES["test_memoize"], memoize)
 
 
+def most_called(func: Callable[[], object]) -> tuple[str, int]:
+    profiler = cProfile.Profile()
+    profiler.runcall(func)
+    stats = pstats.Stats(profiler).get_stats_profile()
+    counts = {
+        # "41/1" means 41 calls in all, 1 of them not from itself.
+        name: int(info.ncalls.split("/")[0])
+        for name, info in stats.func_profiles.items()
+        if info.file_name != "~"  # "~" marks built-ins written in C
+    }
+    name = max(counts, key=lambda key: counts[key])
+    return name, counts[name]
+
+
+def check_most_called() -> None:
+    report("5. most_called", EXERCISES["test_most_called"], most_called)
+
+
 def main() -> None:
     check_has_duplicates()
     check_common_words()
     check_parse_readings()
     check_memoize()
+    check_most_called()
 
 
 if __name__ == "__main__":
