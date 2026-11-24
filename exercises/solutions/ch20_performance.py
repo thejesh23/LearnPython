@@ -15,6 +15,7 @@ line by line; if the tests pass, it is a valid solution.
 import runpy
 from collections.abc import Hashable
 from collections.abc import Iterable
+from collections.abc import Iterator
 from pathlib import Path
 
 
@@ -53,9 +54,23 @@ def check_common_words() -> None:
     report("2. common_words", EXERCISES["test_common_words"], common_words)
 
 
+def parse_readings(lines: Iterable[str]) -> Iterator[float]:
+    # `yield` makes this a generator function: calling it runs nothing yet,
+    # and each next() runs only as far as the next yield.
+    for line in lines:
+        text = line.strip()
+        if text and not text.startswith("#"):
+            yield float(text)
+
+
+def check_parse_readings() -> None:
+    report("3. parse_readings", EXERCISES["test_parse_readings"], parse_readings)
+
+
 def main() -> None:
     check_has_duplicates()
     check_common_words()
+    check_parse_readings()
 
 
 if __name__ == "__main__":
