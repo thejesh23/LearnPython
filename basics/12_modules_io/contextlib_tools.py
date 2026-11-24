@@ -16,10 +16,12 @@ whole point of `with`.
 import io
 import sys
 import tempfile
+from contextlib import AbstractContextManager, nullcontext
 from contextlib import ExitStack
 from contextlib import closing
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
+from typing import IO
 
 
 def merge_files(paths: list[Path]) -> str:
@@ -93,12 +95,42 @@ def closing_demo() -> None:
     print(f"closed afterwards: {client.closed}")
 
 
+def write_report(lines: list[str], out: IO[str] | None, folder: Path) -> Path | None:
+    # Either open (and later close) a file we own, or use the stream we were
+    # given and leave it open. nullcontext(x) yields x and does nothing else,
+    # so one `with` statement handles both cases.
+    target = folder / "report.txt"
+    manager: AbstractContextManager[IO[str]]
+    if out is None:
+        manager = target.open("w", encoding="utf-8")
+    else:
+        manager = nullcontext(out)
+    with manager as f:
+        for line in lines:
+            f.write(line + "\n")
+    return target if out is None else None
+
+
+def nullcontext_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        written = write_report(["a", "b"], None, Path(tmp))
+        if written:
+            print(f"own file: {written.read_text(encoding='utf-8').split()}")
+
+        stream = io.StringIO()
+        write_report(["c", "d"], stream, Path(tmp))
+        print(f"caller's stream still open: {not stream.closed}, "
+              f"holds {stream.getvalue().split()}")
+
+
 def main() -> None:
     exit_stack_demo()
     print()
     redirect_demo()
     print()
     closing_demo()
+    print()
+    nullcontext_demo()
 
 
 if __name__ == "__main__":
