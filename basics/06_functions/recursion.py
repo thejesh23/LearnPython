@@ -18,6 +18,8 @@ fixes it; see functools.cache in basics/13_standard_library/functools_tools.py.
 recursion/recursion_limits_and_tail_calls.py goes deeper into the limit.
 """
 
+import sys
+
 
 def factorial(n: int) -> int:
     """n! = n * (n-1) * ... * 1."""
@@ -57,10 +59,38 @@ def call_stack_demo() -> None:
     countdown_sum(3)
 
 
+def count_down(n: int) -> int:
+    """Recursive: one stack frame per step."""
+    return 0 if n == 0 else 1 + count_down(n - 1)
+
+
+def count_down_loop(n: int) -> int:
+    """The same work as a loop: one frame, any size."""
+    steps = 0
+    while n > 0:
+        n -= 1
+        steps += 1
+    return steps
+
+
+def limit_demo() -> None:
+    print(f"recursion limit = {sys.getrecursionlimit()}")
+    print(f"count_down(500) = {count_down(500)}")
+    try:
+        count_down(100_000)
+    except RecursionError as exc:
+        print(f"count_down(100_000) -> RecursionError: {exc}")
+    print(f"count_down_loop(100_000) = {count_down_loop(100_000)}")
+    # sys.setrecursionlimit() can raise the cap, but each frame costs real
+    # memory; for long linear work, a loop is the honest fix.
+
+
 def main() -> None:
     base_case_demo()
     print()
     call_stack_demo()
+    print()
+    limit_demo()
 
 
 if __name__ == "__main__":
