@@ -20,12 +20,17 @@ in exercises/solutions/ch19_networking.py: try first, peek second. The lessons
 for this chapter are in basics/19_networking/.
 """
 
+import json
 import socket
 import threading
+import urllib.request
 from collections.abc import Callable
 from collections.abc import Iterator
 from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer
 from typing import Any
+from urllib.error import HTTPError
 
 
 def verdict(error: BaseException) -> str:
@@ -266,11 +271,92 @@ def check_handle_lines() -> None:
     report("4. handle_lines", test_handle_lines, handle_lines)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+# Like urllib.request.urlopen, but ignores any proxy settings, so requests
+# to 127.0.0.1 always go straight to the test server. Use OPENER.open(...).
+OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+def fetch_json(url: str, attempts: int = 3) -> Any:
+    """GET `url` and return its JSON body, retrying when the server fails.
+
+    - Open the URL with OPENER.open(url, timeout=5) and json.loads the body.
+    - On an error status, urllib raises urllib.error.HTTPError; its .code
+      is the status number.
+    - 5xx means the server failed and might recover: try again, up to
+      `attempts` tries in total, then re-raise the last HTTPError.
+    - 4xx means the request itself is wrong: re-raise at once, no retry.
+    (A real client would also wait a little longer before each retry.)
+    """
+    raise NotImplementedError
+
+
+def test_fetch_json(impl: Callable[..., Any]) -> None:
+    hits: dict[str, int] = {}
+
+    class Api(BaseHTTPRequestHandler):
+        def do_GET(self) -> None:
+            hits[self.path] = hits.get(self.path, 0) + 1
+            status, body = {
+                "/books/1": (200, {"title": "Dune"}),
+                "/flaky": (503, {"error": "busy"}) if hits[self.path] < 3
+                else (200, {"ok": True}),
+                "/down": (500, {"error": "broken"}),
+            }.get(self.path, (404, {"error": "not found"}))
+            data = json.dumps(body).encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, format: str, *args: object) -> None:
+            pass  # keep the report free of request logs
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Api)
+    # A short poll_interval lets shutdown() return quickly at the end.
+    thread = threading.Thread(
+        target=server.serve_forever, kwargs={"poll_interval": 0.05}, daemon=True
+    )
+    thread.start()
+    base = f"http://127.0.0.1:{server.server_address[1]}"
+    try:
+        got = impl(f"{base}/books/1")
+        assert got == {"title": "Dune"}, f"/books/1 gave {got!r}"
+        got = impl(f"{base}/flaky", attempts=3)
+        assert got == {"ok": True}, f"/flaky works on the third try, got {got!r}"
+        assert hits["/flaky"] == 3, f"/flaky was tried {hits['/flaky']} times, not 3"
+        for path, tries, status in (("/missing", 3, 404), ("/down", 2, 500)):
+            try:
+                impl(base + path, attempts=tries)
+            except HTTPError as error:
+                error.close()
+                assert error.code == status, (
+                    f"{path}: expected status {status}, got {error.code}"
+                )
+            else:
+                raise AssertionError(f"{path} should raise HTTPError {status}")
+        tries = hits["/missing"]
+        assert tries == 1, f"a 404 must not be retried, but it was tried {tries} times"
+        tries = hits["/down"]
+        assert tries == 2, f"/down with attempts=2 was tried {tries} times"
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=5)
+
+
+def check_fetch_json() -> None:
+    report("5. fetch_json", test_fetch_json, fetch_json)
+
+
 def main() -> None:
     check_get_param()
     check_add_params()
     check_send_and_receive()
     check_handle_lines()
+    check_fetch_json()
 
 
 if __name__ == "__main__":
