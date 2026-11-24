@@ -133,7 +133,7 @@ class Stack[T]:
 
 ```text
 LearnPython/
-├── basics/                 numbered teaching folders 00_ ... 13_
+├── basics/                 numbered teaching folders 00_ ... 14_
 │   ├── 00_hello_world/
 │   ├── 01_variables/
 │   └── ...
