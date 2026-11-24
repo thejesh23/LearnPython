@@ -20,6 +20,7 @@ in exercises/solutions/ch22_packaging_and_projects.py: try first, peek second.
 The lessons for this chapter are in basics/22_packaging_and_projects/.
 """
 
+import re
 from collections.abc import Callable
 from typing import Any
 
@@ -98,8 +99,61 @@ def check_bump_version() -> None:
     report("1. bump_version", test_bump_version, bump_version)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def parse_requirement(line: str) -> tuple[str, str] | None:
+    """Split one line of requirements.txt into (name, version specifier).
+
+        "requests>=2.31"              ->  ("requests", ">=2.31")
+        "  Flask == 3.0.0   # web"    ->  ("flask", "==3.0.0")
+        "typing_extensions>=4, <5"    ->  ("typing-extensions", ">=4,<5")
+        "PyYAML"                      ->  ("pyyaml", "")
+        "# just a comment" or ""      ->  None
+
+    - Drop everything from "#" on, then surrounding spaces.
+    - The name is letters, digits, ".", "_" and "-". pip treats "PyYAML",
+      "pyyaml", "typing_extensions" and "typing-extensions" as the same
+      package, so normalise it: lower case, and every run of ".", "_" or
+      "-" becomes one "-" (re.sub(r"[-_.]+", "-", name)).
+    - The specifier is the rest of the line with all spaces removed.
+    - A line that does not start with a name, like ">=1.0", is an error:
+      raise ValueError.
+    """
+    raise NotImplementedError
+
+
+def test_parse_requirement(impl: Callable[[str], tuple[str, str] | None]) -> None:
+    cases = [
+        ("requests>=2.31", ("requests", ">=2.31")),
+        ("  Flask == 3.0.0   # web framework", ("flask", "==3.0.0")),
+        ("typing_extensions>=4, <5", ("typing-extensions", ">=4,<5")),
+        ("PyYAML", ("pyyaml", "")),
+        ("zope.interface~=6.0", ("zope-interface", "~=6.0")),
+        ("Some__Odd-.Name!=1.0", ("some-odd-name", "!=1.0")),
+        ("# just a comment", None),
+        ("", None),
+        ("    \n", None),
+    ]
+    for line, want in cases:
+        got = impl(line)
+        if got is not None:
+            got = tuple(got)
+        assert got == want, f"parse_requirement({line!r}) gave {got!r}, not {want!r}"
+    try:
+        impl(">=1.0")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("'>=1.0' has no package name and should raise ValueError")
+
+
+def check_parse_requirement() -> None:
+    report("2. parse_requirement", test_parse_requirement, parse_requirement)
+
+
 def main() -> None:
     check_bump_version()
+    check_parse_requirement()
 
 
 if __name__ == "__main__":
