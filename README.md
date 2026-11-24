@@ -74,7 +74,7 @@ Follow the numbered folders in order. Inside each folder, read the files in alph
 | 03 | `03_operators/` | Arithmetic, comparison, logical, identity/membership, walrus |
 | 04 | `04_strings/` | f-strings, slicing, common methods, multiline/raw strings |
 | 05 | `05_control_flow/` | `if`/`elif`/`else`, `for`, `while`, `break`/`continue`/`else`, `match` |
-| 06 | `06_functions/` | Defaults, `*args`/`**kwargs`, lambdas, closures, decorators |
+| 06 | `06_functions/` | Defaults, `*args`/`**kwargs`, keyword-only and positional-only, lambdas, closures, decorators |
 | 07 | `07_collections/` | `list`, `tuple`, `dict`, `set`, comprehensions, slicing |
 | 08 | `08_iterators/` | Iterables, generators, `yield`, `itertools` |
 | 09 | `09_classes/` | Attributes, `__init__`, dunder methods, inheritance, `dataclass`, `Enum` |
