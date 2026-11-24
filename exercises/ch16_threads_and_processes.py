@@ -145,9 +145,46 @@ def check_safe_counter() -> None:
     report("2. SafeCounter", test_safe_counter, SafeCounter)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def run_all(funcs: list[Callable[[], Any]]) -> tuple[list[Any], list[str]]:
+    """Call every function in a thread pool; collect results and errors.
+
+    Submit each func to a ThreadPoolExecutor and keep the futures in a list.
+    Then go through the futures in submission order: future.result() returns
+    the value, or re-raises the exception the function raised. Return
+    (results, errors), where errors holds "TypeName: message" strings,
+    e.g. "ValueError: bad input". One failure must not stop the others.
+    """
+    raise NotImplementedError
+
+
+def test_run_all(impl: Callable[[list[Callable[[], Any]]], Any]) -> None:
+    def make(value: Any, delay: float) -> Callable[[], Any]:
+        def func() -> Any:
+            time.sleep(delay)
+            if isinstance(value, Exception):
+                raise value
+            return value
+        return func
+
+    funcs = [make(1, 0.03), make(ValueError("bad input"), 0.0), make(2, 0.0),
+             make(KeyError("k"), 0.01), make(3, 0.02)]
+    results, errors = impl(funcs)
+    assert results == [1, 2, 3], f"results should be [1, 2, 3], got {results}"
+    expected = ["ValueError: bad input", "KeyError: 'k'"]
+    assert errors == expected, f"errors should be {expected}, got {errors}"
+    assert impl([]) == ([], []), "no functions should give ([], [])"
+
+
+def check_run_all() -> None:
+    report("3. run_all", test_run_all, run_all)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
+    check_run_all()
 
 
 if __name__ == "__main__":
