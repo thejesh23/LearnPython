@@ -66,11 +66,26 @@ def check_add_money() -> None:
     report("4. add_money", EXERCISES["test_add_money"], add_money)
 
 
+def describe(value: object) -> str:
+    # None is falsy too, so it must be tested first, and with `is`.
+    if value is None:
+        return "absent"
+    elif value:
+        return "truthy"
+    else:
+        return "falsy"
+
+
+def check_describe() -> None:
+    report("5. describe", EXERCISES["test_describe"], describe)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
     check_simplify()
     check_add_money()
+    check_describe()
 
 
 if __name__ == "__main__":
