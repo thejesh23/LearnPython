@@ -24,6 +24,7 @@ Uses:
 
 import argparse
 import json
+import shlex
 import tempfile
 from dataclasses import asdict
 from dataclasses import dataclass, field
@@ -181,12 +182,42 @@ def commands_demo() -> None:
         print(f"exit code {run(['done', '7'], path)}")
 
 
+SESSION = [
+    'add "Buy groceries"',
+    "add Finish the quiz project",
+    "add Call the dentist",
+    "list",
+    "done 2",
+    "remove 3",
+    "done 3",
+    "add Read chapter 22",
+    "done 4",
+    "list --all",
+]
+
+
+def session_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "todo.json"
+        for line in SESSION:
+            print(f"$ todo {line}")
+            # shlex.split handles quotes the way a shell does.
+            code = run(shlex.split(line), path)
+            if code:
+                print(f"  (exit code {code})")
+        saved = json.loads(path.read_text())
+        print(f"todo.json: next_id={saved['next_id']}, "
+              f"{len(saved['tasks'])} tasks, first: {saved['tasks'][0]}")
+
+
 def main() -> None:
     model_demo()
     print()
     persistence_demo()
     print()
     commands_demo()
+    print()
+    session_demo()
 
 
 if __name__ == "__main__":
