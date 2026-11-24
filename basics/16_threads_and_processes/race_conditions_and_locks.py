@@ -121,12 +121,38 @@ def rlock_demo() -> None:
     print(f"RLock, re-acquired by the same thread: {ok}, balance={nested.balance}")
 
 
+def wait_for_config(ready: threading.Event, log: list[str]) -> None:
+    log.append("worker: waiting for config")
+    ready.wait()  # blocks until another thread calls ready.set()
+    log.append("worker: config loaded, starting")
+
+
+def event_demo() -> None:
+    ready = threading.Event()
+    log: list[str] = []
+    worker = threading.Thread(target=wait_for_config, args=(ready, log))
+    worker.start()
+
+    time.sleep(0.05)  # the worker is now stuck in wait()
+    log.append("main: config ready, setting the event")
+    ready.set()
+    worker.join()
+    for line in log:
+        print(line)
+
+    # wait() can take a timeout and returns whether the flag was set.
+    never = threading.Event()
+    print(f"never.wait(timeout=0.05) -> {never.wait(timeout=0.05)}")
+
+
 def main() -> None:
     race_demo()
     print()
     lock_demo()
     print()
     rlock_demo()
+    print()
+    event_demo()
 
 
 if __name__ == "__main__":
