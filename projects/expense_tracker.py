@@ -113,8 +113,48 @@ def storage_demo() -> None:
             print(f"ExpenseError: {exc}")
 
 
+def add_checked(tracker: Tracker, spent_on: date, amount: str, category: str,
+                note: str = "") -> int:
+    """Like Tracker.add, but explain what went wrong in plain words."""
+    try:
+        row_id = tracker.add(spent_on, amount, category, note)
+    except sqlite3.IntegrityError as exc:  # the CHECK constraint fired
+        raise ExpenseError(f"amount must be positive, got {amount}") from exc
+    if row_id == 0:  # the SELECT found no category, so nothing was inserted
+        raise ExpenseError(f"unknown category {category!r}")
+    return row_id
+
+
+def totals_by_category(tracker: Tracker) -> list[tuple[str, int, int]]:
+    # LEFT JOIN keeps categories with no expenses (their SUM is NULL -> 0).
+    return tracker.db.execute("""
+        SELECT c.name, COUNT(e.id), COALESCE(SUM(e.amount_cents), 0)
+        FROM categories c LEFT JOIN expenses e ON e.category_id = c.id
+        GROUP BY c.id ORDER BY 3 DESC, c.name
+    """).fetchall()
+
+
+def category_demo() -> None:
+    tracker = Tracker(":memory:")  # a throwaway database in RAM
+    for name in ["food", "transport", "fun"]:
+        tracker.add_category(name)
+    add_checked(tracker, date(2026, 3, 1), "30.00", "food")
+    add_checked(tracker, date(2026, 3, 2), "2.75", "transport", "bus")
+    add_checked(tracker, date(2026, 3, 4), "18.20", "food")
+    for amount, category in [("9.99", "games"), ("-5", "fun")]:
+        try:
+            add_checked(tracker, date(2026, 3, 5), amount, category)
+        except ExpenseError as exc:
+            print(f"ExpenseError: {exc}")
+    for name, count, cents in totals_by_category(tracker):
+        print(f"{name:<10} n={count}  total {money(cents):>6}")
+    tracker.close()
+
+
 def main() -> None:
     storage_demo()
+    print()
+    category_demo()
 
 
 if __name__ == "__main__":
