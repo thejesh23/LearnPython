@@ -10,6 +10,7 @@ the two can never disagree about what "correct" means. Every line should
 say [solved].
 """
 
+import itertools
 import runpy
 from collections.abc import Iterable, Iterator
 from pathlib import Path
@@ -60,10 +61,22 @@ def check_running_total() -> None:
     report("3. running_total", EXERCISES["test_running_total"], running_total)
 
 
+def chunks(items: Iterable[Any], size: int) -> Iterator[list[Any]]:
+    # batched (Python 3.12+) reads `size` items at a time from any iterable
+    # and yields them as a tuple; we only convert each one to a list.
+    for batch in itertools.batched(items, size):
+        yield list(batch)
+
+
+def check_chunks() -> None:
+    report("4. chunks", EXERCISES["test_chunks"], chunks)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
     check_running_total()
+    check_chunks()
 
 
 if __name__ == "__main__":
