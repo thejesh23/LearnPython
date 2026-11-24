@@ -87,10 +87,32 @@ def rows_demo() -> None:
     conn.close()
 
 
+def update_delete_demo() -> None:
+    conn = make_db()
+    for pet in PETS:
+        conn.execute("INSERT INTO pets (name, species, age) "
+                     "VALUES (:name, :species, :age)", pet)
+
+    # rowcount says how many rows a change touched.
+    cur = conn.execute("UPDATE pets SET age = age + 1 WHERE species = ?", ("dog",))
+    print(f"birthday for {cur.rowcount} dogs")
+    cur = conn.execute("DELETE FROM pets WHERE age IS NULL")  # IS NULL, not = NULL
+    print(f"deleted {cur.rowcount} pet(s) with an unknown age")
+    cur = conn.execute("DELETE FROM pets WHERE name = ?", ("Nobody",))
+    print(f"deleting a missing name touches {cur.rowcount} rows, no error")
+    conn.commit()
+
+    left = conn.execute("SELECT name, age FROM pets ORDER BY name").fetchall()
+    print(f"left: {left}")
+    conn.close()
+
+
 def main() -> None:
     create_and_insert_demo()
     print()
     rows_demo()
+    print()
+    update_delete_demo()
 
 
 if __name__ == "__main__":
