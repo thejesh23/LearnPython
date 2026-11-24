@@ -16,6 +16,7 @@ input, updates its local variables and replies. advanced/generators_as_coroutine
 builds pipelines from that idea.
 """
 
+from collections.abc import Generator
 from collections.abc import Iterator
 
 
@@ -95,10 +96,41 @@ def return_value_demo() -> None:
         print(line)
 
 
+def spam_filter(limit: int) -> Generator[bool, str, None]:
+    """Receive messages; answer True to let one through, False to block it.
+
+    It remembers how often it has seen each message between calls.
+    """
+    seen: dict[str, int] = {}
+    allowed = True
+    while True:
+        message = yield allowed  # pause: hand out `allowed`, wait for a message
+        seen[message] = seen.get(message, 0) + 1
+        allowed = seen[message] <= limit
+
+
+def send_demo() -> None:
+    gate = spam_filter(limit=2)
+    # Prime it: run to the first yield. A fresh generator is not paused at a
+    # yield yet, so there is nowhere for a sent value to go.
+    next(gate)
+
+    for message in ["hi", "buy now", "buy now", "hello", "buy now", "buy now"]:
+        verdict = gate.send(message)
+        print(f"{message!r:<10} -> {'pass' if verdict else 'BLOCKED'}")
+
+    try:
+        spam_filter(limit=1).send("too early")
+    except TypeError as exc:
+        print(f"send() before priming -> TypeError: {exc}")
+
+
 def main() -> None:
     yield_from_demo()
     print()
     return_value_demo()
+    print()
+    send_demo()
 
 
 if __name__ == "__main__":
