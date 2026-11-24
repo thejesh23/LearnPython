@@ -17,6 +17,7 @@ import queue
 import runpy
 import threading
 from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 from pathlib import Path
@@ -119,12 +120,39 @@ def check_process_queue() -> None:
     report("5. process_queue", EXERCISES["test_process_queue"], process_queue)
 
 
+# A worker process receives the function by name and imports it from this
+# file, so it must be a top-level function here. (The exercise file's copy
+# was loaded with runpy under a made-up module name that a child process
+# could not import.)
+def count_primes(limit: int) -> int:
+    if limit < 3:
+        return 0
+    is_prime = [True] * limit
+    is_prime[0] = is_prime[1] = False
+    for n in range(2, int(limit**0.5) + 1):
+        if is_prime[n]:
+            for multiple in range(n * n, limit, n):
+                is_prime[multiple] = False
+    return sum(is_prime)
+
+
+def primes_in_processes(limits: list[int]) -> list[int]:
+    with ProcessPoolExecutor(max_workers=2) as pool:
+        return list(pool.map(count_primes, limits))
+
+
+def check_primes_in_processes() -> None:
+    report("6. primes_in_processes", EXERCISES["test_primes_in_processes"],
+           primes_in_processes)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
     check_run_all()
     check_fastest()
     check_process_queue()
+    check_primes_in_processes()
 
 
 if __name__ == "__main__":
