@@ -115,9 +115,41 @@ def check_sum_of_multiples() -> None:
     report("2. sum_of_multiples", test_sum_of_multiples, sum_of_multiples)
 
 
+def first_index(items: list[Any] | str, target: Any) -> int:
+    """Return the position of the first item equal to target, or -1.
+
+    first_index([4, 2, 7, 2], 2) -> 1
+    first_index(["a", "b"], "z") -> -1
+    first_index("hello", "l")    -> 2     a string is a sequence too
+
+    Write the loop yourself (lists have an index() method; do not use it).
+    Hint: enumerate gives you the position and the item together.
+    """
+    raise NotImplementedError
+
+
+def test_first_index(fn: Callable[..., Any]) -> None:
+    cases = [
+        (([4, 2, 7, 2], 2), 1),
+        (([4, 2, 7, 2], 4), 0),
+        (([4, 2, 7, 2], 9), -1),
+        ((["a", "b"], "z"), -1),
+        (([], 1), -1),
+        (("hello", "l"), 2),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"first_index{args} returned {got!r}, expected {want!r}"
+
+
+def check_first_index() -> None:
+    report("3. first_index", test_first_index, first_index)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
+    check_first_index()
 
 
 if __name__ == "__main__":
