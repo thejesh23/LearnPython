@@ -16,6 +16,7 @@ smallest byte first (little-endian, used by most CPUs). Both sides must agree,
 so a file format always says which one it uses, and so should your code.
 """
 
+import struct
 import sys
 
 
@@ -68,10 +69,37 @@ def endianness_demo() -> None:
     print(f"this machine is {sys.byteorder}-endian")
 
 
+def struct_demo() -> None:
+    # The first character sets the byte order: '<' little, '>' or '!' big.
+    # Then one letter per value: B = unsigned 1-byte, H = 2-byte,
+    # I = 4-byte, i = signed 4-byte, f = 4-byte float, 4s = 4 raw bytes.
+    fmt = "<HIf4s"
+    packed = struct.pack(fmt, 7, 1000, 2.5, b"abcd")
+    print(f"pack({fmt!r}) -> {len(packed)} bytes: {packed.hex(' ')}")
+    print(f"calcsize says {struct.calcsize(fmt)} bytes")
+    print(f"unpack -> {struct.unpack(fmt, packed)}  (always a tuple)")
+
+    # A 4-byte float cannot hold 0.1 exactly; the value comes back rounded.
+    (approx,) = struct.unpack("<f", struct.pack("<f", 0.1))
+    print(f"0.1 through a 4-byte float: {approx}")
+
+    # Without '<' or '>' struct uses native order AND inserts padding so
+    # each field is aligned, which is why explicit order is the safe habit.
+    print(f"native '@BI' is {struct.calcsize('@BI')} bytes, '<BI' is "
+          f"{struct.calcsize('<BI')} bytes")
+
+    try:
+        struct.pack("<B", 300)
+    except struct.error as exc:
+        print(f"out of range: struct.error: {exc}")
+
+
 def main() -> None:
     bytes_demo()
     print()
     endianness_demo()
+    print()
+    struct_demo()
 
 
 if __name__ == "__main__":
