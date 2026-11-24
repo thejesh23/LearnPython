@@ -24,6 +24,7 @@ Uses:
 """
 
 import math
+import random
 import re
 import secrets
 import string
@@ -256,12 +257,55 @@ def entropy_demo() -> None:
         print(f"{words} words from {size:>4}:   {bits:5.1f} bits, {crack_time(bits)}")
 
 
+def weak_password(seed: int, length: int = 12) -> str:
+    """The WRONG way: random is a predictable generator, made for simulations."""
+    rng = random.Random(seed)
+    pool = string.ascii_letters + string.digits + string.punctuation
+    return "".join(rng.choice(pool) for _ in range(length))
+
+
+def crack_by_seed(target: str, start: int, end: int) -> int | None:
+    """Try every seed in a range until one reproduces the target password."""
+    for seed in range(start, end):
+        if weak_password(seed, len(target)) == target:
+            return seed
+    return None
+
+
+def why_not_random_demo() -> None:
+    print("== stage 4: why not random? ==")
+    # random is completely determined by its seed. Same seed, same password.
+    print(f"seed 42: {weak_password(42)}")
+    print(f"seed 42: {weak_password(42)}  (again)")
+
+    # A common mistake is seeding with the current time. Suppose a password
+    # was made at 09:20:34 on a known day. The attacker does not know the
+    # second, but a whole hour is only 3600 seeds to try.
+    # (A real attacker would compare against a stolen hash or just try to log
+    # in; comparing with the password itself keeps the demo short.)
+    hour_start = 1_700_000_000  # a Unix timestamp, in seconds
+    secret_seed = hour_start + 2034
+    victim = weak_password(secret_seed)
+    found = crack_by_seed(victim, hour_start, hour_start + 3600)
+    print(f"seed recovered from one hour of candidates: {found == secret_seed}")
+    print(f"which means the password is known: {weak_password(found or 0)}")
+
+    # Even without a seed, random's Mersenne Twister can be rebuilt from 624
+    # outputs. secrets reads from the operating system's cryptographic source
+    # (os.urandom), which has no seed to guess and no state to rebuild.
+    print("rule: random for games and simulations, secrets for anything secret")
+    print(f"secrets.token_urlsafe(16): {len(secrets.token_urlsafe(16))} chars, "
+          "fine for reset links and API keys")
+
+
 def main() -> None:
     generator_demo()
     print()
     checker_demo()
     print()
     entropy_demo()
+    print()
+    why_not_random_demo()
 
 
 if __name__ == "__main__":
