@@ -76,8 +76,75 @@ def inline_demo() -> None:
         print(f"  -> {inline(source)}")
 
 
+HEADING = re.compile(r"(#{1,6})\s+(.*)")
+
+
+class BlockConverter:
+    """Headings and paragraphs.
+
+    `state` names the block that is open right now. A paragraph can span
+    several lines, so its lines wait in `buffer` until something ends it: a
+    blank line, a heading, or the end of the text.
+    """
+
+    def __init__(self) -> None:
+        self.out: list[str] = []
+        self.state = "idle"
+        self.buffer: list[str] = []
+
+    def convert(self, text: str) -> str:
+        for line in text.splitlines():
+            self.feed(line.rstrip())
+        self.close_block()  # the last block has nothing after it to close it
+        return "\n".join(self.out)
+
+    def close_block(self) -> None:
+        if self.state == "paragraph":
+            self.out.append(f"<p>{inline(' '.join(self.buffer))}</p>")
+        self.buffer = []
+        self.state = "idle"
+
+    def feed(self, line: str) -> None:
+        if not line.strip():
+            self.close_block()
+        elif m := HEADING.match(line):
+            self.close_block()
+            level = len(m[1])
+            self.out.append(f"<h{level}>{inline(m[2])}</h{level}>")
+        else:
+            if self.state != "paragraph":
+                self.close_block()
+                self.state = "paragraph"
+            self.buffer.append(line.strip())
+
+
+def show(source: str, converter: BlockConverter) -> None:
+    print("markdown:")
+    for line in source.strip("\n").splitlines():
+        print(f"  | {line}".rstrip())
+    print("html:")
+    for line in converter.convert(source).splitlines():
+        print(f"  | {line}")
+
+
+def blocks_demo() -> None:
+    print("== stage 2: headings and paragraphs ==")
+    source = """
+# Notes
+A paragraph can be
+spread over *three*
+lines in the source.
+
+## Second heading
+Another paragraph.
+"""
+    show(source, BlockConverter())
+
+
 def main() -> None:
     inline_demo()
+    print()
+    blocks_demo()
 
 
 if __name__ == "__main__":
