@@ -20,8 +20,10 @@ The lessons for this chapter are in basics/17_os_and_command_line/.
 import argparse
 import contextlib
 import io
+import tempfile
 from collections.abc import Callable
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 
@@ -143,9 +145,56 @@ def check_build_parser() -> None:
     report("2. build_parser", test_build_parser, build_parser)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def find_files(root: Path, suffix: str, skip: set[str]) -> list[str]:
+    """List the files under `root` whose names end in `suffix`.
+
+    - Look in every subfolder, however deep.
+    - Do not look inside any folder whose name is in `skip` (such as ".git"
+      or "venv"), wherever it appears in the tree.
+    - Only files count: a folder called "notes.py" is not a match.
+    - Return paths relative to root, written with "/" (Path.as_posix()),
+      sorted alphabetically: ["a.py", "pkg/b.py", "pkg/sub/c.py"].
+
+    os.walk lets you prune folders by removing names from its `dirs` list
+    in place; Path.rglob plus a check on each path's parts works too.
+    """
+    raise NotImplementedError
+
+
+def test_find_files(impl: Callable[[Path, str, set[str]], list[str]]) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for name in (
+            "a.py", "README.md", "pkg/b.py", "pkg/sub/c.py", "pkg/sub/data.json",
+            ".git/hooks/pre.py", "venv/lib/site.py", "pkg/.git/x.py",
+            "notes.py/inner.txt",
+        ):
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("x\n")
+        got = impl(root, ".py", {".git", "venv"})
+        expected = ["a.py", "pkg/b.py", "pkg/sub/c.py"]
+        assert got == expected, f"expected {expected}, got {got}"
+        got = impl(root, ".py", set())
+        expected = [
+            ".git/hooks/pre.py", "a.py", "pkg/.git/x.py", "pkg/b.py",
+            "pkg/sub/c.py", "venv/lib/site.py",
+        ]
+        assert got == expected, f"with nothing skipped: expected {expected}, got {got}"
+        got = impl(root, ".json", {"sub"})
+        assert got == [], f"data.json is inside a skipped folder, got {got}"
+
+
+def check_find_files() -> None:
+    report("3. find_files", test_find_files, find_files)
+
+
 def main() -> None:
     check_env_settings()
     check_build_parser()
+    check_find_files()
 
 
 if __name__ == "__main__":
