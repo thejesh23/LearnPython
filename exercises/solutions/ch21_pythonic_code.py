@@ -37,8 +37,19 @@ def check_scoreboard() -> None:
     report("1. scoreboard", EXERCISES["test_scoreboard"], scoreboard)
 
 
+def remove_short(words: list[str], min_length: int) -> None:
+    # The comprehension reads the old contents in full before anything
+    # changes; words[:] = then replaces the contents of the same list.
+    words[:] = [word for word in words if len(word) >= min_length]
+
+
+def check_remove_short() -> None:
+    report("2. remove_short", EXERCISES["test_remove_short"], remove_short)
+
+
 def main() -> None:
     check_scoreboard()
+    check_remove_short()
 
 
 if __name__ == "__main__":
