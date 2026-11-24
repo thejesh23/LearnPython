@@ -112,9 +112,41 @@ def check_split_seconds() -> None:
     report("2. split_seconds", test_split_seconds, split_seconds)
 
 
+def simplify(numerator: int, denominator: int) -> str:
+    """Return numerator/denominator in lowest terms, as text.
+
+    simplify(6, 8)  -> "3/4"
+    simplify(4, 2)  -> "2"       a whole number has no "/1"
+    simplify(3, -9) -> "-1/3"    the sign goes on the front
+
+    Hint: add `from fractions import Fraction` at the top of this file.
+    str() of a Fraction already looks like the answers above.
+    """
+    raise NotImplementedError
+
+
+def test_simplify(fn: Callable[..., Any]) -> None:
+    cases = [
+        ((6, 8), "3/4"),
+        ((4, 2), "2"),
+        ((3, -9), "-1/3"),
+        ((0, 5), "0"),
+        ((10, 4), "5/2"),
+        ((7, 7), "1"),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"simplify{args} returned {got!r}, expected {want!r}"
+
+
+def check_simplify() -> None:
+    report("3. simplify", test_simplify, simplify)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
+    check_simplify()
 
 
 if __name__ == "__main__":
