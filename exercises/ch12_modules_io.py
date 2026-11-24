@@ -21,9 +21,12 @@ import csv
 import json
 import tempfile
 from collections.abc import Callable
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+from typing import TextIO
 
 
 def verdict(error: BaseException) -> str:
@@ -256,12 +259,65 @@ def check_load_module() -> None:
     report("5. load_module", test_load_module, load_module)
 
 
+# --- Exercise 6 -------------------------------------------------------------
+
+@contextmanager
+def atomic_write(path: Path) -> Iterator[TextIO]:
+    """Write a file so readers see either the old content or the new, never half.
+
+    Inside the with block, writes go to a temporary file next to the target
+    (for example path.with_name(path.name + ".tmp")). When the block ends
+    normally, move the temp file over the target with Path.replace. If the
+    block raises, delete the temp file, leave the target untouched, and let
+    the error continue.
+
+        with atomic_write(Path("notes.txt")) as f:
+            f.write("all or nothing")
+    """
+    raise NotImplementedError
+    yield  # never reached: it only makes this stub a generator
+
+
+def test_atomic_write(impl: Callable[[Path], Any]) -> None:
+    class Boom(Exception):
+        pass
+
+    with tempfile.TemporaryDirectory() as tmp:
+        folder = Path(tmp)
+        target = folder / "notes.txt"
+        with impl(target) as f:
+            f.write("first")
+        assert target.read_text() == "first", "the new file should hold 'first'"
+        with impl(target) as f:
+            f.write("second")
+            assert target.read_text() == "first", (
+                "while writing, the target should still hold the old content"
+            )
+        assert target.read_text() == "second", "after the block: 'second'"
+        try:
+            with impl(target) as f:
+                f.write("broken")
+                raise Boom("disk on fire")
+        except Boom:
+            pass
+        else:
+            raise AssertionError("the error from inside the block should propagate")
+        assert target.read_text() == "second", "a failed write must keep old content"
+        leftovers = sorted(p.name for p in folder.iterdir())
+        assert leftovers == ["notes.txt"], f"temp files were left behind: {leftovers}"
+
+
+def check_atomic_write() -> None:
+    report("6. atomic_write", test_atomic_write, atomic_write)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
     check_load_settings()
     check_csv_totals()
     check_load_module()
+    check_atomic_write()
 
 
 if __name__ == "__main__":
