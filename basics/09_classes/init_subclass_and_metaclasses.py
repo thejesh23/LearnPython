@@ -109,12 +109,63 @@ def subclass_check_demo() -> None:
         print(f"TypeError while defining the class: {exc}")
 
 
+class CountingMeta(type):
+    """A metaclass: its instances are classes."""
+
+    created: list[str] = []
+
+    def __new__(
+        mcls, name: str, bases: tuple[type, ...], namespace: dict[str, Any]
+    ) -> "CountingMeta":
+        CountingMeta.created.append(name)
+        return super().__new__(mcls, name, bases, namespace)
+
+
+class Model(metaclass=CountingMeta):
+    pass
+
+
+class Customer(Model):  # the metaclass is inherited by subclasses
+    pass
+
+
+class OtherMeta(type):
+    pass
+
+
+class Widget(metaclass=OtherMeta):
+    pass
+
+
+def metaclass_demo() -> None:
+    # Every class is an instance of a metaclass; normally that is `type`.
+    print(f"type(42) is int: {type(42) is int}; type(int) is type: {type(int) is type}")
+
+    # type(name, bases, namespace) builds a class at runtime, which is what
+    # the class statement does for you behind the scenes.
+    Dog = type("Dog", (), {"sound": lambda self: "woof"})
+    print(f"a class built by type(): {Dog.__name__}, says {Dog().sound()}")
+
+    print(f"CountingMeta saw: {CountingMeta.created}")
+    print(f"type(Customer) is CountingMeta: {type(Customer) is CountingMeta}")
+
+    # The sharp edge: a class cannot mix bases with unrelated metaclasses.
+    # __init_subclass__ (stage above) did the registering job without this.
+    try:
+        class Both(Model, Widget):
+            pass
+    except TypeError as exc:
+        print(f"TypeError: {str(exc).splitlines()[0]}")
+
+
 def main() -> None:
     class_decorator_demo()
     print()
     registry_demo()
     print()
     subclass_check_demo()
+    print()
+    metaclass_demo()
 
 
 if __name__ == "__main__":
