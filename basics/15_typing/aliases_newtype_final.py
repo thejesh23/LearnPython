@@ -11,7 +11,12 @@ These change nothing about how the program runs. They let a type checker catch
 mix-ups that would otherwise only show up as wrong answers.
 """
 
+from dataclasses import dataclass
+from dataclasses import fields
+from typing import ClassVar
+from typing import Final
 from typing import NewType
+from typing import final
 
 
 type Point = tuple[float, float]
@@ -69,10 +74,48 @@ def newtype_demo() -> None:
     print(f"type(user) is int: {type(user) is int}, user + 1 = {user + 1}")
 
 
+MAX_RETRIES: Final = 3  # a constant; reassigning it is a checker error
+
+
+@dataclass
+class Download:
+    url: str
+    retries: int = MAX_RETRIES
+    # ClassVar marks a class-level attribute. The dataclass leaves it out of
+    # __init__ and repr, because it is shared by every Download.
+    started: ClassVar[int] = 0
+
+    def __post_init__(self) -> None:
+        Download.started += 1
+
+
+@final
+class Settings:
+    """@final: the checker reports any attempt to subclass this."""
+
+    TIMEOUT: Final[float] = 2.5
+
+
+def final_and_classvar_demo() -> None:
+    a = Download("https://example.com/a")
+    b = Download("https://example.com/b", retries=1)
+    print(a)
+    print(b)
+    print(f"Download.started = {Download.started}")
+    print(f"dataclass fields: {[f.name for f in fields(Download)]}")
+
+    # Final is a promise, not a lock: Python itself still allows this.
+    Settings.TIMEOUT = 10.0  # type: ignore[misc]
+    print(f"Settings.TIMEOUT after reassigning = {Settings.TIMEOUT}")
+    print(f"@final sets a marker: Settings.__final__ = {Settings.__final__}")
+
+
 def main() -> None:
     type_statement_demo()
     print()
     newtype_demo()
+    print()
+    final_and_classvar_demo()
 
 
 if __name__ == "__main__":
