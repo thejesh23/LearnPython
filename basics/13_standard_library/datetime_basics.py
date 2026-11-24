@@ -13,6 +13,7 @@ A "naive" datetime has no zone, so Python cannot know which moment it means.
 from datetime import date, datetime
 from datetime import date, datetime, timedelta
 from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 
 def creating_demo() -> None:
@@ -62,12 +63,35 @@ def formatting_demo() -> None:
     print(f"isoformat: {text}, round trip ok: {datetime.fromisoformat(text) == moment}")
 
 
+def timezone_demo() -> None:
+    utc_moment = datetime(2024, 6, 1, 12, 0, tzinfo=timezone.utc)
+    india = timezone(timedelta(hours=5, minutes=30), "IST")
+    new_york = timezone(timedelta(hours=-4), "EDT")
+
+    # astimezone shows the *same instant* on a different clock.
+    print(f"UTC:      {utc_moment}")
+    print(f"India:    {utc_moment.astimezone(india)}")
+    print(f"New York: {utc_moment.astimezone(new_york)}")
+    print(f"same instant: {utc_moment == utc_moment.astimezone(india)}")
+
+    # Mixing naive and aware datetimes is an error, which is a good thing.
+    naive = datetime(2024, 6, 1, 12, 0)
+    try:
+        _ = utc_moment - naive
+    except TypeError as exc:
+        print(f"aware - naive: {exc}")
+    # Real zones with daylight saving rules live in zoneinfo, e.g.
+    # ZoneInfo("Europe/London"); fixed offsets keep this demo portable.
+
+
 def main() -> None:
     creating_demo()
     print()
     arithmetic_demo()
     print()
     formatting_demo()
+    print()
+    timezone_demo()
 
 
 if __name__ == "__main__":
