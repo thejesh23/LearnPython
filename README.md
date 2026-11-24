@@ -81,6 +81,7 @@ Follow the numbered folders in order. Inside each folder, read the files in alph
 | 10 | `10_async/` | `async`/`await`, `asyncio.gather`, async generators |
 | 11 | `11_errors/` | `try`/`except`/`else`/`finally`, raising, custom exceptions |
 | 12 | `12_modules_io/` | Imports, `pathlib`, context managers, JSON |
+| 13 | `13_standard_library/` | `collections`, `functools`, `datetime`, `re`, `logging` |
 
 ## Algorithm categories
 
@@ -131,7 +132,7 @@ class Stack[T]:
 
 ```text
 LearnPython/
-├── basics/                 numbered teaching folders 00_ ... 12_
+├── basics/                 numbered teaching folders 00_ ... 13_
 │   ├── 00_hello_world/
 │   ├── 01_variables/
 │   └── ...
