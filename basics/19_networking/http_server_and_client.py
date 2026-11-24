@@ -28,6 +28,8 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler
 from http.server import ThreadingHTTPServer
+from urllib.error import HTTPError
+from urllib.error import URLError
 from urllib.parse import parse_qs
 from urllib.parse import urlsplit
 
@@ -143,10 +145,38 @@ def post_demo() -> None:
                 print(f"{response.status} created {created} at {where}")
 
 
+def fetch(url: str, method: str = "GET") -> str:
+    """Return a one-line summary of what happened, never raise."""
+    request = urllib.request.Request(url, method=method)
+    try:
+        with OPENER.open(request, timeout=5) as response:
+            return f"{response.status} {response.read().decode('utf-8')!r}"
+    except HTTPError as exc:
+        # The server answered, just not with success. An HTTPError is also a
+        # response: it has a status code, headers and a body you can read.
+        return f"HTTPError {exc.code} {exc.reason}: {exc.read()[:30]!r}"
+    except URLError as exc:
+        # No HTTP answer at all: refused, DNS failure, timeout and so on.
+        return f"URLError: {type(exc.reason).__name__}"
+
+
+def errors_demo() -> None:
+    with running_server(GreetingHandler) as base:
+        print(fetch(f"{base}/hello"))
+        print(fetch(f"{base}/missing"))
+        print(fetch(f"{base}/teapot"))
+        # The handler has no do_DELETE, so the base class answers 501.
+        print(fetch(f"{base}/hello", method="DELETE"))
+    # The server is stopped now: nothing listens on that port any more.
+    print(fetch(f"{base}/hello"))
+
+
 def main() -> None:
     get_demo()
     print()
     post_demo()
+    print()
+    errors_demo()
 
 
 if __name__ == "__main__":
