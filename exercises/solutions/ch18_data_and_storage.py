@@ -15,6 +15,7 @@ line by line; if the tests pass, it is a valid solution.
 
 import hashlib
 import runpy
+import struct
 from pathlib import Path
 
 
@@ -40,8 +41,26 @@ def check_sha256_file() -> None:
     report("1. sha256_file", EXERCISES["test_sha256_file"], sha256_file)
 
 
+HEADER = struct.Struct(">4sHIB")  # compile the format once, reuse it
+
+
+def parse_header(data: bytes) -> dict[str, int]:
+    if len(data) < HEADER.size:
+        raise ValueError(f"header needs {HEADER.size} bytes, got {len(data)}")
+    # unpack_from reads the first HEADER.size bytes and ignores the rest.
+    magic, version, count, flags = HEADER.unpack_from(data)
+    if magic != b"LPY1":
+        raise ValueError(f"not an .lpy file (magic {magic!r})")
+    return {"version": version, "count": count, "flags": flags}
+
+
+def check_parse_header() -> None:
+    report("2. parse_header", EXERCISES["test_parse_header"], parse_header)
+
+
 def main() -> None:
     check_sha256_file()
+    check_parse_header()
 
 
 if __name__ == "__main__":
