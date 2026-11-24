@@ -34,8 +34,21 @@ def alternative_constructor_demo() -> None:
     print(Money.from_string("12.50 EUR"))
 
 
+class Tip(Money):
+    """Same data, a subclass so the type says what the money is for."""
+
+
+def subclass_demo() -> None:
+    # from_string was written once, on Money, yet returns a Tip here,
+    # because cls is whichever class the method was called on.
+    tip = Tip.from_string("3.00 GBP")
+    print(f"{tip!r}, is a Tip: {isinstance(tip, Tip)}")
+
+
 def main() -> None:
     alternative_constructor_demo()
+    print()
+    subclass_demo()
 
 
 if __name__ == "__main__":
