@@ -47,9 +47,23 @@ def check_countdown() -> None:
     report("2. countdown", EXERCISES["test_countdown"], countdown)
 
 
+def running_total(numbers: Iterable[int]) -> Iterator[int]:
+    # Read one number, yield one total: memory stays constant however long
+    # the input is. itertools.accumulate(numbers) is the built-in version.
+    total = 0
+    for n in numbers:
+        total += n
+        yield total
+
+
+def check_running_total() -> None:
+    report("3. running_total", EXERCISES["test_running_total"], running_total)
+
+
 def main() -> None:
     check_first_or_default()
     check_countdown()
+    check_running_total()
 
 
 if __name__ == "__main__":
