@@ -82,12 +82,36 @@ def help_demo() -> None:
         print(line)
 
 
+def greet(name: str, *, greeting: str = "Hello", times: int = 1) -> str:
+    """Return a greeting, repeated `times` times."""
+    return " ".join([f"{greeting}, {name}!"] * times)
+
+
+def signature_demo() -> None:
+    sig = inspect.signature(greet)
+    print(f"signature: greet{sig}")
+    print(f"returns:   {sig.return_annotation.__name__}")
+    for param in sig.parameters.values():
+        default = "required" if param.default is param.empty else repr(param.default)
+        print(f"  {param.name:<9} {param.annotation.__name__:<4} "
+              f"{param.kind.name:<22} {default}")
+
+    # The type hints alone live in __annotations__ as a plain dict.
+    for name, hint in greet.__annotations__.items():
+        print(f"  __annotations__[{name!r}] = {hint}")
+
+    # Hints are documentation, not enforcement: Python does not check them.
+    print(f"greet(42) still runs: {greet(42)!r}")  # type: ignore[arg-type]
+
+
 def main() -> None:
     docstring_demo()
     print()
     getdoc_demo()
     print()
     help_demo()
+    print()
+    signature_demo()
 
 
 if __name__ == "__main__":
