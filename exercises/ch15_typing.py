@@ -19,6 +19,7 @@ for this chapter are in basics/15_typing/.
 
 from collections.abc import Callable
 from typing import Any
+from typing import Literal
 
 
 def verdict(error: BaseException) -> str:
@@ -89,8 +90,44 @@ def check_first() -> None:
     report("1. first[T]", test_first, first)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+# Given: a type alias (3.12 `type` statement) naming the only valid modes.
+type Mode = Literal["r", "w", "a"]
+
+
+def parse_mode(text: str) -> Mode:
+    """Return text unchanged if it is a valid Mode, else raise ValueError.
+
+    Do not copy "r", "w", "a" into this function: read them from the alias,
+    so adding a mode to Mode updates the check too. Mode.__value__ is the
+    Literal[...] behind the alias, and typing.get_args() returns its values.
+    The error message should include the bad text, e.g.
+        ValueError: mode must be one of ('r', 'w', 'a'), got 'x'
+    """
+    raise NotImplementedError
+
+
+def test_parse_mode(impl: Callable[[str], Any]) -> None:
+    for mode in ("r", "w", "a"):
+        got = impl(mode)
+        assert got == mode, f"parse_mode({mode!r}) should return {mode!r}, got {got!r}"
+    for bad in ("x", "R", "", "rw"):
+        try:
+            impl(bad)
+        except ValueError as exc:
+            assert repr(bad) in str(exc), f"the message should show {bad!r}: {exc}"
+        else:
+            raise AssertionError(f"parse_mode({bad!r}) should raise ValueError")
+
+
+def check_parse_mode() -> None:
+    report("2. parse_mode", test_parse_mode, parse_mode)
+
+
 def main() -> None:
     check_first()
+    check_parse_mode()
 
 
 if __name__ == "__main__":
