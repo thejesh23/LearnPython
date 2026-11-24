@@ -60,10 +60,38 @@ def mutating_while_iterating_demo() -> None:
     print(f"dict comprehension  : {adults}")
 
 
+def is_and_shadowing_demo() -> None:
+    # `is` asks "same object?", == asks "same value?". Equal strings built at
+    # runtime are usually different objects.
+    expected = "hello world"
+    built = " ".join(["hello", "world"])
+    print(f"built == expected: {built == expected}, built is expected: "
+          f"{built is expected}")
+    # Use `is` only for singletons such as None. `== None` can be fooled by
+    # a class that overrides __eq__; `is None` cannot.
+    value = None
+    print(f"value is None: {value is None}")
+
+    # Shadowing: naming a variable after a built-in hides the built-in for
+    # the rest of that scope.
+    def tally(words: list[str]) -> str:
+        list = sorted(set(words))  # shadows the built-in `list`
+        try:
+            return str(list(words))  # type: ignore[operator]
+        except TypeError as exc:
+            return f"TypeError: {exc}"
+
+    print(f"shadowed list(): {tally(['b', 'a'])}")
+    # Fix: pick a descriptive name (unique_words) instead of list, dict, str,
+    # id, type, sum, max, input, file... Linters flag these for you.
+
+
 def main() -> None:
     late_binding_demo()
     print()
     mutating_while_iterating_demo()
+    print()
+    is_and_shadowing_demo()
 
 
 if __name__ == "__main__":
