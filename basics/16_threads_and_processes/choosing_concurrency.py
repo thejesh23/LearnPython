@@ -19,9 +19,11 @@ The rough guide this file measures:
 The standard build that most people run still has it.)
 """
 
+import os
 import sys
 import time
 from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -81,10 +83,30 @@ def cpu_bound_threads_demo() -> None:
         print(f"  threads were no real help: {threaded > one_by_one * 0.7}")
 
 
+def cpu_bound_processes_demo() -> None:
+    cores = os.cpu_count() or 1
+    one_by_one = timed(lambda: [crunch(n) for n in WORK])
+
+    def with_processes() -> None:
+        # crunch is a top-level function, so it can be sent to the workers.
+        with ProcessPoolExecutor(max_workers=min(4, cores)) as pool:
+            list(pool.map(crunch, WORK))
+
+    in_processes = timed(with_processes)
+    print("CPU-bound again, with a process pool")
+    print(f"  more than one CPU core available: {cores > 1}")
+    if cores > 1:
+        # Processes pay a start-up cost, but each has its own interpreter and
+        # its own GIL, so the loops really do run side by side.
+        print(f"  processes beat running one by one: {in_processes < one_by_one}")
+
+
 def main() -> None:
     io_bound_demo()
     print()
     cpu_bound_threads_demo()
+    print()
+    cpu_bound_processes_demo()
 
 
 if __name__ == "__main__":
