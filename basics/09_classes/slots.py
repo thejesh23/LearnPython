@@ -19,6 +19,7 @@ instances of a small class, or with `@dataclass(slots=True)`.
 
 import sys
 import tracemalloc
+from dataclasses import dataclass
 
 
 class PointDict:
@@ -106,12 +107,31 @@ def slots_gotchas_demo() -> None:
         print(f"ValueError: {exc}")
 
 
+@dataclass(slots=True)
+class Pixel:
+    x: int
+    y: int
+    colour: str = "black"  # defaults work: the dataclass handles them
+
+
+def dataclass_slots_demo() -> None:
+    px = Pixel(3, 4)
+    print(f"{px}, __slots__ = {Pixel.__slots__}")
+    print(f"has __dict__? {hasattr(px, '__dict__')}")
+    try:
+        px.alpha = 0.5  # type: ignore[attr-defined]
+    except AttributeError as exc:
+        print(f"AttributeError: {exc}")
+
+
 def main() -> None:
     no_dict_demo()
     print()
     memory_demo()
     print()
     slots_gotchas_demo()
+    print()
+    dataclass_slots_demo()
 
 
 if __name__ == "__main__":
