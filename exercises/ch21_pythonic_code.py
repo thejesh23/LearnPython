@@ -202,11 +202,73 @@ def check_load_port() -> None:
     report("4. load_port", test_load_port, load_port)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def get_nested(data: Any, *keys: Any, default: Any = None) -> Any:
+    """Follow keys and indexes into nested dicts and lists.
+
+        user = {"name": "Ada", "langs": ["py", "c"]}
+        data = {"users": [user]}
+        get_nested(data, "users", 0, "langs", -1)   ->  "c"
+        get_nested(data, "users", 3, "name")        ->  None   (no user 3)
+        get_nested(data, "users", 0, "age", default=0)  ->  0
+
+    Checking first (LBYL) gets messy: is it a dict? does the key exist? is
+    it a list? is the index in range? Ask forgiveness instead (EAFP): just
+    do current = current[key] for each key, and if that fails with
+    KeyError, IndexError or TypeError (as in a_list["x"]), return default.
+    With no keys, return data itself.
+
+    Catch only those three. Any other error is a real bug and must reach
+    the caller, so do not use a bare except or `except Exception`.
+    """
+    raise NotImplementedError
+
+
+class Explosive(dict[str, Any]):
+    """Test helper: a dict whose "boom" key has a bug behind it."""
+
+    def __getitem__(self, key: str) -> Any:
+        if key == "boom":
+            raise ZeroDivisionError("a bug in the data source")
+        return super().__getitem__(key)
+
+
+def test_get_nested(impl: Callable[..., Any]) -> None:
+    data = {"users": [{"name": "Ada", "langs": ["py", "c"]}], "count": 1}
+    cases: list[tuple[tuple[Any, ...], Any]] = [
+        (("users", 0, "name"), "Ada"),
+        (("users", 0, "langs", -1), "c"),
+        (("users", 3, "name"), None),
+        (("users", "0"), None),
+        (("count", "x"), None),
+        (("missing",), None),
+        (("users", 0, "name", 0), "A"),
+        ((), data),
+    ]
+    for keys, want in cases:
+        got = impl(data, *keys)
+        assert got == want, f"get_nested(data, {keys}) gave {got!r}, expected {want!r}"
+    got = impl(data, "users", 0, "age", default=0)
+    assert got == 0, f"a missing key with default=0 should give 0, got {got!r}"
+    try:
+        impl({"source": Explosive(ok=1)}, "source", "boom")
+    except ZeroDivisionError:
+        pass
+    else:
+        raise AssertionError("an unrelated error (ZeroDivisionError) was swallowed")
+
+
+def check_get_nested() -> None:
+    report("5. get_nested", test_get_nested, get_nested)
+
+
 def main() -> None:
     check_scoreboard()
     check_remove_short()
     check_make_multipliers()
     check_load_port()
+    check_get_nested()
 
 
 if __name__ == "__main__":
