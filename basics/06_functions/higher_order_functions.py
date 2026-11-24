@@ -14,6 +14,8 @@ Related files: lambdas.py (one-line anonymous functions), closures_and_scope.py
 for wrapping a function).
 """
 
+from collections.abc import Callable
+
 
 def add(a: float, b: float) -> float:
     return a + b
@@ -48,8 +50,42 @@ def functions_as_values_demo() -> None:
         print(f"{expression} -> {calculate(*expression)}")
 
 
+def apply_to_all(func: Callable[[int], int], values: list[int]) -> list[int]:
+    """Call func on every value. The caller decides *what* happens to each."""
+    return [func(v) for v in values]
+
+
+def apply_twice(func: Callable[[int], int], value: int) -> int:
+    return func(func(value))
+
+
+def double(n: int) -> int:
+    return n * 2
+
+
+def square(n: int) -> int:
+    return n * n
+
+
+def passing_functions_demo() -> None:
+    nums = [1, 2, 3, 4]
+    # Pass the function itself: `double`, not `double()`.
+    print(f"apply_to_all(double) -> {apply_to_all(double, nums)}")
+    print(f"apply_to_all(square) -> {apply_to_all(square, nums)}")
+    print(f"apply_twice(double, 5) = {apply_twice(double, 5)}")
+    print(f"apply_twice(square, 3) = {apply_twice(square, 3)}")
+
+    # A common slip: calling the function while passing it.
+    try:
+        apply_twice(double(5), 1)  # type: ignore[arg-type]
+    except TypeError as exc:
+        print(f"passed double(5) by mistake -> TypeError: {exc}")
+
+
 def main() -> None:
     functions_as_values_demo()
+    print()
+    passing_functions_demo()
 
 
 if __name__ == "__main__":
