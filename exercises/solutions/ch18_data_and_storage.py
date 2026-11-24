@@ -17,6 +17,7 @@ import hashlib
 import runpy
 import sqlite3
 import struct
+import zipfile
 from pathlib import Path
 
 
@@ -93,11 +94,29 @@ def check_top_customers() -> None:
     report("4. top_customers", EXERCISES["test_top_customers"], top_customers)
 
 
+def safe_extract(zip_path: Path, dest: Path) -> list[str]:
+    root = dest.resolve()
+    with zipfile.ZipFile(zip_path) as archive:
+        names = archive.namelist()
+        # Check everything first, so a bad member means nothing is written.
+        for name in names:
+            # resolve() collapses "..", and an absolute name replaces root.
+            if not (root / name).resolve().is_relative_to(root):
+                raise ValueError(f"unsafe member in archive: {name!r}")
+        archive.extractall(root)
+    return sorted(names)
+
+
+def check_safe_extract() -> None:
+    report("5. safe_extract", EXERCISES["test_safe_extract"], safe_extract)
+
+
 def main() -> None:
     check_sha256_file()
     check_parse_header()
     check_add_user()
     check_top_customers()
+    check_safe_extract()
 
 
 if __name__ == "__main__":
