@@ -16,6 +16,8 @@ per push or pop, which is much cheaper than sorting the whole list each time.
 For queues shared between threads, use queue.Queue, which adds locking.
 """
 
+import heapq
+import itertools
 import timeit
 from collections import deque
 
@@ -97,10 +99,45 @@ def queue_demo() -> None:
     print(f"deque.popleft() faster than list.pop(0): {deque_time < list_time}")
 
 
+def heap_demo() -> None:
+    # heappush/heappop keep the list arranged so heap[0] is always smallest.
+    heap: list[int] = []
+    for n in [5, 1, 8, 3, 9, 2]:
+        heapq.heappush(heap, n)
+    print(f"heap list: {heap}   (not sorted, but heap[0] is the minimum)")
+    print(f"pops: {[heapq.heappop(heap) for _ in range(3)]}")
+
+    # Tasks as (priority, order, name) tuples: tuples compare item by item,
+    # so the lowest priority number comes out first. The counter breaks ties
+    # in arrival order, so names never need comparing.
+    counter = itertools.count()
+    tasks: list[tuple[int, int, str]] = []
+    for priority, name in [(3, "write docs"), (1, "fix outage"), (2, "review PR"),
+                           (1, "page on-call")]:
+        heapq.heappush(tasks, (priority, next(counter), name))
+    while tasks:
+        priority, _, name = heapq.heappop(tasks)
+        print(f"  priority {priority}: {name}")
+
+    # heapify turns an existing list into a heap in place.
+    scores = [72, 95, 64, 88, 91, 55]
+    heapq.heapify(scores)
+    print(f"heapify -> smallest {scores[0]}")
+    # For a quick top-k, nsmallest / nlargest do the work for you.
+    print(f"top 3 scores: {heapq.nlargest(3, scores)}")
+
+    # heapq only does min-heaps. For largest-first, store negated numbers.
+    max_heap = [-n for n in [4, 9, 7]]
+    heapq.heapify(max_heap)
+    print(f"max-heap via negatives pops {-heapq.heappop(max_heap)} first")
+
+
 def main() -> None:
     stack_demo()
     print()
     queue_demo()
+    print()
+    heap_demo()
 
 
 if __name__ == "__main__":
