@@ -35,8 +35,24 @@ def check_safe_int() -> None:
     report("1. safe_int", EXERCISES["test_safe_int"], safe_int)
 
 
+def parse_age(text: str) -> int:
+    try:
+        age = int(text)
+    except ValueError as exc:
+        # "from exc" records the original error as __cause__.
+        raise ValueError(f"age must be a whole number, got {text!r}") from exc
+    if not 0 <= age <= 150:
+        raise ValueError(f"age out of range: {age}")
+    return age
+
+
+def check_parse_age() -> None:
+    report("2. parse_age", EXERCISES["test_parse_age"], parse_age)
+
+
 def main() -> None:
     check_safe_int()
+    check_parse_age()
 
 
 if __name__ == "__main__":
