@@ -229,10 +229,48 @@ def check_send_and_receive() -> None:
     report("3. send_and_receive", test_send_and_receive, send_and_receive)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def handle_lines(conn: socket.socket) -> None:
+    """Server side: answer every line the client sends with the line reversed.
+
+    The client sends UTF-8 text made of lines, each ending in "\n". TCP is
+    a stream, so one recv may hold half a line, or several lines, or even
+    half of one multi-byte character. For each complete line, send back its
+    text reversed plus "\n" ("abc\n" -> "cba\n"). Return when the client
+    closes its side (recv returns b"").
+
+    Easiest: conn.makefile("r", encoding="utf-8") gives a file object whose
+    readline() and for loop do the buffering for you. Or keep a bytes buffer
+    and split it on b"\n" yourself, decoding only complete lines.
+    """
+    raise NotImplementedError
+
+
+def test_handle_lines(impl: Callable[[socket.socket], None]) -> None:
+    with one_client_server(impl) as port:
+        with socket.create_connection(("127.0.0.1", port), timeout=2) as client:
+            # The "ï" in "naïve" is two bytes; the first send stops between them.
+            client.sendall(b"abc\nna\xc3")
+            client.sendall(b"\xafve\nxyz\n\n")
+            client.shutdown(socket.SHUT_WR)
+            reply = b""
+            while chunk := client.recv(1024):
+                reply += chunk
+    want = "cba\nevïan\nzyx\n\n"
+    got = reply.decode("utf-8", errors="replace")
+    assert got == want, f"the client should receive {want!r}, got {got!r}"
+
+
+def check_handle_lines() -> None:
+    report("4. handle_lines", test_handle_lines, handle_lines)
+
+
 def main() -> None:
     check_get_param()
     check_add_params()
     check_send_and_receive()
+    check_handle_lines()
 
 
 if __name__ == "__main__":
