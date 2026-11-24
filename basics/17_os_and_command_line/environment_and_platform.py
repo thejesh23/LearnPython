@@ -16,9 +16,11 @@ This file prints only harmless facts. Environments often hold secrets, so it
 never dumps the whole of `os.environ`.
 """
 
+import contextlib
 import os
 import platform
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -87,10 +89,33 @@ def interpreter_demo() -> None:
     print(f"inside a virtual environment: {sys.prefix != sys.base_prefix}")
 
 
+def cwd_demo() -> None:
+    # The cwd is wherever the program was started from, not where the .py
+    # file lives. Relative paths are resolved against it.
+    start = Path.cwd()
+    print(f"os.getcwd() == Path.cwd(): {os.getcwd() == str(start)}")
+    inside = Path("data.txt").resolve().parent == start
+    print(f"'data.txt' resolves to a file in the cwd: {inside}")
+    here = Path(__file__).resolve().parent
+    print(f"this script's own folder is the cwd: {here == start}")
+
+    # contextlib.chdir (3.11+) changes the cwd and restores it afterwards.
+    with tempfile.TemporaryDirectory() as folder:
+        with contextlib.chdir(folder):
+            Path("note.txt").write_text("hi", encoding="utf-8")  # a relative path
+            print(f"inside chdir, note.txt exists: {Path('note.txt').exists()}")
+        print(f"after the block, back where we started: {Path.cwd() == start}")
+        landed = (Path(folder) / "note.txt").exists()
+        print(f"the file landed in the temp folder: {landed}")
+    # To find files that ship with your script, build paths from __file__.
+
+
 def main() -> None:
     environ_demo()
     print()
     interpreter_demo()
+    print()
+    cwd_demo()
 
 
 if __name__ == "__main__":
