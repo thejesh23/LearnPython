@@ -25,6 +25,8 @@ Uses:
 
 import random
 import re
+import statistics
+from collections import Counter
 from collections.abc import Iterable
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -159,10 +161,62 @@ def parse_demo() -> None:
     print(f"parsed {len(entries)} entries, rejected {rejected}")
 
 
+@dataclass
+class Stats:
+    total: int
+    statuses: Counter[int]
+    per_minute: Counter[datetime]
+    durations: dict[str, list[float]]
+    bytes_sent: int
+
+
+def analyze(entries: Iterable[LogEntry]) -> Stats:
+    """One pass over the entries, filling every counter as we go."""
+    stats = Stats(0, Counter(), Counter(), {}, 0)
+    for e in entries:
+        stats.total += 1
+        stats.statuses[e.status] += 1
+        # Round each time down to its minute so they can be counted together.
+        stats.per_minute[e.time.replace(second=0)] += 1
+        stats.durations.setdefault(e.path, []).append(e.seconds)
+        stats.bytes_sent += e.size
+    return stats
+
+
+def slowest_paths(stats: Stats, n: int = 3) -> list[tuple[str, float, float]]:
+    """(path, mean seconds, 95th percentile seconds), slowest mean first."""
+    rows = []
+    for path, times in stats.durations.items():
+        # The 95th percentile: 95% of requests were faster than this. It
+        # shows the slow tail that an average hides.
+        p95 = statistics.quantiles(times, n=20)[-1] if len(times) > 1 else times[0]
+        rows.append((path, statistics.mean(times), p95))
+    return sorted(rows, key=lambda row: row[1], reverse=True)[:n]
+
+
+def error_rate(stats: Stats) -> float:
+    errors = sum(n for code, n in stats.statuses.items() if code >= 400)
+    return errors / stats.total if stats.total else 0.0
+
+
+def stats_demo() -> None:
+    print("== stage 3: statistics ==")
+    stats = analyze(parse_lines(generate_log(1000), []))
+    print(f"requests: {stats.total}")
+    print(f"status codes: {dict(sorted(stats.statuses.items()))}")
+    print(f"error rate: {error_rate(stats):.1%}")
+    for path, mean, p95 in slowest_paths(stats):
+        print(f"slow: {path:<12} mean {mean:.3f}s  p95 {p95:.3f}s")
+    minute, count = stats.per_minute.most_common(1)[0]
+    print(f"busiest minute: {minute:%H:%M} with {count} requests")
+
+
 def main() -> None:
     generate_demo()
     print()
     parse_demo()
+    print()
+    stats_demo()
 
 
 if __name__ == "__main__":
