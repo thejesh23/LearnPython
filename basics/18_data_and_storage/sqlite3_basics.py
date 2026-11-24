@@ -107,12 +107,52 @@ def update_delete_demo() -> None:
     conn.close()
 
 
+def find_unsafe(conn: sqlite3.Connection, name: str) -> list[tuple]:
+    # WRONG: the user's text becomes part of the SQL itself.
+    sql = f"SELECT name, species FROM pets WHERE name = '{name}'"
+    return conn.execute(sql).fetchall()
+
+
+def find_safe(conn: sqlite3.Connection, name: str) -> list[tuple]:
+    # RIGHT: the SQL is fixed; the name travels separately as plain data.
+    return conn.execute("SELECT name, species FROM pets WHERE name = ?",
+                        (name,)).fetchall()
+
+
+def injection_demo() -> None:
+    conn = make_db()
+    for pet in PETS:
+        conn.execute("INSERT INTO pets (name, species, age) "
+                     "VALUES (:name, :species, :age)", pet)
+
+    print(f"normal search, unsafe: {find_unsafe(conn, 'Tom')}")
+    print(f"normal search, safe:   {find_safe(conn, 'Tom')}")
+
+    # A user types this into the search box instead of a name.
+    attack = "x' OR '1'='1"
+    print("the query the unsafe version builds:")
+    print(f"  SELECT name, species FROM pets WHERE name = '{attack}'")
+    print(f"unsafe with the attack: {find_unsafe(conn, attack)}")
+    print(f"safe with the attack:   {find_safe(conn, attack)}  (no pet has that name)")
+
+    # Names with apostrophes are not attacks, yet they break the unsafe version.
+    irish = "O'Malley"
+    try:
+        find_unsafe(conn, irish)
+    except sqlite3.OperationalError as exc:
+        print(f"unsafe with {irish}: OperationalError: {exc}")
+    print(f"safe with {irish}: {find_safe(conn, irish)}")
+    conn.close()
+
+
 def main() -> None:
     create_and_insert_demo()
     print()
     rows_demo()
     print()
     update_delete_demo()
+    print()
+    injection_demo()
 
 
 if __name__ == "__main__":
