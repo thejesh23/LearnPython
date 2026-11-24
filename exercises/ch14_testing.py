@@ -17,6 +17,7 @@ in exercises/solutions/ch14_testing.py: try first, peek second. The lessons
 for this chapter are in basics/14_testing/.
 """
 
+import time
 from collections.abc import Callable
 from typing import Any
 
@@ -210,10 +211,55 @@ def check_check_send_welcome() -> None:
     report("3. check_send_welcome", test_check_send_welcome, check_send_welcome)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def greeting() -> str:
+    """Given, complete: a function that depends on the real clock."""
+    hour = time.localtime().tm_hour
+    if hour < 12:
+        return "Good morning"
+    if hour < 18:
+        return "Good afternoon"
+    return "Good evening"
+
+
+def greeting_at(hour: int) -> str:
+    """Return what greeting() says when the clock shows `hour` o'clock.
+
+    Do not change greeting(). Instead, use unittest.mock.patch as a with
+    block to replace time.localtime while you call it:
+        with patch("time.localtime") as fake:
+            fake.return_value.tm_hour = hour
+            ...
+    The patch is undone when the block ends, even if something raises.
+
+    >>> greeting_at(9)
+    'Good morning'
+    """
+    raise NotImplementedError
+
+
+def test_greeting_at(impl: Callable[[int], str]) -> None:
+    real_localtime = time.localtime
+    cases = [(9, "Good morning"), (0, "Good morning"), (12, "Good afternoon"),
+             (17, "Good afternoon"), (18, "Good evening"), (23, "Good evening")]
+    for hour, expected in cases:
+        got = impl(hour)
+        assert got == expected, (
+            f"greeting_at({hour}) should be {expected!r}, got {got!r}"
+        )
+    assert time.localtime is real_localtime, "undo the patch when you are done"
+
+
+def check_greeting_at() -> None:
+    report("4. greeting_at", test_greeting_at, greeting_at)
+
+
 def main() -> None:
     check_check_is_leap()
     check_assert_raises()
     check_check_send_welcome()
+    check_greeting_at()
 
 
 if __name__ == "__main__":
