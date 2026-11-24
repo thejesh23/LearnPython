@@ -107,10 +107,54 @@ def counting_demo() -> None:
     print(f"a missing word counts as zero: {content['telephone']}")
 
 
+def bar_chart(pairs: list[tuple[str, int]], width: int = 30) -> list[str]:
+    """One line per (label, count), with a bar scaled to the biggest count."""
+    if not pairs:
+        return ["(nothing to chart)"]
+    biggest = pairs[0][1]
+    label_width = max(len(label) for label, _ in pairs)
+    lines = []
+    for label, count in pairs:
+        # Scale so the largest bar is `width` long; every bar gets at least
+        # one character so small counts stay visible.
+        bar = "#" * max(1, round(count / biggest * width))
+        lines.append(f"  {label:<{label_width}}  {count:>3}  {bar}")
+    return lines
+
+
+def report(title: str, text: str, top: int = 8) -> str:
+    words = tokenise(text)
+    counts = count_words(words)
+    content = count_content_words(words)
+    average = sum(len(w) for w in words) / len(words)
+    # max with key=len returns the first of the longest words it meets.
+    longest = max(counts, key=len)
+    lines = [
+        title,
+        "=" * len(title),
+        f"  words              {len(words):>6}",
+        f"  distinct words     {len(counts):>6}",
+        f"  distinct / total   {len(counts) / len(words):>6.2f}",
+        f"  average length     {average:>6.2f}",
+        f"  longest word       {longest}",
+        "",
+        f"Top {top} content words",
+        *bar_chart(content.most_common(top)),
+    ]
+    return "\n".join(lines)
+
+
+def report_demo() -> None:
+    print("== stage 3: the report ==")
+    print(report("The Gettysburg Address", GETTYSBURG))
+
+
 def main() -> None:
     tokenise_demo()
     print()
     counting_demo()
+    print()
+    report_demo()
 
 
 if __name__ == "__main__":
