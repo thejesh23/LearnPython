@@ -71,10 +71,24 @@ def check_send_and_receive() -> None:
            send_and_receive)
 
 
+def handle_lines(conn: socket.socket) -> None:
+    # makefile wraps the socket in a buffered text file: iterating it yields
+    # one complete, correctly decoded line at a time, however TCP split it.
+    with conn.makefile("r", encoding="utf-8", newline="\n") as lines:
+        for line in lines:
+            text = line.removesuffix("\n")
+            conn.sendall((text[::-1] + "\n").encode("utf-8"))
+
+
+def check_handle_lines() -> None:
+    report("4. handle_lines", EXERCISES["test_handle_lines"], handle_lines)
+
+
 def main() -> None:
     check_get_param()
     check_add_params()
     check_send_and_receive()
+    check_handle_lines()
 
 
 if __name__ == "__main__":
