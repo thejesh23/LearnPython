@@ -21,6 +21,7 @@ import hashlib
 import sqlite3
 import struct
 import tempfile
+import zipfile
 from collections.abc import Callable
 from contextlib import closing
 from pathlib import Path
@@ -221,11 +222,65 @@ def check_top_customers() -> None:
     report("4. top_customers", test_top_customers, top_customers)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def safe_extract(zip_path: Path, dest: Path) -> list[str]:
+    """Extract a zip file into dest and return the sorted member names.
+
+    A zip from someone else can hold a member named "../../.bashrc" or
+    "/etc/passwd", which would land outside dest. So check every member
+    BEFORE extracting anything:
+        target = (dest / name).resolve()
+    must be inside dest.resolve(); test that with Path.is_relative_to, not
+    a string startswith (a folder "dest-evil" starts with "dest" too). If any
+    member fails, raise ValueError naming it and extract nothing at all.
+    """
+    raise NotImplementedError
+
+
+def test_safe_extract(impl: Callable[[Path, Path], list[str]]) -> None:
+    def make_zip(path: Path, members: dict[str, str]) -> None:
+        with zipfile.ZipFile(path, "w") as archive:
+            for name, text in members.items():
+                archive.writestr(name, text)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        make_zip(root / "good.zip", {"docs/b.txt": "bee", "a.txt": "ay"})
+        dest = root / "dest"
+        dest.mkdir()
+        got = impl(root / "good.zip", dest)
+        assert got == ["a.txt", "docs/b.txt"], f"expected the sorted names, got {got}"
+        text = (dest / "docs" / "b.txt").read_text()
+        assert text == "bee", f"docs/b.txt should hold 'bee', got {text!r}"
+
+        # "out-evil" starts with "out", which fools a string startswith check.
+        for evil in ("../evil.txt", "../out-evil/x.txt", "/abs.txt"):
+            out = root / "out"
+            out.mkdir()
+            make_zip(root / "bad.zip", {"fine.txt": "ok", evil: "gotcha"})
+            try:
+                impl(root / "bad.zip", out)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"a member named {evil!r} should raise ValueError")
+            left = sorted(p.name for p in out.iterdir())
+            assert left == [], f"nothing should be extracted, found {left}"
+            assert not (root / "evil.txt").exists(), "evil.txt escaped the folder"
+            out.rmdir()
+
+
+def check_safe_extract() -> None:
+    report("5. safe_extract", test_safe_extract, safe_extract)
+
+
 def main() -> None:
     check_sha256_file()
     check_parse_header()
     check_add_user()
     check_top_customers()
+    check_safe_extract()
 
 
 if __name__ == "__main__":
