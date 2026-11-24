@@ -57,8 +57,33 @@ def exit_codes_demo() -> None:
         print(f"caught SystemExit with code {exc.code}, so we keep going")
 
 
+TWO_STREAMS = """
+import sys
+print("result line 1")
+print("warning: skipped a bad row", file=sys.stderr)
+print("result line 2")
+"""
+
+
+def streams_demo() -> None:
+    result = run_child(TWO_STREAMS)
+    # The two streams arrive separately, like `prog > results.txt` would see.
+    print(f"stdout: {result.stdout.splitlines()}")
+    print(f"stderr: {result.stderr.splitlines()}")
+
+    # stderr=subprocess.STDOUT merges them into one stream, like `2>&1`.
+    merged = subprocess.run([sys.executable, "-c", TWO_STREAMS],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True)
+    print(f"merged: {len(merged.stdout.splitlines())} lines in one stream")
+    # In your own code: print(..., file=sys.stderr) for messages that are not
+    # the program's result. The logging module writes to stderr by default.
+
+
 def main() -> None:
     exit_codes_demo()
+    print()
+    streams_demo()
 
 
 if __name__ == "__main__":
