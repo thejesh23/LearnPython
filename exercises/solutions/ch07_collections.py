@@ -71,11 +71,22 @@ def check_group_by_length() -> None:
            group_by_length)
 
 
+def common_items(a: list[Any], b: list[Any]) -> list[Any]:
+    # Sets drop duplicates and & keeps what both share; sorted() turns the
+    # unordered result into a predictable list.
+    return sorted(set(a) & set(b))
+
+
+def check_common_items() -> None:
+    report("5. common_items", EXERCISES["test_common_items"], common_items)
+
+
 def main() -> None:
     check_squares_of_evens()
     check_unique_in_order()
     check_word_counts()
     check_group_by_length()
+    check_common_items()
 
 
 if __name__ == "__main__":
