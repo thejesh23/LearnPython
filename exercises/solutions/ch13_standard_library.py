@@ -16,6 +16,7 @@ line by line; if the tests pass, it is a valid solution.
 import runpy
 from collections import Counter
 from collections import defaultdict
+from collections import deque
 from pathlib import Path
 
 
@@ -48,9 +49,26 @@ def check_group_by_length() -> None:
     report("2. group_by_length", EXERCISES["test_group_by_length"], group_by_length)
 
 
+def moving_average(values: list[float], window: int) -> list[float]:
+    if window < 1:
+        raise ValueError(f"window must be at least 1, got {window}")
+    recent: deque[float] = deque(maxlen=window)
+    averages: list[float] = []
+    for value in values:
+        recent.append(value)  # the oldest value falls off the other end
+        if len(recent) == window:
+            averages.append(sum(recent) / window)
+    return averages
+
+
+def check_moving_average() -> None:
+    report("3. moving_average", EXERCISES["test_moving_average"], moving_average)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
+    check_moving_average()
 
 
 if __name__ == "__main__":
