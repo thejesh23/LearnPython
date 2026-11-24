@@ -3,7 +3,7 @@
 Every `.py` file in this repo, grouped by category. Any file can be run with `python3 <path>`.
 Packages (folders with a `__main__.py`) are run with `python3 -m <dotted.path>`.
 
-_380 runnable samples across 45 directories._
+_432 runnable samples across 51 directories._
 
 ## advanced
 - [argparse_cli](advanced/argparse_cli.py)
@@ -75,6 +75,7 @@ _380 runnable samples across 45 directories._
 
 ## basics/02_types
 - [booleans_and_none](basics/02_types/booleans_and_none.py)
+- [decimal_and_fractions](basics/02_types/decimal_and_fractions.py)
 - [int_and_float](basics/02_types/int_and_float.py)
 - [strings_type](basics/02_types/strings_type.py)
 - [type_conversion](basics/02_types/type_conversion.py)
@@ -92,6 +93,8 @@ _380 runnable samples across 45 directories._
 - [f_strings](basics/04_strings/f_strings.py)
 - [multiline_and_raw](basics/04_strings/multiline_and_raw.py)
 - [slicing](basics/04_strings/slicing.py)
+- [text_tools](basics/04_strings/text_tools.py)
+- [unicode_and_bytes](basics/04_strings/unicode_and_bytes.py)
 
 ## basics/05_control_flow
 - [break_continue_else](basics/05_control_flow/break_continue_else.py)
@@ -107,46 +110,65 @@ _380 runnable samples across 45 directories._
 - [closures_and_scope](basics/06_functions/closures_and_scope.py)
 - [decorators](basics/06_functions/decorators.py)
 - [default_arguments](basics/06_functions/default_arguments.py)
+- [docstrings_and_help](basics/06_functions/docstrings_and_help.py)
+- [higher_order_functions](basics/06_functions/higher_order_functions.py)
 - [keyword_and_positional_only](basics/06_functions/keyword_and_positional_only.py)
 - [lambdas](basics/06_functions/lambdas.py)
+- [recursion](basics/06_functions/recursion.py)
 
 ## basics/07_collections
 - [comprehensions](basics/07_collections/comprehensions.py)
 - [copying_and_references](basics/07_collections/copying_and_references.py)
 - [dict_basics](basics/07_collections/dict_basics.py)
+- [dict_patterns](basics/07_collections/dict_patterns.py)
 - [list_basics](basics/07_collections/list_basics.py)
 - [set_basics](basics/07_collections/set_basics.py)
 - [sorting](basics/07_collections/sorting.py)
+- [stacks_and_queues](basics/07_collections/stacks_and_queues.py)
 - [tuples](basics/07_collections/tuples.py)
 
 ## basics/08_iterators
+- [generator_pipelines](basics/08_iterators/generator_pipelines.py)
 - [generators](basics/08_iterators/generators.py)
 - [iterables_and_iterators](basics/08_iterators/iterables_and_iterators.py)
 - [itertools_tour](basics/08_iterators/itertools_tour.py)
+- [yield_from_and_send](basics/08_iterators/yield_from_and_send.py)
 
 ## basics/09_classes
 - [abstract_and_protocols](basics/09_classes/abstract_and_protocols.py)
 - [basic_class](basics/09_classes/basic_class.py)
 - [class_and_static_methods](basics/09_classes/class_and_static_methods.py)
+- [composition_over_inheritance](basics/09_classes/composition_over_inheritance.py)
 - [dataclasses_intro](basics/09_classes/dataclasses_intro.py)
+- [descriptors](basics/09_classes/descriptors.py)
 - [dunder_methods](basics/09_classes/dunder_methods.py)
 - [enums](basics/09_classes/enums.py)
+- [equality_and_hashing](basics/09_classes/equality_and_hashing.py)
 - [inheritance](basics/09_classes/inheritance.py)
+- [init_subclass_and_metaclasses](basics/09_classes/init_subclass_and_metaclasses.py)
 - [properties](basics/09_classes/properties.py)
+- [slots](basics/09_classes/slots.py)
 
 ## basics/10_async
 - [async_await](basics/10_async/async_await.py)
+- [async_context_managers](basics/10_async/async_context_managers.py)
 - [async_generators](basics/10_async/async_generators.py)
+- [async_queues](basics/10_async/async_queues.py)
 - [tasks_and_cancellation](basics/10_async/tasks_and_cancellation.py)
+- [timeouts_and_threads](basics/10_async/timeouts_and_threads.py)
 
 ## basics/11_errors
 - [custom_exceptions](basics/11_errors/custom_exceptions.py)
+- [debugging_tools](basics/11_errors/debugging_tools.py)
 - [exception_groups](basics/11_errors/exception_groups.py)
 - [raising_exceptions](basics/11_errors/raising_exceptions.py)
 - [try_except](basics/11_errors/try_except.py)
+- [warnings_module](basics/11_errors/warnings_module.py)
 
 ## basics/12_modules_io
+- [config_files](basics/12_modules_io/config_files.py)
 - [context_managers](basics/12_modules_io/context_managers.py)
+- [contextlib_tools](basics/12_modules_io/contextlib_tools.py)
 - [csv_io](basics/12_modules_io/csv_io.py)
 - [files_and_pathlib](basics/12_modules_io/files_and_pathlib.py)
 - [json_io](basics/12_modules_io/json_io.py)
@@ -163,6 +185,41 @@ _380 runnable samples across 45 directories._
 - [assert_and_doctest](basics/14_testing/assert_and_doctest.py)
 - [mocking_basics](basics/14_testing/mocking_basics.py)
 - [unittest_basics](basics/14_testing/unittest_basics.py)
+
+## basics/15_typing
+- [aliases_newtype_final](basics/15_typing/aliases_newtype_final.py)
+- [callables_and_overloads](basics/15_typing/callables_and_overloads.py)
+- [generics](basics/15_typing/generics.py)
+- [hints_at_runtime](basics/15_typing/hints_at_runtime.py)
+- [typed_dict_and_literal](basics/15_typing/typed_dict_and_literal.py)
+
+## basics/16_threads_and_processes
+- [choosing_concurrency](basics/16_threads_and_processes/choosing_concurrency.py)
+- [race_conditions_and_locks](basics/16_threads_and_processes/race_conditions_and_locks.py)
+- [thread_and_process_pools](basics/16_threads_and_processes/thread_and_process_pools.py)
+- [thread_safe_queues](basics/16_threads_and_processes/thread_safe_queues.py)
+- [threading_basics](basics/16_threads_and_processes/threading_basics.py)
+
+## basics/17_os_and_command_line
+- [command_line_arguments](basics/17_os_and_command_line/command_line_arguments.py)
+- [environment_and_platform](basics/17_os_and_command_line/environment_and_platform.py)
+- [exit_codes_and_cleanup](basics/17_os_and_command_line/exit_codes_and_cleanup.py)
+- [files_and_folders](basics/17_os_and_command_line/files_and_folders.py)
+- [running_programs](basics/17_os_and_command_line/running_programs.py)
+
+## basics/18_data_and_storage
+- [binary_data_and_struct](basics/18_data_and_storage/binary_data_and_struct.py)
+- [compression_and_archives](basics/18_data_and_storage/compression_and_archives.py)
+- [hashing_and_secrets](basics/18_data_and_storage/hashing_and_secrets.py)
+- [pickle_and_its_dangers](basics/18_data_and_storage/pickle_and_its_dangers.py)
+- [sqlite3_basics](basics/18_data_and_storage/sqlite3_basics.py)
+- [sqlite3_queries](basics/18_data_and_storage/sqlite3_queries.py)
+
+## basics/22_packaging_and_projects
+- [installing_packages](basics/22_packaging_and_projects/installing_packages.py)
+- [project_layout_and_tests](basics/22_packaging_and_projects/project_layout_and_tests.py)
+- [pyproject_and_packages](basics/22_packaging_and_projects/pyproject_and_packages.py)
+- [virtual_environments](basics/22_packaging_and_projects/virtual_environments.py)
 
 ## bit_manipulation
 - [bit_basics](bit_manipulation/bit_basics.py)
@@ -408,6 +465,13 @@ _380 runnable samples across 45 directories._
 - [problem_002_even_fibonacci](project_euler/problem_002_even_fibonacci.py)
 - [problem_003_largest_prime_factor](project_euler/problem_003_largest_prime_factor.py)
 - [problem_014_longest_collatz](project_euler/problem_014_longest_collatz.py)
+
+## projects
+- [contact_book](projects/contact_book.py)
+- [expense_tracker](projects/expense_tracker.py)
+- [quiz_game](projects/quiz_game.py)
+- [text_adventure](projects/text_adventure.py)
+- [todo_cli](projects/todo_cli.py)
 
 ## puzzles
 - [fizzbuzz_variations](puzzles/fizzbuzz_variations.py)
