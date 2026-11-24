@@ -82,10 +82,43 @@ def passing_functions_demo() -> None:
         print(f"passed double(5) by mistake -> TypeError: {exc}")
 
 
+def compose(f: Callable[[int], int], g: Callable[[int], int]) -> Callable[[int], int]:
+    """Return a new function that runs g, then f on the result."""
+
+    def composed(value: int) -> int:
+        return f(g(value))
+
+    composed.__name__ = f"{f.__name__}_after_{g.__name__}"
+    return composed
+
+
+def make_validator(minimum: int, maximum: int) -> Callable[[int], bool]:
+    """Build a checker function from settings, instead of passing them every call."""
+
+    def is_valid(value: int) -> bool:
+        return minimum <= value <= maximum
+
+    return is_valid
+
+
+def returning_functions_demo() -> None:
+    square_then_double = compose(double, square)
+    print(f"{square_then_double.__name__}(3) = {square_then_double(3)}")
+    double_then_square = compose(square, double)
+    print(f"{double_then_square.__name__}(3) = {double_then_square(3)}")
+
+    is_percent = make_validator(0, 100)
+    is_dice_roll = make_validator(1, 6)
+    print(f"is_percent(42) = {is_percent(42)}, is_percent(140) = {is_percent(140)}")
+    print(f"rolls valid: {[is_dice_roll(r) for r in (0, 3, 6, 7)]}")
+
+
 def main() -> None:
     functions_as_values_demo()
     print()
     passing_functions_demo()
+    print()
+    returning_functions_demo()
 
 
 if __name__ == "__main__":
