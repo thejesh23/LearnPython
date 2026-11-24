@@ -13,9 +13,11 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import csv
+import importlib.util
 import json
 import runpy
 from pathlib import Path
+from types import ModuleType
 from typing import Any
 
 
@@ -77,11 +79,25 @@ def check_csv_totals() -> None:
     report("4. csv_totals", EXERCISES["test_csv_totals"], csv_totals)
 
 
+def load_module(path: Path, name: str) -> ModuleType:
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)  # executes the file's top-level code
+    return module
+
+
+def check_load_module() -> None:
+    report("5. load_module", EXERCISES["test_load_module"], load_module)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
     check_load_settings()
     check_csv_totals()
+    check_load_module()
 
 
 if __name__ == "__main__":
