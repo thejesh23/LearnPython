@@ -12,6 +12,7 @@ say [solved].
 
 import runpy
 from pathlib import Path
+from typing import Any
 
 
 # Run the exercise file as a module and keep its globals: report() and the
@@ -32,8 +33,20 @@ def check_squares_of_evens() -> None:
            squares_of_evens)
 
 
+def unique_in_order(items: list[Any]) -> list[Any]:
+    # Dict keys are unique and keep insertion order, so dict.fromkeys is an
+    # ordered set. A loop with a `seen` set works too.
+    return list(dict.fromkeys(items))
+
+
+def check_unique_in_order() -> None:
+    report("2. unique_in_order", EXERCISES["test_unique_in_order"],
+           unique_in_order)
+
+
 def main() -> None:
     check_squares_of_evens()
+    check_unique_in_order()
 
 
 if __name__ == "__main__":
