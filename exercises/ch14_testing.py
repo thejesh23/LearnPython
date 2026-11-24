@@ -156,9 +156,64 @@ def check_assert_raises() -> None:
     report("2. assert_raises", test_assert_raises, assert_raises)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def check_send_welcome(send_welcome: Callable[[str, Any], None]) -> None:
+    """Check a send_welcome(email, mailer) function using a Mock mailer.
+
+    A correct send_welcome calls exactly once:
+        mailer.send(to=email, subject="Welcome!")
+    Create a unittest.mock.Mock() to stand in for the mailer, call
+    send_welcome("ana@example.com", mock), then check what the mock
+    recorded. mock.send.assert_called_once_with(...) raises AssertionError
+    for a wrong count or wrong arguments, which is exactly what you want.
+    """
+    raise NotImplementedError
+
+
+def test_check_send_welcome(impl: Callable[[Callable[..., None]], None]) -> None:
+    def correct(email: str, mailer: Any) -> None:
+        mailer.send(to=email, subject="Welcome!")
+
+    def wrong_subject(email: str, mailer: Any) -> None:
+        mailer.send(to=email, subject="Hello")
+
+    def sends_twice(email: str, mailer: Any) -> None:
+        mailer.send(to=email, subject="Welcome!")
+        mailer.send(to=email, subject="Welcome!")
+
+    def never_sends(email: str, mailer: Any) -> None:
+        pass
+
+    def wrong_address(email: str, mailer: Any) -> None:
+        mailer.send(to="admin@example.com", subject="Welcome!")
+
+    try:
+        impl(correct)
+    except AssertionError as exc:
+        raise AssertionError(f"a correct send_welcome failed: {exc}") from None
+    bugs = {
+        "uses the wrong subject": wrong_subject,
+        "sends the email twice": sends_twice,
+        "never sends anything": never_sends,
+        "sends to the wrong address": wrong_address,
+    }
+    for description, buggy in bugs.items():
+        try:
+            impl(buggy)
+        except AssertionError:
+            continue
+        raise AssertionError(f"your check missed a send_welcome that {description}")
+
+
+def check_check_send_welcome() -> None:
+    report("3. check_send_welcome", test_check_send_welcome, check_send_welcome)
+
+
 def main() -> None:
     check_check_is_leap()
     check_assert_raises()
+    check_check_send_welcome()
 
 
 if __name__ == "__main__":
