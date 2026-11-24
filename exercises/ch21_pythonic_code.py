@@ -90,8 +90,43 @@ def check_scoreboard() -> None:
     report("1. scoreboard", test_scoreboard, scoreboard)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def remove_short(words: list[str], min_length: int) -> None:
+    """Remove, in place, every word shorter than min_length. Return None.
+
+    The tempting version skips words:
+        for word in words:
+            if len(word) < min_length:
+                words.remove(word)
+    Removing an item shifts the rest left, so the loop jumps over the word
+    right after each one removed. Callers hold a reference to this list, so
+    it must be the same list object afterwards: build the kept words and
+    assign them with words[:] = ..., rather than words = ...
+    """
+    raise NotImplementedError
+
+
+def test_remove_short(impl: Callable[[list[str], int], None]) -> None:
+    words = ["a", "an", "the", "of", "to", "python", "is", "fun"]
+    same = words
+    result = impl(words, 3)
+    assert result is None, "change the list in place and return None"
+    assert words is same, "it must still be the same list object"
+    want = ["the", "python", "fun"]
+    assert words == want, f"expected {want}, got {words}"
+    words = ["ok", "no", "no", "no"]
+    impl(words, 3)
+    assert words == [], f"every word was short, but {words} is left"
+
+
+def check_remove_short() -> None:
+    report("2. remove_short", test_remove_short, remove_short)
+
+
 def main() -> None:
     check_scoreboard()
+    check_remove_short()
 
 
 if __name__ == "__main__":
