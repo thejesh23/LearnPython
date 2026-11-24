@@ -62,12 +62,25 @@ def lazy_formatting_demo() -> None:
     log.info("value is %s", Expensive())         # built once, then shown
 
 
+def exception_demo() -> None:
+    log = logging.getLogger("app.jobs")
+    try:
+        1 / 0
+    except ZeroDivisionError:
+        # exception() logs at ERROR level and appends the full traceback,
+        # so you keep the evidence without crashing.
+        log.exception("job failed")
+    log.info("carrying on with the next job")
+
+
 def main() -> None:
     levels_demo()
     print()
     named_loggers_demo()
     print()
     lazy_formatting_demo()
+    print()
+    exception_demo()
 
 
 if __name__ == "__main__":
