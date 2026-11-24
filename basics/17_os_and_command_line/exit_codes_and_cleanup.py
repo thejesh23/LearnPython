@@ -80,10 +80,40 @@ def streams_demo() -> None:
     # the program's result. The logging module writes to stderr by default.
 
 
+ATEXIT_CHILD = """
+import atexit, os, sys
+
+def close_db(): print("  closing the database")
+def remove_lock(): print("  removing the lock file")
+
+atexit.register(close_db)
+atexit.register(remove_lock)   # registered last, so it runs first
+print("  working")
+{ending}
+"""
+
+
+def atexit_demo() -> None:
+    endings = {
+        "normal end": "",
+        "sys.exit(2)": "sys.exit(2)",
+        "uncaught error": "raise RuntimeError('boom')",
+        # os._exit ends the process immediately: no atexit, no finally,
+        # and unflushed output is lost. Only for special cases.
+        "os._exit(4)": "sys.stdout.flush(); os._exit(4)",
+    }
+    for label, ending in endings.items():
+        result = run_child(ATEXIT_CHILD.replace("{ending}", ending))
+        print(f"{label} (exit code {result.returncode}):")
+        print(result.stdout.rstrip())
+
+
 def main() -> None:
     exit_codes_demo()
     print()
     streams_demo()
+    print()
+    atexit_demo()
 
 
 if __name__ == "__main__":
