@@ -17,6 +17,7 @@ in exercises/solutions/ch12_modules_io.py: try first, peek second. The lessons
 for this chapter are in basics/12_modules_io/.
 """
 
+import json
 import tempfile
 from collections.abc import Callable
 from pathlib import Path
@@ -133,9 +134,50 @@ def check_write_scores() -> None:
     report("2. write_scores", test_write_scores, write_scores)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def load_settings(path: Path, defaults: dict[str, Any]) -> dict[str, Any]:
+    """Load JSON settings from `path` on top of `defaults`.
+
+    - If the file does not exist, return a copy of defaults.
+    - Otherwise return defaults updated with the values from the file (the
+      file wins), e.g. {"theme": "light", "size": 12} plus a file holding
+      {"theme": "dark"} gives {"theme": "dark", "size": 12}.
+    - Never change the defaults dict you were given.
+    - A file that is not valid JSON raises json.JSONDecodeError; let it.
+    """
+    raise NotImplementedError
+
+
+def test_load_settings(impl: Callable[[Path, dict[str, Any]], Any]) -> None:
+    defaults = {"theme": "light", "size": 12, "plugins": []}
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "settings.json"
+        got = impl(path, defaults)
+        assert got == defaults, f"a missing file should give the defaults, got {got}"
+        assert got is not defaults, "return a copy, not the defaults dict itself"
+        path.write_text(json.dumps({"theme": "dark", "plugins": ["git"]}))
+        got = impl(path, defaults)
+        expected = {"theme": "dark", "size": 12, "plugins": ["git"]}
+        assert got == expected, f"expected {expected}, got {got}"
+        assert defaults["theme"] == "light", "the defaults dict must not change"
+        path.write_text("{not json")
+        try:
+            impl(path, defaults)
+        except json.JSONDecodeError:
+            pass
+        else:
+            raise AssertionError("invalid JSON should raise json.JSONDecodeError")
+
+
+def check_load_settings() -> None:
+    report("3. load_settings", test_load_settings, load_settings)
+
+
 def main() -> None:
     check_count_lines()
     check_write_scores()
+    check_load_settings()
 
 
 if __name__ == "__main__":
