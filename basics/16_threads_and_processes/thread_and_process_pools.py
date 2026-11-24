@@ -20,7 +20,9 @@ the script must start its work under `if __name__ == "__main__":`.
 """
 
 import time
+from concurrent.futures import Future
 from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import as_completed
 
 
 def fetch_page(url: str) -> str:
@@ -41,8 +43,30 @@ def map_demo() -> None:
     print(f"4 fetches of 0.1s overlapped (took < 0.2s): {elapsed < 0.2}")
 
 
+def slow_square(n: int, seconds: float) -> int:
+    time.sleep(seconds)
+    return n * n
+
+
+def submit_demo() -> None:
+    jobs = {1: 0.15, 2: 0.05, 3: 0.10}  # number -> how long it takes
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        # submit() returns a Future at once. Keeping a dict from future to
+        # input lets us tell which result belongs to which job later.
+        futures: dict[Future[int], int] = {
+            pool.submit(slow_square, n, seconds): n for n, seconds in jobs.items()
+        }
+        # as_completed yields each future the moment it finishes, so fast
+        # jobs are handled first instead of waiting behind slow ones.
+        for future in as_completed(futures):
+            n = futures[future]
+            print(f"  {n} squared is {future.result()} (took {jobs[n]}s)")
+
+
 def main() -> None:
     map_demo()
+    print()
+    submit_demo()
 
 
 if __name__ == "__main__":
