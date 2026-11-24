@@ -15,7 +15,11 @@ This file looks at the runtime side:
     a small decorator   that uses the hints to check arguments at runtime
 """
 
+import functools
+import inspect
+from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Any
 from typing import TYPE_CHECKING
 from typing import get_type_hints
 
@@ -80,12 +84,53 @@ def type_checking_demo() -> None:
         print(f"get_type_hints(format_price) -> NameError: {exc}")
 
 
+def checked[R](fn: Callable[..., R]) -> Callable[..., R]:
+    """Raise TypeError when an argument does not match a plain-class hint."""
+    hints = get_type_hints(fn)
+    signature = inspect.signature(fn)
+
+    @functools.wraps(fn)
+    def wrapper(*args: Any, **kwargs: Any) -> R:
+        # bind() matches the call's arguments to parameter names, exactly as
+        # Python would, so positional and keyword calls are handled alike.
+        bound = signature.bind(*args, **kwargs)
+        for name, value in bound.arguments.items():
+            expected = hints.get(name)
+            # Only check simple classes. Hints like list[int] or int | None
+            # need much more work, which is what real libraries do.
+            if isinstance(expected, type) and not isinstance(value, expected):
+                raise TypeError(f"{name}={value!r} is not {expected.__name__}")
+        return fn(*args, **kwargs)
+
+    return wrapper
+
+
+@checked
+def repeat(word: str, times: int) -> str:
+    return " ".join([word] * times)
+
+
+def validator_demo() -> None:
+    print(f"repeat('hey', 3) = {repeat('hey', 3)!r}")
+    print(f"repeat(word='ok', times=2) = {repeat(word='ok', times=2)!r}")
+    for args in [("hey", "3"), (3, 3)]:
+        try:
+            repeat(*args)
+        except TypeError as exc:
+            print(f"repeat{args} -> TypeError: {exc}")
+    # Checking every call like this costs time. Most projects rely on mypy or
+    # pyright before running instead, and check only data from outside (user
+    # input, JSON, files) at runtime.
+
+
 def main() -> None:
     not_enforced_demo()
     print()
     get_type_hints_demo()
     print()
     type_checking_demo()
+    print()
+    validator_demo()
 
 
 if __name__ == "__main__":
