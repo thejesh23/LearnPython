@@ -233,12 +233,55 @@ def check_make_accumulator() -> None:
     report("5. make_accumulator", test_make_accumulator, make_accumulator)
 
 
+def uppercase_result(fn: Callable[..., str]) -> Callable[..., str]:
+    """A decorator: the wrapped function returns its result in upper case.
+
+    It must pass any positional and keyword arguments straight through, and
+    keep the original function's __name__ and __doc__.
+
+    @uppercase_result
+    def greet(name):
+        return f"hello, {name}"
+
+    greet("ada")    -> "HELLO, ADA"
+    greet.__name__  -> "greet"
+
+    Hint: see decorators.py, including functools.wraps (add the import).
+    """
+    raise NotImplementedError
+
+
+def test_uppercase_result(fn: Callable[..., Any]) -> None:
+    def greet(name: str, punctuation: str = "!") -> str:
+        """Say hello."""
+        return f"hello, {name}{punctuation}"
+
+    loud = fn(greet)
+    got = loud("ada")
+    assert got == "HELLO, ADA!", (
+        f'greet("ada") returned {got!r}, expected "HELLO, ADA!"'
+    )
+    got = loud("ada", punctuation="?")
+    assert got == "HELLO, ADA?", (
+        f'greet("ada", punctuation="?") returned {got!r}, expected "HELLO, ADA?"'
+    )
+    assert loud.__name__ == "greet" and loud.__doc__ == "Say hello.", (
+        f"the decorated function is called {loud.__name__!r} with doc "
+        f"{loud.__doc__!r}; use functools.wraps to keep 'greet' and its docstring"
+    )
+
+
+def check_uppercase_result() -> None:
+    report("6. uppercase_result", test_uppercase_result, uppercase_result)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
     check_append_to()
     check_by_last_name()
     check_make_accumulator()
+    check_uppercase_result()
 
 
 if __name__ == "__main__":
