@@ -130,6 +130,48 @@ def secrets_demo() -> None:
           f"{attacker.randrange(10**6) == reset_code}")
 
 
+# scrypt cost settings: n=2**14, r=8 uses 16 MiB of memory per guess, which
+# makes large-scale guessing on graphics cards expensive.
+SCRYPT_N, SCRYPT_R, SCRYPT_P = 2**14, 8, 1
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)  # a new random salt for every password
+    key = hashlib.scrypt(password.encode(), salt=salt,
+                         n=SCRYPT_N, r=SCRYPT_R, p=SCRYPT_P)
+    # Store the settings and salt next to the hash; none of them are secret.
+    return f"scrypt${SCRYPT_N}${SCRYPT_R}${SCRYPT_P}${salt.hex()}${key.hex()}"
+
+
+def check_password(password: str, stored: str) -> bool:
+    _, n, r, p, salt_hex, key_hex = stored.split("$")
+    key = hashlib.scrypt(password.encode(), salt=bytes.fromhex(salt_hex),
+                         n=int(n), r=int(r), p=int(p))
+    return hmac.compare_digest(key.hex(), key_hex)
+
+
+def password_demo() -> None:
+    # Never store passwords, and never store a plain sha256 of them: it is so
+    # fast that billions of guesses per second are possible.
+    stored = hash_password("correct horse battery staple")
+    name, n, r, p, salt_hex, key_hex = stored.split("$")
+    print(f"stored record: {name}${n}${r}${p}$<{len(salt_hex)} hex salt>"
+          f"$<{len(key_hex)} hex hash>")
+    print(f"right password: {check_password('correct horse battery staple', stored)}")
+    print(f"wrong password: {check_password('Tr0ub4dor&3', stored)}")
+
+    # The salt makes equal passwords hash differently, so one precomputed
+    # table cannot crack every user at once.
+    again = hash_password("correct horse battery staple")
+    print(f"same password, different record: {again != stored}")
+
+    # PBKDF2 is the older, widely supported choice. Its strength comes from
+    # repeating the hash many times; 600_000 is a current recommendation.
+    salt = secrets.token_bytes(16)
+    key = hashlib.pbkdf2_hmac("sha256", b"correct horse", salt, 600_000)
+    print(f"pbkdf2_hmac with 600_000 rounds -> {len(key)}-byte key")
+
+
 def main() -> None:
     sha256_demo()
     print()
@@ -138,6 +180,8 @@ def main() -> None:
     hmac_demo()
     print()
     secrets_demo()
+    print()
+    password_demo()
 
 
 if __name__ == "__main__":
