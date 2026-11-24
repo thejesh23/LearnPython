@@ -15,6 +15,8 @@ Type hints document a function too. Together with the parameter names and
 defaults they form its *signature*, which `inspect.signature` can read back.
 """
 
+import inspect
+
 
 def area(width: float, height: float = 1.0) -> float:
     """Return the area of a rectangle.
@@ -51,8 +53,23 @@ def docstring_demo() -> None:
     print(f"late.__doc__ = {late.__doc__!r}")
 
 
+def getdoc_demo() -> None:
+    # Up to Python 3.12 the raw __doc__ keeps the indentation from the source
+    # file; 3.13 strips it when compiling. Either way, do not rely on it.
+    print("raw __doc__:")
+    for line in area.__doc__.splitlines():
+        print(f"  |{line}")
+
+    # inspect.getdoc always gives the clean version, which is what help() uses.
+    print("inspect.getdoc:")
+    for line in inspect.getdoc(area).splitlines():
+        print(f"  |{line}")
+
+
 def main() -> None:
     docstring_demo()
+    print()
+    getdoc_demo()
 
 
 if __name__ == "__main__":
