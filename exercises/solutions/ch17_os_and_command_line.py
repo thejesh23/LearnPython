@@ -13,6 +13,7 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import argparse
 import runpy
 from collections.abc import Mapping
 from pathlib import Path
@@ -39,8 +40,25 @@ def check_env_settings() -> None:
     report("1. env_settings", EXERCISES["test_env_settings"], env_settings)
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="resize", description="Resize an image.")
+    parser.add_argument("image", help="the picture to resize")
+    # type=int converts the string; a value like "wide" becomes an error.
+    parser.add_argument("--width", type=int, default=800)
+    parser.add_argument("--quality", choices=["low", "medium", "high"],
+                        default="medium")
+    # The dash becomes an underscore: args.dry_run.
+    parser.add_argument("--dry-run", action="store_true")
+    return parser
+
+
+def check_build_parser() -> None:
+    report("2. build_parser", EXERCISES["test_build_parser"], build_parser)
+
+
 def main() -> None:
     check_env_settings()
+    check_build_parser()
 
 
 if __name__ == "__main__":
