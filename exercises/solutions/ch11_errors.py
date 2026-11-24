@@ -13,6 +13,7 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import runpy
+from collections.abc import Callable
 from pathlib import Path
 
 
@@ -66,10 +67,25 @@ def check_insufficient_funds() -> None:
            InsufficientFunds)
 
 
+def retry(func: Callable[[], str], attempts: int) -> str:
+    for attempt in range(1, attempts + 1):
+        try:
+            return func()
+        except ConnectionError:
+            if attempt == attempts:
+                raise  # out of attempts: re-raise the error we just caught
+    raise AssertionError("unreachable: the loop returns or raises")
+
+
+def check_retry() -> None:
+    report("4. retry", EXERCISES["test_retry"], retry)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
     check_insufficient_funds()
+    check_retry()
 
 
 if __name__ == "__main__":
