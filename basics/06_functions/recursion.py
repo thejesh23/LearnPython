@@ -120,6 +120,27 @@ def tree_demo() -> None:
     print(f"total = {total_size(FILES)} KB")
 
 
+calls = 0
+
+
+def fib(n: int) -> int:
+    """Fibonacci the textbook way: two recursive calls per step."""
+    global calls
+    calls += 1
+    return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+
+def branching_demo() -> None:
+    # Each call splits into two, so the same small inputs get solved many times.
+    global calls
+    for n in [10, 20, 25]:
+        calls = 0
+        value = fib(n)
+        print(f"fib({n}) = {value:>6}  took {calls:>7,} calls")
+    # Adding @functools.cache above fib would bring each of these down to
+    # n + 1 calls; see basics/13_standard_library/functools_tools.py.
+
+
 def main() -> None:
     base_case_demo()
     print()
@@ -128,6 +149,8 @@ def main() -> None:
     limit_demo()
     print()
     tree_demo()
+    print()
+    branching_demo()
 
 
 if __name__ == "__main__":
