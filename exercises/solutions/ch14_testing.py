@@ -15,6 +15,7 @@ line by line; if the tests pass, it is a valid solution.
 import runpy
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -38,8 +39,24 @@ def check_check_is_leap() -> None:
     report("1. check_is_leap", EXERCISES["test_check_is_leap"], check_is_leap)
 
 
+def assert_raises(
+    exc_type: type[BaseException], func: Callable[..., Any], *args: Any
+) -> BaseException:
+    try:
+        func(*args)
+    except exc_type as exc:  # other exception types are not caught here
+        return exc
+    # Only reached when func returned normally.
+    raise AssertionError(f"{func.__name__} did not raise {exc_type.__name__}")
+
+
+def check_assert_raises() -> None:
+    report("2. assert_raises", EXERCISES["test_assert_raises"], assert_raises)
+
+
 def main() -> None:
     check_check_is_leap()
+    check_assert_raises()
 
 
 if __name__ == "__main__":
