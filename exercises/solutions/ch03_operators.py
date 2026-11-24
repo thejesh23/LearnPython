@@ -70,12 +70,24 @@ def check_is_leap_year() -> None:
     report("5. is_leap_year", EXERCISES["test_is_leap_year"], is_leap_year)
 
 
+def ceil_div(a: int, b: int) -> int:
+    # Floor division rounds towards negative infinity. Negate a, floor,
+    # negate back, and the rounding now goes towards positive infinity.
+    # Everything stays an int, so huge numbers are exact.
+    return -(-a // b)
+
+
+def check_ceil_div() -> None:
+    report("6. ceil_div", EXERCISES["test_ceil_div"], ceil_div)
+
+
 def main() -> None:
     check_is_even()
     check_in_range()
     check_display_name()
     check_is_vowel()
     check_is_leap_year()
+    check_ceil_div()
 
 
 if __name__ == "__main__":
