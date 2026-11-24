@@ -20,6 +20,8 @@ The lessons for this chapter are in basics/17_os_and_command_line/.
 import argparse
 import contextlib
 import io
+import subprocess
+import sys
 import tempfile
 from collections.abc import Callable
 from collections.abc import Mapping
@@ -191,10 +193,48 @@ def check_find_files() -> None:
     report("3. find_files", test_find_files, find_files)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def run_python(code: str) -> tuple[int, str, str]:
+    """Run `code` in a new Python process; return (exit code, stdout, stderr).
+
+    Use subprocess.run with the command as a list:
+        [sys.executable, "-c", code]
+    sys.executable is the Python running this file. Capture the output as
+    text, pass timeout=10 so a stuck child cannot hang you, and do not use
+    shell=True. A non-zero exit code is an answer here, not an error, so do
+    not raise for it.
+
+        run_python('print("hi")')               ->  (0, "hi\n", "")
+        run_python("import sys; sys.exit(3)")   ->  (3, "", "")
+    """
+    raise NotImplementedError
+
+
+def test_run_python(impl: Callable[[str], tuple[int, str, str]]) -> None:
+    got = impl('print("hi")')
+    assert got == (0, "hi\n", ""), f"print('hi') gave {got}"
+    got = impl("import sys; sys.exit(3)")
+    assert got == (3, "", ""), f"sys.exit(3) gave {got}"
+    got = impl('print("a; b | c > d")')
+    assert got == (0, "a; b | c > d\n", ""), (
+        f"shell characters must reach Python untouched, got {got}"
+    )
+    got = impl('import sys; print("oops", file=sys.stderr); sys.exit("bad")')
+    assert got == (1, "", "oops\nbad\n"), (
+        f"sys.exit('bad') writes to stderr and exits with 1, got {got}"
+    )
+
+
+def check_run_python() -> None:
+    report("4. run_python", test_run_python, run_python)
+
+
 def main() -> None:
     check_env_settings()
     check_build_parser()
     check_find_files()
+    check_run_python()
 
 
 if __name__ == "__main__":
