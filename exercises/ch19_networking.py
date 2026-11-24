@@ -97,8 +97,54 @@ def check_get_param() -> None:
     report("1. get_param", test_get_param, get_param)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def add_params(url: str, params: dict[str, str | int]) -> str:
+    """Return `url` with `params` added to its query string.
+
+    - Parameters already in the URL keep their place; a name given in
+      params replaces the old value in that same place.
+    - New names go at the end, in the order of params.
+    - Values are encoded properly ("fish & chips" -> "fish+%26+chips").
+    - The fragment (#...) and everything else stays as it was.
+
+        url = "https://x.example/s?q=old&page=1#top"
+        add_params(url, {"page": 3, "lang": "en"})
+        ->  "https://x.example/s?q=old&page=3&lang=en#top"
+
+    Split with urlsplit, read the old query with parse_qsl into a dict,
+    update it, build the new query with urlencode, put it back with
+    ._replace(query=...) and urlunsplit.
+    """
+    raise NotImplementedError
+
+
+def test_add_params(impl: Callable[[str, dict[str, str | int]], str]) -> None:
+    cases = [
+        ("https://x.example/s?q=old&page=1#top", {"page": 3, "lang": "en"},
+         "https://x.example/s?q=old&page=3&lang=en#top"),
+        ("https://x.example/s", {"q": "fish & chips"},
+         "https://x.example/s?q=fish+%26+chips"),
+        ("https://x.example/s?a=1", {}, "https://x.example/s?a=1"),
+        ("http://127.0.0.1:8000/api?empty=", {"n": 1},
+         "http://127.0.0.1:8000/api?empty=&n=1"),
+        ("https://x.example/s", {"city": "Zürich"},
+         "https://x.example/s?city=Z%C3%BCrich"),
+    ]
+    for url, params, want in cases:
+        got = impl(url, params)
+        assert got == want, (
+            f"add_params({url!r}, {params}) gave {got!r}, not {want!r}"
+        )
+
+
+def check_add_params() -> None:
+    report("2. add_params", test_add_params, add_params)
+
+
 def main() -> None:
     check_get_param()
+    check_add_params()
 
 
 if __name__ == "__main__":
