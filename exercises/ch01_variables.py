@@ -134,10 +134,42 @@ def check_ends() -> None:
     report("3. ends", test_ends, ends)
 
 
+def head_and_tail(items: list[Any] | tuple[Any, ...]) -> tuple[Any, list[Any]]:
+    """Return the first item and a list of all the others.
+
+    `items` is a list or a tuple with at least one item. The tail is always
+    a list, even when it is empty or when `items` is a tuple.
+
+    head_and_tail([1, 2, 3])     -> (1, [2, 3])
+    head_and_tail(["solo"])      -> ("solo", [])
+    head_and_tail((10, 20, 30))  -> (10, [20, 30])
+    """
+    raise NotImplementedError
+
+
+def test_head_and_tail(fn: Callable[..., Any]) -> None:
+    cases = [
+        ([1, 2, 3], (1, [2, 3])),
+        (["solo"], ("solo", [])),
+        (["a", "b"], ("a", ["b"])),
+        ((10, 20, 30), (10, [20, 30])),
+    ]
+    for items, want in cases:
+        got = fn(items)
+        assert got == want, (
+            f"head_and_tail({items!r}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_head_and_tail() -> None:
+    report("4. head_and_tail", test_head_and_tail, head_and_tail)
+
+
 def main() -> None:
     check_swap()
     check_rotate_left()
     check_ends()
+    check_head_and_tail()
 
 
 if __name__ == "__main__":
