@@ -97,10 +97,56 @@ def property_demo() -> None:
           f"{hasattr(property, '__get__') and hasattr(property, '__set__')}")
 
 
+class Positive:
+    """A number field that must be > 0. Write it once, use it everywhere."""
+
+    def __set_name__(self, owner: type, name: str) -> None:
+        # Called when the owning class is created: price = Positive() tells
+        # this object its name is "price", so it needs no arguments.
+        self.public_name = name
+        self.private_name = "_" + name
+
+    def __get__(self, instance: Any, owner: type) -> Any:
+        if instance is None:
+            return self
+        return getattr(instance, self.private_name)
+
+    def __set__(self, instance: Any, value: float) -> None:
+        if not isinstance(value, (int, float)) or value <= 0:
+            raise ValueError(f"{self.public_name} must be > 0, got {value!r}")
+        setattr(instance, self.private_name, value)
+
+
+class Product:
+    price = Positive()
+    quantity = Positive()  # no copy-pasted property for each field
+
+    def __init__(self, name: str, price: float, quantity: int) -> None:
+        self.name = name
+        self.price = price
+        self.quantity = quantity
+
+    def total(self) -> float:
+        return self.price * self.quantity
+
+
+def validated_field_demo() -> None:
+    p = Product("pen", 1.5, 4)
+    print(f"{p.name}: {p.quantity} x {p.price} = {p.total()}")
+    print(f"stored as: {vars(p)}")
+    for field, bad in (("price", -2), ("quantity", "ten")):
+        try:
+            setattr(p, field, bad)
+        except ValueError as exc:
+            print(f"ValueError: {exc}")
+
+
 def main() -> None:
     get_demo()
     print()
     property_demo()
+    print()
+    validated_field_demo()
 
 
 if __name__ == "__main__":
