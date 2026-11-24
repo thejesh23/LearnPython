@@ -109,8 +109,56 @@ def check_check_is_leap() -> None:
     report("1. check_is_leap", test_check_is_leap, check_is_leap)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def assert_raises(
+    exc_type: type[BaseException], func: Callable[..., Any], *args: Any
+) -> BaseException:
+    """A small version of unittest's assertRaises.
+
+    Call func(*args).
+      - If it raises exc_type (or a subclass), return the exception object,
+        so the caller can look at its message.
+      - If it raises nothing, raise AssertionError with the message
+        "<function name> did not raise <exception name>", for example
+        "int did not raise ValueError" (use func.__name__ and
+        exc_type.__name__).
+      - Any other exception is a real bug: let it pass through unchanged.
+
+    >>> assert_raises(ValueError, int, "abc")
+    ValueError("invalid literal for int() with base 10: 'abc'")
+    """
+    raise NotImplementedError
+
+
+def test_assert_raises(impl: Callable[..., BaseException]) -> None:
+    caught = impl(ValueError, int, "abc")
+    assert isinstance(caught, ValueError), f"return the exception, got {caught!r}"
+    assert "abc" in str(caught), "the returned exception should keep its message"
+    caught = impl(LookupError, {}.__getitem__, "key")
+    assert isinstance(caught, KeyError), "a subclass (KeyError) should count too"
+    try:
+        impl(ValueError, int, "5")
+    except AssertionError as exc:
+        expected = "int did not raise ValueError"
+        assert str(exc) == expected, f"message was {str(exc)!r}, not {expected!r}"
+    else:
+        raise AssertionError("when nothing is raised, raise AssertionError")
+    try:
+        impl(KeyError, int, "abc")
+    except ValueError:
+        pass  # good: an unexpected error went straight through
+    else:
+        raise AssertionError("an exception of another type should pass through")
+
+
+def check_assert_raises() -> None:
+    report("2. assert_raises", test_assert_raises, assert_raises)
+
+
 def main() -> None:
     check_check_is_leap()
+    check_assert_raises()
 
 
 if __name__ == "__main__":
