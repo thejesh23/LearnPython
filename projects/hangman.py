@@ -24,8 +24,11 @@ Uses:
     13_standard_library    random, collections.Counter
 """
 
+import random
+from collections import Counter
 from collections.abc import Callable
 from collections.abc import Iterable
+from collections.abc import Iterator
 from enum import Enum
 
 
@@ -191,12 +194,67 @@ def scripted_game_demo() -> None:
     print(f"play() returned {won}")
 
 
+WORDS = [
+    "python", "string", "module", "lambda", "syntax", "method", "object",
+    "return", "import", "assert", "global", "format", "socket", "thread",
+    "binary", "cursor", "parser", "vector", "buffer", "branch", "commit",
+    "keyword", "boolean", "integer", "package", "closure", "default",
+    "variable", "function", "iterator", "generator", "decorator", "exception",
+]
+
+
+def could_be(word: str, game: Hangman) -> bool:
+    """Is `word` still possible, given what the game has shown so far?"""
+    # Only use what a player can see: the masked word and the guesses.
+    pattern = game.masked.split(" ")
+    if len(word) != len(pattern):
+        return False
+    for shown, letter in zip(pattern, word):
+        if shown != "_" and shown != letter:
+            return False  # a revealed letter does not match
+        if shown == "_" and letter in game.guessed:
+            return False  # a guessed letter would have been revealed here
+    return True
+
+
+def computer_guesses(game: Hangman, words: list[str]) -> Iterator[str]:
+    """Yield the best next letter, looking at the game afresh each time.
+
+    A generator pauses at each yield. play() makes its guess with that
+    letter, and only then asks for the next one, so every guess here sees
+    the result of the previous one.
+    """
+    while not game.over:
+        candidates = [w for w in words if could_be(w, game)]
+        # Count each letter once per candidate word it appears in.
+        votes = Counter(c for w in candidates for c in set(w) - game.guessed)
+        if not votes:
+            return
+        letter, count = votes.most_common(1)[0]
+        if len(candidates) == 1:
+            print(f"  (only {candidates[0]!r} fits)")
+        else:
+            print(f"  ({len(candidates)} words fit; {letter!r} is in {count} of them)")
+        yield letter
+
+
+def computer_player_demo() -> None:
+    print("== stage 4: a computer player ==")
+    rng = random.Random(3)  # seeded, so the demo picks the same word each run
+    word = rng.choice(WORDS)
+    game = Hangman(word)
+    # The generator gets the same game object that play() updates.
+    play(game, computer_guesses(game, WORDS))
+
+
 def main() -> None:
     game_state_demo()
     print()
     art_demo()
     print()
     scripted_game_demo()
+    print()
+    computer_player_demo()
 
 
 if __name__ == "__main__":
