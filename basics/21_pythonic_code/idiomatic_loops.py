@@ -47,8 +47,36 @@ def enumerate_zip_demo() -> None:
         print(f"zip(strict=True) caught a mismatch: {exc}")
 
 
+STOCK = {"apples": 12, "pears": 0, "plums": 7}
+
+
+def report_before() -> list[str]:
+    out = []
+    keys = list(STOCK.keys())
+    keys.sort()
+    for k in keys:
+        out.append(f"{k}={STOCK[k]}")  # a second lookup for every key
+    return out
+
+
+def report_after() -> list[str]:
+    return [f"{name}={count}" for name, count in sorted(STOCK.items())]
+
+
+def dict_items_demo() -> None:
+    print(f"same result: {report_before() == report_after()}")
+    print(f"  {', '.join(report_after())}")
+    # Sorting by value instead of key: pass a key function.
+    by_count = sorted(STOCK.items(), key=lambda pair: pair[1], reverse=True)
+    print(f"  most stocked first: {by_count}")
+    # Iterating a dict gives its keys, so `.keys()` is rarely needed.
+    print(f"  'pears' in STOCK: {'pears' in STOCK}")
+
+
 def main() -> None:
     enumerate_zip_demo()
+    print()
+    dict_items_demo()
 
 
 if __name__ == "__main__":
