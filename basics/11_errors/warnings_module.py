@@ -21,8 +21,11 @@ The same switches exist outside Python code: `python -W error script.py`, or
 the PYTHONWARNINGS environment variable.
 """
 
+import functools
 import linecache
 import warnings
+from collections.abc import Callable
+from typing import Any
 
 
 def old_total(prices: list[float]) -> float:
@@ -91,12 +94,44 @@ def as_errors_demo() -> None:
     print(f"once the block ends it is just a warning: {len(caught)} recorded")
 
 
+def deprecated(advice: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    """Mark a function as deprecated. (Python 3.13 adds warnings.deprecated.)"""
+
+    def decorate(func: Callable[..., Any]) -> Callable[..., Any]:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            warnings.warn(
+                f"{func.__name__}() is deprecated; {advice}",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorate
+
+
+@deprecated("use greet(name, polite=True)")
+def say_hello(name: str) -> str:
+    return f"Hello, {name}"
+
+
+def deprecated_decorator_demo() -> None:
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        print(f"result: {say_hello('Ada')}")
+    show(caught)
+
+
 def main() -> None:
     warn_demo()
     print()
     filters_demo()
     print()
     as_errors_demo()
+    print()
+    deprecated_decorator_demo()
 
 
 if __name__ == "__main__":
