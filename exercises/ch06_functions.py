@@ -79,8 +79,53 @@ def check_average() -> None:
     report("1. average", test_average, average)
 
 
+def make_greeting(name: str) -> str:
+    """Build a greeting such as "Hello, Ada!".
+
+    Add two parameters to the signature (part of the exercise):
+      greeting     second positional parameter, default "Hello"
+      punctuation  keyword-only, default "!"
+
+    make_greeting("Ada")                  -> "Hello, Ada!"
+    make_greeting("Ada", "Hi")            -> "Hi, Ada!"
+    make_greeting("Ada", punctuation="?") -> "Hello, Ada?"
+    make_greeting("Ada", "Hi", "?")       -> TypeError (must be named)
+    """
+    raise NotImplementedError
+
+
+def test_make_greeting(fn: Callable[..., Any]) -> None:
+    calls = [
+        (("Ada",), {}, "Hello, Ada!"),
+        (("Ada", "Hi"), {}, "Hi, Ada!"),
+        (("Ada",), {"greeting": "Welcome"}, "Welcome, Ada!"),
+        (("Ada",), {"punctuation": "?"}, "Hello, Ada?"),
+        (("Grace", "Hey"), {"punctuation": "."}, "Hey, Grace."),
+    ]
+    for args, kwargs, want in calls:
+        got = fn(*args, **kwargs)
+        assert got == want, (
+            f"make_greeting with args {args} and keywords {kwargs} returned "
+            f"{got!r}, expected {want!r}"
+        )
+    try:
+        fn("Ada", "Hi", "?")
+    except TypeError:
+        pass
+    else:
+        raise AssertionError(
+            'make_greeting("Ada", "Hi", "?") worked, but punctuation should be '
+            "keyword-only; add a bare * before it in the signature"
+        )
+
+
+def check_make_greeting() -> None:
+    report("2. make_greeting", test_make_greeting, make_greeting)
+
+
 def main() -> None:
     check_average()
+    check_make_greeting()
 
 
 if __name__ == "__main__":
