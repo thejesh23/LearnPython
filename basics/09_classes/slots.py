@@ -17,6 +17,9 @@ Most classes do not need slots. Reach for them when you create very many
 instances of a small class, or with `@dataclass(slots=True)`.
 """
 
+import sys
+import tracemalloc
+
 
 class PointDict:
     def __init__(self, x: float, y: float) -> None:
@@ -47,8 +50,37 @@ def no_dict_demo() -> None:
         print(f"PointSlots refuses it: AttributeError: {exc}")
 
 
+def memory_for(cls: type, count: int = 10_000) -> int:
+    """Bytes allocated while creating `count` instances of cls."""
+    tracemalloc.start()
+    objects = [cls(1.5, 2.5) for _ in range(count)]
+    used, _peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    del objects
+    return used
+
+
+def memory_demo() -> None:
+    # sys.getsizeof counts only the object itself, not its __dict__, so on
+    # its own it hides most of the difference.
+    d, s = PointDict(1, 2), PointSlots(1, 2)
+    print(f"getsizeof alone: dict object {sys.getsizeof(d)} bytes, "
+          f"slotted object {sys.getsizeof(s)} bytes")
+    with_dict = sys.getsizeof(d) + sys.getsizeof(d.__dict__)
+    print(f"adding the __dict__ ({with_dict} bytes), slots are smaller: "
+          f"{sys.getsizeof(s) < with_dict}")
+
+    # tracemalloc counts every allocation, which is the honest measurement.
+    # The exact numbers differ between Python versions; the direction does not.
+    plain = memory_for(PointDict)
+    slotted = memory_for(PointSlots)
+    print(f"10,000 slotted points used less memory: {slotted < plain}")
+
+
 def main() -> None:
     no_dict_demo()
+    print()
+    memory_demo()
 
 
 if __name__ == "__main__":
