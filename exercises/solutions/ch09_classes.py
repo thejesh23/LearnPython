@@ -128,11 +128,34 @@ def check_version() -> None:
     report("4. Version.from_string", EXERCISES["test_version"], Version)
 
 
+# Reuse the given base class from the exercise file, so isinstance checks in
+# the test see the same Employee.
+Employee = EXERCISES["Employee"]
+
+
+class Manager(Employee):
+    def __init__(self, name: str, salary: float) -> None:
+        super().__init__(name, salary)
+        self.reports: list[Employee] = []  # per instance, never a class attribute
+
+    def add_report(self, employee: Employee) -> None:
+        self.reports.append(employee)
+
+    def describe(self) -> str:
+        names = ", ".join(e.name for e in self.reports) or "nobody"
+        return f"{super().describe()} and manages {len(self.reports)}: {names}"
+
+
+def check_manager() -> None:
+    report("5. Manager(Employee)", EXERCISES["test_manager"], Manager)
+
+
 def main() -> None:
     check_rectangle()
     check_bank_account()
     check_vector()
     check_version()
+    check_manager()
 
 
 if __name__ == "__main__":
