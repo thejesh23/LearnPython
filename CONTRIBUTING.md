@@ -17,14 +17,47 @@ Each category folder may hold one small working package that wraps its single-fi
 - Name it `<topic>_kit` (e.g. `sorts/sort_kit`). Layout: `__init__.py` (public API, `__all__`), one or two implementation modules, `__main__.py` (a demo that also self-checks and exits non-zero on failure), and a short `README.md`.
 - Use relative imports inside the package. Run it from the repo root with `python3 -m sorts.sort_kit`.
 - Standard library only, same as everything else. Type hints and a docstring on every public function.
-- One commit per file is still the rule; add the package files in dependency order and regenerate `DIRECTORY.md` last.
+- Add the package files in dependency order, one commit per file, and regenerate `DIRECTORY.md` last.
 
 ## Commit conventions
 
-- **One file per commit** whenever the file stands alone.
-- **Break a sample into multiple commits** when it contains independently understandable pieces — e.g. an iterative version and a recursive version of the same algorithm.
-- **Commit message format:** `Add: <path> — <one-line what it teaches>`
+- **Small commits.** A file grows one idea at a time: the first commit adds the
+  core idea with a runnable `main()`, and each later commit adds one more piece
+  (a variant, an edge case, a self-check). Every commit must run on its own.
+- **Commit message format:** `Add: <path> — <what it teaches>` for the first
+  commit of a file, `Extend: <path> — <what this step adds>` for later ones.
   - Example: `Add: sorts/bubble_sort.py — iterative bubble sort with in-place swap`
+  - Example: `Extend: basics/13_standard_library/regex_basics.py — capturing groups and named groups`
+- Separate documentation commits use `docs: <path> — <what changed>`.
+
+## The course: `basics/`
+
+- Each chapter folder `NN_topic/` has a `README.md` listing its files **in
+  reading order**. When you add a file, add it to that table where it belongs.
+- Files are teaching material: a module docstring that explains the idea in
+  plain English, comments on the *why*, and a demo whose output is easy to read.
+
+## Exercises: `exercises/`
+
+- One file per chapter, `chNN_<topic>.py`, with a matching
+  `exercises/solutions/chNN_<topic>.py`.
+- Each exercise is a stub that raises `NotImplementedError`, a docstring that
+  states the task, and a `test_<name>(impl)` function full of asserts.
+- The shared `report()` helper prints exactly one line per exercise:
+  `[solved]`, `[not yet] <why>` or `[todo] not attempted`. It never crashes,
+  and the file always exits 0.
+- Solutions load the exercise file's tests with `runpy.run_path` instead of
+  copying them, so the two can never drift apart. Commit the exercise file
+  before its solutions file.
+- Use only what the chapter (and earlier chapters) taught.
+
+## Projects: `projects/`
+
+- One complete program per file, built up over a few commits.
+- The docstring says what it builds and has a `Uses:` list of chapters.
+- Running the file with no arguments plays a scripted demo, because CI runs
+  every file without input. An interactive mode may use `--play`.
+- Add it to the table in `projects/README.md` with the chapter it needs.
 
 ## Naming
 
@@ -33,6 +66,7 @@ Each category folder may hold one small working package that wraps its single-fi
 
 ## Before opening a PR
 
-- Run the file: `python3 <path>` — it must print something and exit 0.
+- Run the file: `python3 <path>`. It must print something, exit 0, and not read from standard input.
+- Run everything: `python3 .github/scripts/run_all.py`.
 - Keep it PEP 8 clean (4-space indent, `snake_case`, ≤ 88 column soft limit).
-- Update `DIRECTORY.md` if you added new files.
+- Update `DIRECTORY.md` if you added new files: `python3 .github/scripts/gen_directory.py`.
