@@ -44,8 +44,33 @@ def views_demo() -> None:
     print(f"out of stock removed: {stock}")
 
 
+def order_demo() -> None:
+    queue = {"ada": 1, "alan": 2, "grace": 3}
+
+    # Updating an existing key keeps its place in the order.
+    queue["ada"] = 10
+    print(f"after update:  {list(queue)}")
+
+    # Removing and re-adding moves the key to the end.
+    queue["ada"] = queue.pop("ada")
+    print(f"after re-add:  {list(queue)}")
+
+    # popitem() removes the most recently added entry (last in, first out).
+    print(f"popitem() -> {queue.popitem()}, left {queue}")
+
+    # First and last keys, without building a list.
+    print(f"first key = {next(iter(queue))}, last key = {next(reversed(queue))}")
+
+    # Order is remembered but not compared: equality ignores it.
+    x = {"a": 1, "b": 2}
+    y = {"b": 2, "a": 1}
+    print(f"{x} == {y} -> {x == y}")
+
+
 def main() -> None:
     views_demo()
+    print()
+    order_demo()
 
 
 if __name__ == "__main__":
