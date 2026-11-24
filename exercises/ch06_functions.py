@@ -194,11 +194,51 @@ def check_by_last_name() -> None:
     report("4. by_last_name", test_by_last_name, by_last_name)
 
 
+def make_accumulator(start: float = 0) -> Callable[[float], float]:
+    """Return a function that adds its argument to a running total.
+
+    Each call of the returned function adds to the total and returns it.
+    Every accumulator keeps its own total.
+
+    acc = make_accumulator(10)
+    acc(5)  -> 15
+    acc(5)  -> 20
+    make_accumulator()(1) -> 1
+
+    Hint: an inner function needs `nonlocal` to update an outer variable.
+    """
+    raise NotImplementedError
+
+
+def test_make_accumulator(fn: Callable[..., Any]) -> None:
+    acc = fn(10)
+    steps = [(5, 15), (5, 20), (0, 20), (-20, 0)]
+    for amount, want in steps:
+        got = acc(amount)
+        assert got == want, (
+            f"after make_accumulator(10), a call with {amount} returned {got!r}, "
+            f"expected {want!r}"
+        )
+    other = fn()
+    got = other(1)
+    assert got == 1, f"make_accumulator()(1) returned {got!r}, expected 1"
+    got = acc(1)
+    assert got == 1, (
+        f"the first accumulator returned {got!r} after the second was used, "
+        "expected 1: each accumulator needs its own total"
+    )
+
+
+def check_make_accumulator() -> None:
+    report("5. make_accumulator", test_make_accumulator, make_accumulator)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
     check_append_to()
     check_by_last_name()
+    check_make_accumulator()
 
 
 if __name__ == "__main__":
