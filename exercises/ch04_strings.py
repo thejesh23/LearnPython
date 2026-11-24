@@ -148,10 +148,44 @@ def check_is_palindrome() -> None:
     report("3. is_palindrome", test_is_palindrome, is_palindrome)
 
 
+def mask_card(number: str) -> str:
+    """Hide a card number except its last four digits.
+
+    Remove the spaces first, then replace every digit but the last four
+    with "*". Numbers of four digits or fewer come back unchanged.
+
+    mask_card("4111 1111 1111 1234") -> "************1234"
+    mask_card("1234567890")          -> "******7890"
+    mask_card("12")                  -> "12"
+
+    Hint: "*" * n repeats a string, and a slice never raises IndexError.
+    """
+    raise NotImplementedError
+
+
+def test_mask_card(fn: Callable[..., Any]) -> None:
+    cases = [
+        ("4111 1111 1111 1234", "************1234"),
+        ("1234567890", "******7890"),
+        ("12345", "*2345"),
+        ("1234", "1234"),
+        ("12", "12"),
+        ("", ""),
+    ]
+    for number, want in cases:
+        got = fn(number)
+        assert got == want, f"mask_card({number!r}) returned {got!r}, expected {want!r}"
+
+
+def check_mask_card() -> None:
+    report("4. mask_card", test_mask_card, mask_card)
+
+
 def main() -> None:
     check_format_price()
     check_initials()
     check_is_palindrome()
+    check_mask_card()
 
 
 if __name__ == "__main__":
