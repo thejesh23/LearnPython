@@ -80,12 +80,26 @@ def check_describe() -> None:
     report("5. describe", EXERCISES["test_describe"], describe)
 
 
+def to_int(text: str) -> int | None:
+    # int() already ignores surrounding whitespace and rejects everything
+    # else with ValueError, so the only work is turning that into None.
+    try:
+        return int(text)
+    except ValueError:
+        return None
+
+
+def check_to_int() -> None:
+    report("6. to_int", EXERCISES["test_to_int"], to_int)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
     check_simplify()
     check_add_money()
     check_describe()
+    check_to_int()
 
 
 if __name__ == "__main__":
