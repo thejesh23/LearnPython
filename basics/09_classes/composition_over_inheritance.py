@@ -14,6 +14,7 @@ QuietSmsNotifier, and so on.
 """
 
 from collections.abc import Callable
+from typing import Any
 
 
 class ListStack(list):
@@ -158,6 +159,42 @@ def swap_parts_demo() -> None:
     print(f"the fake captured: {fake.sent}")
 
 
+class Account:
+    def __init__(self, owner: str) -> None:
+        self.owner = owner
+        self.balance = 0
+
+    def deposit(self, amount: int) -> None:
+        self.balance += amount
+
+
+class AuditedAccount:
+    """Wraps an Account: changes one method, forwards the rest untouched."""
+
+    def __init__(self, inner: Account) -> None:
+        self._inner = inner
+        self.log: list[str] = []
+
+    def deposit(self, amount: int) -> None:
+        self.log.append(f"deposit {amount}")
+        self._inner.deposit(amount)
+
+    def __getattr__(self, name: str) -> Any:
+        # Only called when normal lookup fails, so deposit and log are found
+        # on the wrapper and everything else falls through to the inner object.
+        return getattr(self._inner, name)
+
+
+def delegation_demo() -> None:
+    acct = AuditedAccount(Account("Ada"))
+    acct.deposit(50)
+    acct.deposit(25)
+    print(f"owner={acct.owner}, balance={acct.balance}  (forwarded)")
+    print(f"audit log: {acct.log}")
+    # Note: __getattr__ does not forward special methods such as len() or
+    # ==; a wrapper must define those itself if it needs them.
+
+
 def main() -> None:
     is_a_vs_has_a_demo()
     print()
@@ -166,6 +203,8 @@ def main() -> None:
     composed_demo()
     print()
     swap_parts_demo()
+    print()
+    delegation_demo()
 
 
 if __name__ == "__main__":
