@@ -218,11 +218,54 @@ def check_retry() -> None:
     report("4. retry", test_retry, retry)
 
 
+# --- Exercise 5 -------------------------------------------------------------
+
+def validate_order(order: dict[str, object]) -> None:
+    """Check an order and report *every* problem at once.
+
+    Collect an exception for each problem below, in this order:
+        "item" missing or ""          ValueError("item is required")
+        "quantity" is not an int      TypeError("quantity must be an int")
+        "quantity" is an int below 1  ValueError("quantity must be at least 1")
+        "email" has no "@"            ValueError("email needs an @")
+    If the list is not empty, raise ExceptionGroup("invalid order", errors).
+    A valid order returns None.
+    """
+    raise NotImplementedError
+
+
+def test_validate_order(impl: Callable[[dict[str, object]], None]) -> None:
+    good = {"item": "lamp", "quantity": 2, "email": "ana@example.com"}
+    assert impl(good) is None, "a valid order should return None"
+
+    def problems(order: dict[str, object]) -> list[str]:
+        try:
+            impl(order)
+        except ExceptionGroup as group:
+            assert group.message == "invalid order", "name the group 'invalid order'"
+            return [f"{type(e).__name__}: {e}" for e in group.exceptions]
+        return []
+
+    found = problems({**good, "quantity": 0})
+    expected = ["ValueError: quantity must be at least 1"]
+    assert found == expected, f"quantity 0 gave {found}"
+    found = problems({"quantity": "two", "email": "nope"})
+    expected = ["ValueError: item is required",
+                "TypeError: quantity must be an int",
+                "ValueError: email needs an @"]
+    assert found == expected, f"a bad order gave {found}, expected {expected}"
+
+
+def check_validate_order() -> None:
+    report("5. validate_order", test_validate_order, validate_order)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
     check_insufficient_funds()
     check_retry()
+    check_validate_order()
 
 
 if __name__ == "__main__":
