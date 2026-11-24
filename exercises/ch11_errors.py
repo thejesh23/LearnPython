@@ -130,9 +130,44 @@ def check_parse_age() -> None:
     report("2. parse_age", test_parse_age, parse_age)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+class InsufficientFunds(Exception):
+    """Raised when a withdrawal is bigger than the balance.
+
+    InsufficientFunds(balance, amount) should store `balance` and `amount`
+    as attributes, plus `shortfall` (amount - balance), and pass a readable
+    message to super().__init__ so that:
+
+    >>> str(InsufficientFunds(10, 60))
+    'cannot withdraw 60.00 from a balance of 10.00'
+    """
+
+    def __init__(self, balance: float, amount: float) -> None:
+        raise NotImplementedError
+
+
+def test_insufficient_funds(impl: type) -> None:
+    err = impl(10, 60)
+    assert isinstance(err, Exception), "inherit from Exception"
+    assert (err.balance, err.amount) == (10, 60), "store balance and amount"
+    assert err.shortfall == 50, f"shortfall should be 50, got {err.shortfall}"
+    expected = "cannot withdraw 60.00 from a balance of 10.00"
+    assert str(err) == expected, f"str() was {str(err)!r}, expected {expected!r}"
+    try:
+        raise impl(5, 7.5)
+    except impl as caught:  # callers can catch exactly this error
+        assert caught.shortfall == 2.5, "shortfall should be 2.5 for (5, 7.5)"
+
+
+def check_insufficient_funds() -> None:
+    report("3. InsufficientFunds", test_insufficient_funds, InsufficientFunds)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
+    check_insufficient_funds()
 
 
 if __name__ == "__main__":
