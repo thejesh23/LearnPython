@@ -18,9 +18,11 @@ lessons for this chapter are in basics/18_data_and_storage/.
 """
 
 import hashlib
+import sqlite3
 import struct
 import tempfile
 from collections.abc import Callable
+from contextlib import closing
 from pathlib import Path
 from typing import Any
 
@@ -136,9 +138,47 @@ def check_parse_header() -> None:
     report("2. parse_header", test_parse_header, parse_header)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+def add_user(conn: sqlite3.Connection, name: str, email: str) -> int:
+    """Insert a row into the users table and return its new id.
+
+    The table is: users(id INTEGER PRIMARY KEY, name TEXT, email TEXT).
+    Put the values into the SQL with ? placeholders and a tuple, never with
+    an f-string: names like "Miles O'Brien" contain quotes. Commit, so other
+    connections can see the row, and return cursor.lastrowid.
+    """
+    raise NotImplementedError
+
+
+def test_add_user(impl: Callable[[sqlite3.Connection, str, str], int]) -> None:
+    people = [
+        ("Ada", "ada@example.com"),
+        ("Miles O'Brien", "miles@example.com"),
+        ("Robert'); DROP TABLE users; --", "bobby@example.com"),
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        db = Path(tmp) / "app.db"
+        with closing(sqlite3.connect(db)) as conn:
+            conn.execute(
+                "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, email TEXT)"
+            )
+            ids = [impl(conn, name, email) for name, email in people]
+            assert ids == [1, 2, 3], f"the new ids should be [1, 2, 3], got {ids}"
+        # A second connection sees only committed rows.
+        with closing(sqlite3.connect(db)) as other:
+            rows = other.execute("SELECT name, email FROM users ORDER BY id").fetchall()
+        assert rows == people, f"the table should hold {people}, got {rows}"
+
+
+def check_add_user() -> None:
+    report("3. add_user", test_add_user, add_user)
+
+
 def main() -> None:
     check_sha256_file()
     check_parse_header()
+    check_add_user()
 
 
 if __name__ == "__main__":
