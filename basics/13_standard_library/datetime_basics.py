@@ -11,6 +11,7 @@ A "naive" datetime has no zone, so Python cannot know which moment it means.
 """
 
 from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 
 def creating_demo() -> None:
@@ -28,8 +29,27 @@ def creating_demo() -> None:
         print(f"date(2023, 2, 29): {exc}")
 
 
+def arithmetic_demo() -> None:
+    # Subtracting two dates gives a timedelta; adding a timedelta moves a date.
+    start = date(2024, 1, 1)
+    end = date(2024, 12, 25)
+    gap = end - start
+    print(f"days from {start} to {end}: {gap.days}")
+    print(f"100 days after {start}: {start + timedelta(days=100)}")
+
+    shift = timedelta(hours=7, minutes=30)
+    clock_in = datetime(2024, 3, 1, 22, 0)
+    print(f"a {shift} shift from {clock_in:%H:%M} ends {clock_in + shift}")
+    print(f"total seconds in the shift: {shift.total_seconds():.0f}")
+
+    # timedelta has no "months": months have different lengths, so
+    # "one month later" is a calendar rule you must decide on yourself.
+
+
 def main() -> None:
     creating_demo()
+    print()
+    arithmetic_demo()
 
 
 if __name__ == "__main__":
