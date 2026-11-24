@@ -18,8 +18,10 @@ single setting for one run.
 """
 
 import configparser
+import os
 import tempfile
 import tomllib
+from collections.abc import Mapping
 from pathlib import Path
 
 
@@ -99,10 +101,46 @@ def ini_demo() -> None:
     print(f"round trip through a file, port = {again['server']['port']}")
 
 
+def env_int(name: str, default: int, env: Mapping[str, str] = os.environ) -> int:
+    raw = env.get(name)
+    if raw is None or raw == "":
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        raise ValueError(f"{name} must be a whole number, got {raw!r}") from None
+
+
+def env_bool(name: str, default: bool, env: Mapping[str, str] = os.environ) -> bool:
+    raw = env.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_demo() -> None:
+    # os.environ behaves like a dict of strings. .get() avoids a KeyError
+    # when a variable is not set; os.getenv(name, default) is the same thing.
+    print(f"HOME is set: {'HOME' in os.environ or 'USERPROFILE' in os.environ}")
+
+    # Passing a dict instead of the real os.environ keeps this demo (and
+    # tests) independent of the machine it runs on.
+    fake_env = {"APP_PORT": "9090", "APP_DEBUG": "true", "APP_WORKERS": "four"}
+    print(f"APP_PORT    -> {env_int('APP_PORT', 8000, fake_env)}")
+    print(f"APP_TIMEOUT -> {env_int('APP_TIMEOUT', 30, fake_env)} (default)")
+    print(f"APP_DEBUG   -> {env_bool('APP_DEBUG', False, fake_env)}")
+    try:
+        env_int("APP_WORKERS", 1, fake_env)
+    except ValueError as exc:
+        print(f"ValueError: {exc}")
+
+
 def main() -> None:
     toml_demo()
     print()
     ini_demo()
+    print()
+    env_demo()
 
 
 if __name__ == "__main__":
