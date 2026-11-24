@@ -79,8 +79,41 @@ def check_is_even() -> None:
     report("1. is_even", test_is_even, is_even)
 
 
+def in_range(x: float, low: float, high: float) -> bool:
+    """Return True when low <= x <= high (both ends included).
+
+    in_range(5, 1, 10)  -> True
+    in_range(10, 1, 10) -> True
+    in_range(11, 1, 10) -> False
+
+    Hint: Python lets you write this the way you would in maths.
+    """
+    raise NotImplementedError
+
+
+def test_in_range(fn: Callable[..., Any]) -> None:
+    cases = [
+        ((5, 1, 10), True),
+        ((1, 1, 10), True),
+        ((10, 1, 10), True),
+        ((0, 1, 10), False),
+        ((11, 1, 10), False),
+        ((2.5, 2, 3), True),
+        ((-3, -5, -2), True),
+        ((-1, -5, -2), False),
+    ]
+    for args, want in cases:
+        got = fn(*args)
+        assert got == want, f"in_range{args} returned {got!r}, expected {want!r}"
+
+
+def check_in_range() -> None:
+    report("2. in_range", test_in_range, in_range)
+
+
 def main() -> None:
     check_is_even()
+    check_in_range()
 
 
 if __name__ == "__main__":
