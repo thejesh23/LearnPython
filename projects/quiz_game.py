@@ -24,6 +24,7 @@ Uses:
 """
 
 import random
+import sys
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
@@ -144,12 +145,47 @@ def shuffle_demo() -> None:
     print(f"original untouched: {questions[0].prompt!r}")
 
 
+def grade(score: int, best: int) -> str:
+    share = score / best if best else 0
+    if share >= 0.9:
+        return "excellent"
+    if share >= 0.6:
+        return "good"
+    return "keep practising"
+
+
+def best_score(count: int) -> int:
+    return sum(10 + 5 * i for i in range(count))
+
+
+def game_demo() -> None:
+    questions = shuffled(load_questions(QUESTIONS), random.Random(2024))
+    if "--play" in sys.argv:
+        ask: Callable[[str], str] = input
+    else:
+        # A player who knows most of it, gets one wrong and answers by letter
+        # or by text.
+        ask = scripted(["a", "json", "tuple", "d", "4"])
+    print(f"Python quiz: {len(questions)} questions\n")
+    results = play(questions, ask)
+    print()
+    score, best = sum(r.points for r in results), best_score(len(questions))
+    right = sum(r.correct for r in results)
+    print(f"{right}/{len(results)} right, {score} of {best} points: "
+          f"{grade(score, best)}")
+    for r in results:
+        if not r.correct:
+            print(f"  review: {r.question.prompt} -> {r.question.answer}")
+
+
 def main() -> None:
     questions_demo()
     print()
     scoring_demo()
     print()
     shuffle_demo()
+    print()
+    game_demo()
 
 
 if __name__ == "__main__":
