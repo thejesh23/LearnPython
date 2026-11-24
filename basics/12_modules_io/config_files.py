@@ -23,6 +23,7 @@ import tempfile
 import tomllib
 from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 
 TOML_TEXT = """
@@ -135,12 +136,50 @@ def env_demo() -> None:
         print(f"ValueError: {exc}")
 
 
+DEFAULTS: dict[str, Any] = {"host": "127.0.0.1", "port": 8000, "debug": False}
+
+
+def from_env(env: Mapping[str, str]) -> dict[str, Any]:
+    """Only the variables that are actually set, so the rest fall through."""
+    found: dict[str, Any] = {}
+    if "APP_PORT" in env:
+        found["port"] = env_int("APP_PORT", 0, env)
+    if "APP_DEBUG" in env:
+        found["debug"] = env_bool("APP_DEBUG", False, env)
+    return found
+
+
+def from_args(args: list[str]) -> dict[str, Any]:
+    """A tiny stand-in for argparse: --host=NAME."""
+    return {k[2:]: v for k, v in (a.split("=", 1) for a in args)}
+
+
+def layering_demo() -> None:
+    file_layer = tomllib.loads('port = 8080\nhost = "0.0.0.0"\n')
+    layers = [
+        ("defaults", DEFAULTS),
+        ("file", file_layer),
+        ("env", from_env({"APP_DEBUG": "1"})),
+        ("cli", from_args(["--host=localhost"])),
+    ]
+    # Later dicts win when keys repeat: d1 | d2 | d3.
+    final: dict[str, Any] = {}
+    source: dict[str, str] = {}
+    for name, layer in layers:
+        final |= layer
+        source.update(dict.fromkeys(layer, name))
+    for key, value in final.items():
+        print(f"{key:6} = {value!r:12} from {source[key]}")
+
+
 def main() -> None:
     toml_demo()
     print()
     ini_demo()
     print()
     env_demo()
+    print()
+    layering_demo()
 
 
 if __name__ == "__main__":
