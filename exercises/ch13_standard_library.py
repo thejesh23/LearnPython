@@ -216,12 +216,50 @@ def check_us_to_iso() -> None:
     report("5. us_to_iso", test_us_to_iso, us_to_iso)
 
 
+# --- Exercise 6 -------------------------------------------------------------
+
+def count_paths(rows: int, cols: int) -> int:
+    """Count the routes across a grid, moving only right or down.
+
+    Routes go from the top-left cell to the bottom-right cell.
+    A grid with a single row or a single column has exactly 1 route. Any
+    other grid's routes start either down or right, so:
+        count_paths(rows, cols) = count_paths(rows - 1, cols)
+                                + count_paths(rows, cols - 1)
+    Written that way the same sub-grids are counted again and again. Put
+    @functools.cache on the function so each answer is computed only once.
+
+    >>> count_paths(3, 3)
+    6
+    """
+    raise NotImplementedError
+
+
+def test_count_paths(impl: Callable[[int, int], int]) -> None:
+    cases = [((1, 1), 1), ((1, 5), 1), ((4, 1), 1), ((2, 2), 2), ((3, 3), 6),
+             ((3, 7), 28)]
+    for (rows, cols), expected in cases:
+        got = impl(rows, cols)
+        assert got == expected, (
+            f"count_paths({rows}, {cols}) should be {expected}, got {got}"
+        )
+    assert hasattr(impl, "cache_info"), "decorate count_paths with @functools.cache"
+    # Without the cache this call would take minutes; with it, microseconds.
+    got = impl(18, 18)
+    assert got == 2_333_606_220, f"count_paths(18, 18) gave {got}"
+
+
+def check_count_paths() -> None:
+    report("6. count_paths", test_count_paths, count_paths)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
     check_moving_average()
     check_add_business_days()
     check_us_to_iso()
+    check_count_paths()
 
 
 if __name__ == "__main__":
