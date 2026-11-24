@@ -47,10 +47,27 @@ def named_loggers_demo() -> None:
     web.info("still visible")
 
 
+class Expensive:
+    def __str__(self) -> str:
+        print("  (building an expensive string)")
+        return "expensive"
+
+
+def lazy_formatting_demo() -> None:
+    log = logging.getLogger("app.lazy")
+    log.setLevel(logging.INFO)
+    # Pass values as arguments rather than an f-string: the message is only
+    # built if the record will actually be shown.
+    log.debug("value is %s", Expensive())        # nothing is built
+    log.info("value is %s", Expensive())         # built once, then shown
+
+
 def main() -> None:
     levels_demo()
     print()
     named_loggers_demo()
+    print()
+    lazy_formatting_demo()
 
 
 if __name__ == "__main__":
