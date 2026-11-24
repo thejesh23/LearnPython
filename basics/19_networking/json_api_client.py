@@ -16,6 +16,7 @@ by registering a function.
 
 import json
 import threading
+import time
 import urllib.request
 from collections.abc import Callable
 from collections.abc import Iterator
@@ -126,8 +127,28 @@ def client_demo() -> None:
                 print(f"{path}: ApiError {exc}")
 
 
+@route("slow")
+def slow(parts: list[str]) -> tuple[int, Any]:
+    time.sleep(0.3)  # pretend to be an overloaded server
+    return 200, {"finally": "done"}
+
+
+def timeout_demo() -> None:
+    with local_api() as base:
+        # The timeout applies to each blocking step (connect, each read), not
+        # to the whole request, but it is still the line between "slow" and
+        # "stuck forever".
+        try:
+            get_json(f"{base}/slow", timeout=0.1)
+        except ApiError as exc:
+            print(f"timeout=0.1: {exc}")
+        print(f"timeout=2.0: {get_json(f'{base}/slow', timeout=2.0)}")
+
+
 def main() -> None:
     client_demo()
+    print()
+    timeout_demo()
 
 
 if __name__ == "__main__":
