@@ -28,7 +28,9 @@ reads what is installed without importing it.
 """
 
 import re
+import tempfile
 from importlib import metadata
+from pathlib import Path
 
 
 def parse_version(text: str) -> tuple[int, ...]:
@@ -107,10 +109,50 @@ def installed_demo() -> None:
         print(f"  import {module}  comes from distribution {dist}")
 
 
+REQUIREMENTS = """\
+# requirements.txt: one requirement per line, comments allowed
+pip>=1.0
+surely-not-installed-pkg==1.2.3
+pip<1.0  # an impossible pin, to show a mismatch
+"""
+
+
+def read_requirements(path: Path) -> list[tuple[str, str]]:
+    pairs = []
+    for line in path.read_text().splitlines():
+        line = line.split("#")[0].strip()  # drop comments and blank lines
+        if not line:
+            continue
+        match = re.fullmatch(r"([A-Za-z0-9_.-]+)\s*(.*)", line)
+        if match:
+            pairs.append((match[1], match[2]))
+    return pairs
+
+
+def requirements_demo() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        req_file = Path(tmp) / "requirements.txt"
+        req_file.write_text(REQUIREMENTS)
+        for name, spec in read_requirements(req_file):
+            try:
+                have = metadata.version(name)
+            except metadata.PackageNotFoundError:
+                print(f"  {name}{spec}: MISSING (pip install would fetch it)")
+                continue
+            # Our toy parser only understands the leading numbers ("25.1.dev0"
+            # is checked as "25.1").
+            plain = re.match(r"\d+(\.\d+)*", have)
+            ok = satisfies(plain[0], spec) if spec and plain else True
+            print(f"  {name}{spec}: have {have} -> {'ok' if ok else 'CONFLICT'}")
+    print("pip freeze writes the exact versions so a teammate gets the same set")
+
+
 def main() -> None:
     specifier_demo()
     print()
     installed_demo()
+    print()
+    requirements_demo()
 
 
 if __name__ == "__main__":
