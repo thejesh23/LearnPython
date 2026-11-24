@@ -79,8 +79,42 @@ def check_utf8_length() -> None:
     report("1. utf8_length", test_utf8_length, utf8_length)
 
 
+def split_seconds(total: int) -> tuple[int, int, int]:
+    """Split a number of seconds into (hours, minutes, seconds).
+
+    Hours are not wrapped at 24: a long duration simply has many hours.
+
+    split_seconds(3725)  -> (1, 2, 5)
+    split_seconds(59)    -> (0, 0, 59)
+    split_seconds(90061) -> (25, 1, 1)
+
+    Hint: divmod(a, b) gives the quotient and the remainder at once.
+    """
+    raise NotImplementedError
+
+
+def test_split_seconds(fn: Callable[..., Any]) -> None:
+    cases = [
+        (3725, (1, 2, 5)),
+        (59, (0, 0, 59)),
+        (0, (0, 0, 0)),
+        (3600, (1, 0, 0)),
+        (90061, (25, 1, 1)),
+    ]
+    for total, want in cases:
+        got = fn(total)
+        assert got == want, (
+            f"split_seconds({total}) returned {got!r}, expected {want!r}"
+        )
+
+
+def check_split_seconds() -> None:
+    report("2. split_seconds", test_split_seconds, split_seconds)
+
+
 def main() -> None:
     check_utf8_length()
+    check_split_seconds()
 
 
 if __name__ == "__main__":
