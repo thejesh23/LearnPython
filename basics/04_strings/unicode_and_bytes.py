@@ -74,12 +74,35 @@ def utf8_lengths_demo() -> None:
         print(f"UnicodeDecodeError: {exc}")
 
 
+def error_handlers_demo() -> None:
+    # ASCII only covers code points 0-127, so "é" cannot be encoded in it.
+    text = "café"
+    try:
+        text.encode("ascii")
+    except UnicodeEncodeError as exc:
+        print(f"UnicodeEncodeError: {exc}")
+
+    # errors= says what to do instead of raising.
+    for handler in ["ignore", "replace", "xmlcharrefreplace", "backslashreplace"]:
+        print(f"encode errors={handler!r:<20} -> {text.encode('ascii', handler)!r}")
+
+    # Decoding has the same choices. Latin-1 bytes are not valid UTF-8.
+    latin1 = text.encode("latin-1")
+    print(f"latin-1 bytes: {latin1!r}")
+    for handler in ["replace", "backslashreplace"]:
+        print(f"decode errors={handler!r:<18} -> {latin1.decode('utf-8', handler)!r}")
+    # "replace" inserts U+FFFD, the official "something was lost here" mark.
+    # Prefer fixing the encoding to hiding the problem.
+
+
 def main() -> None:
     code_points_demo()
     print()
     str_vs_bytes_demo()
     print()
     utf8_lengths_demo()
+    print()
+    error_handlers_demo()
 
 
 if __name__ == "__main__":
