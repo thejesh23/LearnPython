@@ -18,6 +18,7 @@ The lessons for this chapter are in basics/13_standard_library/.
 """
 
 from collections.abc import Callable
+from datetime import date
 from typing import Any
 
 
@@ -145,10 +146,48 @@ def check_moving_average() -> None:
     report("3. moving_average", test_moving_average, moving_average)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def add_business_days(start: date, days: int) -> date:
+    """Return the date `days` working days after start, skipping weekends.
+
+    Step one day at a time with timedelta(days=1) and only count Monday to
+    Friday (date.weekday() is 0 for Monday, 5 and 6 for the weekend).
+    days is never negative; adding 0 days returns start unchanged.
+
+    >>> add_business_days(date(2026, 11, 20), 1)   # a Friday
+    datetime.date(2026, 11, 23)
+    """
+    raise NotImplementedError
+
+
+def test_add_business_days(impl: Callable[[date, int], date]) -> None:
+    friday = date(2026, 11, 20)
+    cases = [
+        (friday, 0, friday),
+        (friday, 1, date(2026, 11, 23)),
+        (date(2026, 11, 16), 4, date(2026, 11, 20)),  # Monday + 4 = Friday
+        (date(2026, 11, 21), 1, date(2026, 11, 23)),  # Saturday + 1 = Monday
+        (friday, 10, date(2026, 12, 4)),
+        (date(2026, 12, 30), 3, date(2027, 1, 4)),  # across a new year
+    ]
+    for start, days, expected in cases:
+        got = impl(start, days)
+        assert got == expected, (
+            f"{start:%a %Y-%m-%d} + {days} business days should be "
+            f"{expected:%a %Y-%m-%d}, got {got}"
+        )
+
+
+def check_add_business_days() -> None:
+    report("4. add_business_days", test_add_business_days, add_business_days)
+
+
 def main() -> None:
     check_top_words()
     check_group_by_length()
     check_moving_average()
+    check_add_business_days()
 
 
 if __name__ == "__main__":
