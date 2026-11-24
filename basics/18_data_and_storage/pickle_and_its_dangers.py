@@ -19,6 +19,7 @@ deletes files. Loading a pickle runs code chosen by whoever made it, so:
 import json
 import pickle
 import pickletools
+import shelve
 import tempfile
 import threading
 from dataclasses import dataclass
@@ -128,6 +129,30 @@ def json_instead_demo() -> None:
     # JavaScript, Go or a human with a text editor can read it too.
 
 
+def shelve_demo() -> None:
+    with tempfile.TemporaryDirectory() as folder:
+        db_path = str(Path(folder) / "notes")  # shelve may add a file extension
+        with shelve.open(db_path) as db:
+            # Keys must be strings; values can be anything picklable.
+            db["groceries"] = ["milk", "eggs"]
+            db["task"] = Task("call mum", date(2026, 5, 1), set())
+
+        # A separate open, like the next run of the program, sees the data.
+        with shelve.open(db_path) as db:
+            print(f"keys on disk: {sorted(db.keys())}")
+            print(f"task: {db['task'].title}")
+
+            # Gotcha: changing a value in place does not save it.
+            db["groceries"].append("bread")
+            print(f"after in-place append: {db['groceries']}")
+            items = db["groceries"]
+            items.append("bread")
+            db["groceries"] = items  # assign it back to store it
+            print(f"after assigning back:  {db['groceries']}")
+    # shelve uses pickle underneath, so the same rule applies: only open
+    # shelves your own program wrote.
+
+
 def main() -> None:
     round_trip_demo()
     print()
@@ -136,6 +161,8 @@ def main() -> None:
     danger_demo()
     print()
     json_instead_demo()
+    print()
+    shelve_demo()
 
 
 if __name__ == "__main__":
