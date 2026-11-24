@@ -12,6 +12,7 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import math
 import runpy
 from pathlib import Path
 
@@ -72,9 +73,41 @@ def check_bank_account() -> None:
     report("2. BankAccount", EXERCISES["test_bank_account"], BankAccount)
 
 
+class Vector:
+    def __init__(self, x: float, y: float) -> None:
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Vector):
+            return NotImplemented  # let Python try the other side, then say False
+        return (self.x, self.y) == (other.x, other.y)
+
+    def __repr__(self) -> str:
+        return f"Vector({self.x}, {self.y})"
+
+    def __add__(self, other: "Vector") -> "Vector":
+        if not isinstance(other, Vector):
+            return NotImplemented  # Python turns this into a TypeError
+        return Vector(self.x + other.x, self.y + other.y)
+
+    def __mul__(self, factor: float) -> "Vector":
+        if not isinstance(factor, (int, float)):
+            return NotImplemented
+        return Vector(self.x * factor, self.y * factor)
+
+    def __abs__(self) -> float:
+        return math.hypot(self.x, self.y)
+
+
+def check_vector() -> None:
+    report("3. Vector", EXERCISES["test_vector"], Vector)
+
+
 def main() -> None:
     check_rectangle()
     check_bank_account()
+    check_vector()
 
 
 if __name__ == "__main__":
