@@ -183,12 +183,75 @@ Done.
     show(source, ListConverter())
 
 
+class MarkdownConverter(ListConverter):
+    """Adds fenced code blocks: lines between ``` markers are copied as-is."""
+
+    def close_block(self) -> None:
+        if self.state == "code":
+            body = "\n".join(html.escape(line, quote=False) for line in self.buffer)
+            self.out.append(f"<pre><code>{body}</code></pre>")
+        super().close_block()
+
+    def feed(self, line: str) -> None:
+        if self.state == "code":
+            # Inside a fence nothing is special except the closing fence:
+            # no headings, no lists, no inline rules.
+            if line.startswith("```"):
+                self.close_block()
+            else:
+                self.buffer.append(line)
+        elif line.startswith("```"):
+            self.close_block()
+            self.state = "code"
+        else:
+            super().feed(line)
+
+
+def markdown_to_html(text: str) -> str:
+    """Convert a whole document. A new converter each time: they hold state."""
+    return MarkdownConverter().convert(text)
+
+
+SAMPLE = """
+# Project notes
+
+This tool turns **Markdown** into *HTML*. See
+[the guide](https://www.markdownguide.org/basic-syntax/).
+
+## Install
+1. Download it
+2. Run `python convert.py notes.md`
+
+## Example
+
+```
+# not a heading: code is copied as typed
+if a < b and **kwargs:
+    print("<ok>")
+```
+
+## Limits
+- no tables
+- no nested lists
+"""
+
+
+def full_document_demo() -> None:
+    print("== stage 4: a whole document ==")
+    show(SAMPLE, MarkdownConverter())
+    html_text = markdown_to_html(SAMPLE)
+    print(f"{len(html_text.splitlines())} lines of HTML, "
+          f"{html_text.count('<h')} headings, {html_text.count('<li>')} list items")
+
+
 def main() -> None:
     inline_demo()
     print()
     blocks_demo()
     print()
     lists_demo()
+    print()
+    full_document_demo()
 
 
 if __name__ == "__main__":
