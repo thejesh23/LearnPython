@@ -12,6 +12,7 @@ them around, wrap them, and build new ones from old ones.
 
 import time
 from functools import cache
+from functools import partial
 
 
 @cache
@@ -30,8 +31,25 @@ def cache_demo() -> None:
     # "pure": same inputs, same output, no side effects worth repeating.
 
 
+def power(base: float, exponent: float) -> float:
+    return base**exponent
+
+
+def partial_demo() -> None:
+    # partial(f, ...) returns a new callable with some arguments already set.
+    square = partial(power, exponent=2)
+    cube = partial(power, exponent=3)
+    print(f"square(7) = {square(7)}, cube(2) = {cube(2)}")
+
+    # Handy wherever an API wants a one-argument function.
+    parse_binary = partial(int, base=2)
+    print(f"binary strings: {list(map(parse_binary, ['101', '1111', '10000']))}")
+
+
 def main() -> None:
     cache_demo()
+    print()
+    partial_demo()
 
 
 if __name__ == "__main__":
