@@ -16,6 +16,7 @@ line by line; if the tests pass, it is a valid solution.
 import runpy
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -75,11 +76,28 @@ def check_load_port() -> None:
     report("4. load_port", EXERCISES["test_load_port"], load_port)
 
 
+def get_nested(data: Any, *keys: Any, default: Any = None) -> Any:
+    current = data
+    try:
+        for key in keys:
+            current = current[key]
+    except (KeyError, IndexError, TypeError):
+        # Exactly the errors a failed lookup raises; anything else is a bug
+        # and propagates.
+        return default
+    return current
+
+
+def check_get_nested() -> None:
+    report("5. get_nested", EXERCISES["test_get_nested"], get_nested)
+
+
 def main() -> None:
     check_scoreboard()
     check_remove_short()
     check_make_multipliers()
     check_load_port()
+    check_get_nested()
 
 
 if __name__ == "__main__":
