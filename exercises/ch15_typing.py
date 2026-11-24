@@ -161,10 +161,53 @@ def check_double() -> None:
     report("3. double with @overload", test_double, double)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def compose(
+    f: Callable[[Any], Any], g: Callable[[Any], Any]
+) -> Callable[[Any], Any]:
+    """Return a new function that computes g(f(x)).
+
+    Then make the hints precise with three type parameters: f turns an A
+    into a B, g turns a B into a C, so the result turns an A into a C:
+        def compose[A, B, C](
+            f: Callable[[A], B], g: Callable[[B], C]
+        ) -> Callable[[A], C]:
+
+    >>> length_doubled = compose(len, lambda n: n * 2)
+    >>> length_doubled("abc")
+    6
+    """
+    raise NotImplementedError
+
+
+def test_compose(impl: Callable[..., Any]) -> None:
+    length_doubled = impl(len, lambda n: n * 2)
+    assert callable(length_doubled), "compose should return a function"
+    assert length_doubled("abc") == 6, "compose(len, n * 2)('abc') should be 6"
+    shout = impl(str.strip, str.upper)
+    assert shout("  hi ") == "HI", f"strip then upper gave {shout('  hi ')!r}"
+    calls: list[str] = []
+
+    def record(x: int) -> int:
+        calls.append("f")
+        return x
+
+    impl(record, str)
+    assert calls == [], "compose should not call f until the new function runs"
+    params = getattr(impl, "__type_params__", ())
+    assert len(params) == 3, "declare three type parameters: def compose[A, B, C]"
+
+
+def check_compose() -> None:
+    report("4. compose[A, B, C]", test_compose, compose)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
     check_double()
+    check_compose()
 
 
 if __name__ == "__main__":
