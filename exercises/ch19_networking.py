@@ -20,7 +20,11 @@ in exercises/solutions/ch19_networking.py: try first, peek second. The lessons
 for this chapter are in basics/19_networking/.
 """
 
+import socket
+import threading
 from collections.abc import Callable
+from collections.abc import Iterator
+from contextlib import contextmanager
 from typing import Any
 
 
@@ -142,9 +146,93 @@ def check_add_params() -> None:
     report("2. add_params", test_add_params, add_params)
 
 
+@contextmanager
+def one_client_server(handle: Callable[[socket.socket], None]) -> Iterator[int]:
+    """Test helper: serve one client on a free 127.0.0.1 port; yield the port.
+
+    `handle` runs in a background thread with the accepted connection. An
+    error raised there is raised again when the with block ends.
+    """
+    listener = socket.create_server(("127.0.0.1", 0))  # port 0: any free port
+    listener.settimeout(0.05)  # wake up often to check whether to stop
+    stop = threading.Event()
+    errors: list[BaseException] = []
+
+    def run() -> None:
+        while not stop.is_set():
+            try:
+                conn, _address = listener.accept()
+            except TimeoutError:
+                continue
+            with conn:
+                conn.settimeout(2)  # a confused client cannot hang the test
+                try:
+                    handle(conn)
+                except BaseException as error:
+                    errors.append(error)
+            return
+
+    thread = threading.Thread(target=run, daemon=True)
+    thread.start()
+    try:
+        yield listener.getsockname()[1]
+    finally:
+        stop.set()
+        thread.join(timeout=5)
+        listener.close()
+        if errors:
+            raise errors[0]
+
+
+# --- Exercise 3 -------------------------------------------------------------
+
+def send_and_receive(port: int, message: str) -> str:
+    """Send `message` to a server on 127.0.0.1:port and return its reply.
+
+    The server reads until the client says "no more data", then answers
+    and closes the connection. So:
+      1. connect with socket.create_connection(("127.0.0.1", port), timeout=5)
+      2. send the message encoded as UTF-8 with sendall
+      3. call shutdown(socket.SHUT_WR): "I am done sending"
+      4. recv in a loop until it returns b"" (the server closed), joining
+         the pieces, and decode the whole reply at the end
+    Close the socket when done (a with block does it).
+    """
+    raise NotImplementedError
+
+
+def test_send_and_receive(impl: Callable[[int, str], str]) -> None:
+    def shout(conn: socket.socket) -> None:
+        received = b""
+        try:
+            while chunk := conn.recv(7):  # small reads, to test the client loop
+                received += chunk
+        except TimeoutError:
+            raise AssertionError(
+                "the server never saw the end of the message: call"
+                " shutdown(socket.SHUT_WR) after sending"
+            ) from None
+        reply = received.decode("utf-8").upper().encode("utf-8")
+        for start in range(0, len(reply), 5):
+            conn.sendall(reply[start:start + 5])
+
+    for message in ("hello, socket", "grüße aus köln " * 40, ""):
+        with one_client_server(shout) as port:
+            got = impl(port, message)
+        want = message.upper()
+        assert got == want, (
+            f"sent {message[:20]!r}...: expected {want[:20]!r}..., got {got[:20]!r}..."
+        )
+
+
+def check_send_and_receive() -> None:
+    report("3. send_and_receive", test_send_and_receive, send_and_receive)
+
+
 def main() -> None:
     check_get_param()
     check_add_params()
+    check_send_and_receive()
 
 
 if __name__ == "__main__":
