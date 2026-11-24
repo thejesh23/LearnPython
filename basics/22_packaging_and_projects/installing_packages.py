@@ -28,6 +28,7 @@ reads what is installed without importing it.
 """
 
 import re
+from importlib import metadata
 
 
 def parse_version(text: str) -> tuple[int, ...]:
@@ -73,8 +74,43 @@ def specifier_demo() -> None:
         print(f"{spec:10}{row}")
 
 
+def installed() -> dict[str, str]:
+    """Map each installed distribution name to its version."""
+    found = {}
+    for dist in metadata.distributions():
+        name = dist.metadata["Name"]
+        if name:  # a broken install can have empty metadata
+            found[name] = dist.version
+    return found
+
+
+def installed_demo() -> None:
+    dists = installed()
+    print(f"{len(dists)} distributions installed in this environment")
+    if not dists:
+        print("  (a fresh venv has none; try `python -m pip install requests`)")
+    for name in sorted(dists, key=str.lower)[:5]:
+        print(f"  {name}=={dists[name]}")
+
+    # version() looks up one distribution; a missing one raises an error.
+    for name in ["pip", "surely-not-installed-pkg"]:
+        try:
+            print(f"{name} version: {metadata.version(name)}")
+        except metadata.PackageNotFoundError:
+            print(f"{name}: not installed")
+
+    # Distribution name vs import name, e.g. PyYAML installs a module `yaml`.
+    differ = [(mod, dist[0]) for mod, dist in
+              metadata.packages_distributions().items()
+              if dist and mod.lower() != dist[0].lower() and not mod.startswith("_")]
+    for module, dist in sorted(differ)[:3]:
+        print(f"  import {module}  comes from distribution {dist}")
+
+
 def main() -> None:
     specifier_demo()
+    print()
+    installed_demo()
 
 
 if __name__ == "__main__":
