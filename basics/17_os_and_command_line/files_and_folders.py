@@ -17,6 +17,7 @@ Everything below happens inside a TemporaryDirectory, which is deleted at
 the end of its `with` block.
 """
 
+import os
 import tempfile
 from pathlib import Path
 
@@ -57,8 +58,28 @@ def glob_demo() -> None:
         print(f"iterdir() folders:  {show(folders, root)}")
 
 
+def walk_demo() -> None:
+    with tempfile.TemporaryDirectory() as folder:
+        root = Path(folder)
+        make_project(root)
+        total = 0
+        # os.walk yields (folder, its subfolder names, its file names) for
+        # every folder, starting at the top.
+        for dirpath, dirnames, filenames in os.walk(root):
+            # Editing dirnames in place tells walk which folders to enter.
+            # This is how tools skip .git, .cache or node_modules.
+            dirnames[:] = sorted(d for d in dirnames if not d.startswith("."))
+            here = Path(dirpath).relative_to(root).as_posix()
+            size = sum((Path(dirpath) / f).stat().st_size for f in filenames)
+            total += size
+            print(f"  {here:<10} {len(filenames)} file(s), {size:>3} bytes")
+        print(f"total without hidden folders: {total} bytes")
+
+
 def main() -> None:
     glob_demo()
+    print()
+    walk_demo()
 
 
 if __name__ == "__main__":
