@@ -15,6 +15,7 @@ line by line; if the tests pass, it is a valid solution.
 
 import hashlib
 import runpy
+import sqlite3
 import struct
 from pathlib import Path
 
@@ -58,9 +59,25 @@ def check_parse_header() -> None:
     report("2. parse_header", EXERCISES["test_parse_header"], parse_header)
 
 
+def add_user(conn: sqlite3.Connection, name: str, email: str) -> int:
+    # `with conn:` commits when the block ends (and rolls back on an error).
+    with conn:
+        cursor = conn.execute(
+            "INSERT INTO users (name, email) VALUES (?, ?)", (name, email)
+        )
+    # sqlite3 types lastrowid as int | None; after an INSERT it is set.
+    assert cursor.lastrowid is not None
+    return cursor.lastrowid
+
+
+def check_add_user() -> None:
+    report("3. add_user", EXERCISES["test_add_user"], add_user)
+
+
 def main() -> None:
     check_sha256_file()
     check_parse_header()
+    check_add_user()
 
 
 if __name__ == "__main__":
