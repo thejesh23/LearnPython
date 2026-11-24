@@ -24,6 +24,8 @@ Uses:
     13_standard_library    random, collections.Counter
 """
 
+from collections.abc import Callable
+from collections.abc import Iterable
 from enum import Enum
 
 
@@ -139,10 +141,62 @@ def art_demo() -> None:
         print("    ".join(f"{row:<9}" for row in rows).rstrip())
 
 
+def play(
+    game: Hangman,
+    guesses: Iterable[str],
+    *,
+    verbose: bool = False,
+    say: Callable[[str], None] = print,
+) -> bool:
+    """Feed guesses into the game until it ends. Returns True for a win.
+
+    `guesses` can be any iterable: a list for a scripted game, or a
+    generator that asks a person or a computer for each next letter.
+    """
+    if verbose:
+        say(render(game))
+    for text in guesses:
+        try:
+            outcome = game.guess(text)
+        except ValueError as exc:
+            say(f"{text!r}: {exc}")
+            continue
+        match outcome:
+            case Outcome.HIT:
+                note = f"yes, {game.word.count(text.strip().lower())} found"
+            case Outcome.MISS:
+                note = "no"
+            case Outcome.REPEAT:
+                note = "already tried"
+        say(f"{text!r}: {note:<14} {game.masked}")
+        if verbose and outcome is Outcome.MISS:
+            say(draw(len(game.misses)))
+        if game.over:
+            break
+    say(render(game))
+    if game.won:
+        say(f"You won with {len(game.misses)} misses.")
+    elif game.lost:
+        say(f"Hanged. The word was {game.word!r}.")
+    else:
+        say("Stopped before the game ended.")
+    return game.won
+
+
+def scripted_game_demo() -> None:
+    print("== stage 3: a scripted game ==")
+    # Guessing vowels first is a poor plan against a word with no vowels.
+    guesses = ["a", "e", "7", "i", "o", "u", "E", "y", "s"]
+    won = play(Hangman("rhythm"), guesses)
+    print(f"play() returned {won}")
+
+
 def main() -> None:
     game_state_demo()
     print()
     art_demo()
+    print()
+    scripted_game_demo()
 
 
 if __name__ == "__main__":
