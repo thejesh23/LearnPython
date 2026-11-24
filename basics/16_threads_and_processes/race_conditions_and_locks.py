@@ -64,8 +64,34 @@ def race_demo() -> None:
     print(f"without a lock, updates were lost: {counter.value < expected}")
 
 
+class SafeCounter(Counter):
+    def __init__(self) -> None:
+        super().__init__()
+        self.lock = threading.Lock()
+
+
+def safe_add_one(counter: SafeCounter) -> None:
+    # Only one thread at a time can be inside the with block. The others wait
+    # at the door, so nobody can read a value that is about to change.
+    # `with` releases the lock even if the body raises an exception.
+    with counter.lock:
+        current = counter.value
+        time.sleep(0.0001)  # the same pause, now harmless
+        counter.value = current + 1
+
+
+def lock_demo() -> None:
+    counter = SafeCounter()
+    run_threads(safe_add_one, counter)  # type: ignore[arg-type]
+    print(f"with a lock: {counter.value} (exactly right every run)")
+    # The price: the locked part now runs one thread at a time. Keep locked
+    # sections short, and never sleep or do slow I/O inside them in real code.
+
+
 def main() -> None:
     race_demo()
+    print()
+    lock_demo()
 
 
 if __name__ == "__main__":
