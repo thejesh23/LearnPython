@@ -147,12 +147,42 @@ def when_lbyl_wins_demo() -> None:
     print(f"mostly-missing keys: LBYL faster than EAFP: {lbyl_time < eafp_time}")
 
 
+def load_user_bad(users: dict[str, dict[str, str]], name: str) -> str:
+    try:
+        user = users[name]
+        return user["email"].lower()  # a KeyError HERE is a data bug...
+    except KeyError:
+        return "unknown user"  # ...but it gets reported as "unknown user"
+
+
+def load_user_good(users: dict[str, dict[str, str]], name: str) -> str:
+    try:
+        user = users[name]  # only the line we expect to fail
+    except KeyError:
+        return "unknown user"
+    # Outside the try: a missing "email" now raises loudly, as it should.
+    return user["email"].lower()
+
+
+def narrow_try_demo() -> None:
+    users = {"ada": {"email": "ADA@example.com"}, "bob": {"phone": "555"}}
+    for name in ("ada", "zed", "bob"):
+        bad = load_user_bad(users, name)
+        try:
+            good = load_user_good(users, name)
+        except KeyError as exc:
+            good = f"KeyError {exc} (a real bug, now visible)"
+        print(f"{name}: bad -> {bad!r:<20} good -> {good}")
+
+
 def main() -> None:
     two_styles_demo()
     print()
     race_demo()
     print()
     when_lbyl_wins_demo()
+    print()
+    narrow_try_demo()
 
 
 if __name__ == "__main__":
