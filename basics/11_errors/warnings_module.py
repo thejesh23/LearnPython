@@ -53,8 +53,30 @@ def warn_demo() -> None:
     show(caught)
 
 
+def filters_demo() -> None:
+    with warnings.catch_warnings(record=True) as caught:
+        # Filters are checked newest first; the first match decides.
+        warnings.simplefilter("always")
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", message="noisy")  # regex on the text
+        warnings.warn("rounding will change", FutureWarning)
+        warnings.warn("noisy message from a library")
+        warnings.warn("this one gets through")
+    print(f"after ignore filters, {len(caught)} warning(s) recorded:")
+    show(caught)
+
+    with warnings.catch_warnings(record=True) as caught:
+        # "once" shows a given message only the first time.
+        warnings.simplefilter("once")
+        for _ in range(3):
+            warnings.warn("disk almost full", RuntimeWarning)
+    print(f"'once' turned 3 identical warnings into {len(caught)}")
+
+
 def main() -> None:
     warn_demo()
+    print()
+    filters_demo()
 
 
 if __name__ == "__main__":
