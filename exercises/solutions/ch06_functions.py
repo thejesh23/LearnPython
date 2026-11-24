@@ -34,8 +34,19 @@ def check_average() -> None:
     report("1. average", EXERCISES["test_average"], average)
 
 
+def make_greeting(name: str, greeting: str = "Hello", *, punctuation: str = "!") -> str:
+    # Everything after the bare * must be passed by name, so a call can
+    # never set punctuation by accident through a third positional value.
+    return f"{greeting}, {name}{punctuation}"
+
+
+def check_make_greeting() -> None:
+    report("2. make_greeting", EXERCISES["test_make_greeting"], make_greeting)
+
+
 def main() -> None:
     check_average()
+    check_make_greeting()
 
 
 if __name__ == "__main__":
