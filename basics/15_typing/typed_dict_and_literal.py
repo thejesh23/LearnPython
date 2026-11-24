@@ -15,9 +15,11 @@ to read the hints back and validate incoming data yourself.
 """
 
 import json
+from typing import Literal
 from typing import NotRequired
 from typing import Required
 from typing import TypedDict
+from typing import get_args
 
 
 class Movie(TypedDict):
@@ -77,10 +79,38 @@ def optional_keys_demo() -> None:
     print(f"SearchOptions optional: {sorted(SearchOptions.__optional_keys__)}")
 
 
+Status = Literal["todo", "doing", "done"]  # an alias keeps it in one place
+
+
+def next_status(status: Status) -> Status:
+    # The checker rejects next_status("finished"): it is not one of the three.
+    # Unlike an Enum there is nothing to import; callers pass plain strings.
+    order: list[Status] = ["todo", "doing", "done"]
+    return order[min(order.index(status) + 1, len(order) - 1)]
+
+
+def read_file(path: str, mode: Literal["r", "rb"] = "r") -> str:
+    # Literal shines for "mode" or "kind" flags that take a few exact strings.
+    return f"would open {path!r} with mode {mode!r}"
+
+
+def literal_demo() -> None:
+    print(f"next_status('todo') = {next_status('todo')!r}")
+    print(f"next_status('done') = {next_status('done')!r}")
+    print(read_file("notes.txt"))
+
+    # get_args reads the allowed values back, handy for runtime checks.
+    allowed = get_args(Status)
+    print(f"allowed statuses: {allowed}")
+    print(f"'finished' allowed: {'finished' in allowed}")
+
+
 def main() -> None:
     typed_dict_demo()
     print()
     optional_keys_demo()
+    print()
+    literal_demo()
 
 
 if __name__ == "__main__":
