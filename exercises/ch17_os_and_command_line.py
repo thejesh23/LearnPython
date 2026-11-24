@@ -17,6 +17,9 @@ in exercises/solutions/ch17_os_and_command_line.py: try first, peek second.
 The lessons for this chapter are in basics/17_os_and_command_line/.
 """
 
+import argparse
+import contextlib
+import io
 from collections.abc import Callable
 from collections.abc import Mapping
 from typing import Any
@@ -91,8 +94,58 @@ def check_env_settings() -> None:
     report("1. env_settings", test_env_settings, env_settings)
 
 
+# --- Exercise 2 -------------------------------------------------------------
+
+def build_parser() -> argparse.ArgumentParser:
+    """Build the parser for a `resize` tool and return it (do not parse yet).
+
+    The tool is used like this:
+        resize photo.jpg
+        resize photo.jpg --width 300 --quality high --dry-run
+
+    It needs:
+      image        positional, required
+      --width      converted to int, default 800
+      --quality    one of "low", "medium", "high"; default "medium"
+      --dry-run    a flag: False when absent, True when given
+                   (argparse stores it as args.dry_run)
+
+    Use prog="resize" so error messages name the tool.
+    """
+    raise NotImplementedError
+
+
+def test_build_parser(impl: Callable[[], argparse.ArgumentParser]) -> None:
+    parser = impl()
+    assert isinstance(parser, argparse.ArgumentParser), "return the parser itself"
+    # Bad input makes argparse print to stderr; keep the report tidy.
+    with contextlib.redirect_stderr(io.StringIO()):
+        args = parser.parse_args(["photo.jpg"])
+        got = (args.image, args.width, args.quality, args.dry_run)
+        want = ("photo.jpg", 800, "medium", False)
+        assert got == want, f"defaults: expected {want}, got {got}"
+        args = parser.parse_args(
+            ["--quality", "high", "cat.png", "--width", "300", "--dry-run"]
+        )
+        got = (args.image, args.width, args.quality, args.dry_run)
+        want = ("cat.png", 300, "high", True)
+        assert got == want, f"all options: expected {want}, got {got}"
+        for bad in (["a.jpg", "--width", "wide"], ["a.jpg", "--quality", "ultra"], []):
+            try:
+                parser.parse_args(bad)
+            except SystemExit as exit_:
+                assert exit_.code == 2, f"{bad} should exit with code 2"
+            else:
+                raise AssertionError(f"{bad} should be rejected by argparse")
+
+
+def check_build_parser() -> None:
+    report("2. build_parser", test_build_parser, build_parser)
+
+
 def main() -> None:
     check_env_settings()
+    check_build_parser()
 
 
 if __name__ == "__main__":
