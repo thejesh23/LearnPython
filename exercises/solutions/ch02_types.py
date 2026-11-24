@@ -11,6 +11,7 @@ say [solved].
 """
 
 import runpy
+from fractions import Fraction
 from pathlib import Path
 
 
@@ -44,9 +45,20 @@ def check_split_seconds() -> None:
     report("2. split_seconds", EXERCISES["test_split_seconds"], split_seconds)
 
 
+def simplify(numerator: int, denominator: int) -> str:
+    # Fraction reduces to lowest terms and normalises the sign as soon as it
+    # is built; str() prints "3/4", or just "2" for a whole number.
+    return str(Fraction(numerator, denominator))
+
+
+def check_simplify() -> None:
+    report("3. simplify", EXERCISES["test_simplify"], simplify)
+
+
 def main() -> None:
     check_utf8_length()
     check_split_seconds()
+    check_simplify()
 
 
 if __name__ == "__main__":
