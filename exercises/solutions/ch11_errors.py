@@ -81,11 +81,31 @@ def check_retry() -> None:
     report("4. retry", EXERCISES["test_retry"], retry)
 
 
+def validate_order(order: dict[str, object]) -> None:
+    errors: list[Exception] = []
+    if not order.get("item"):
+        errors.append(ValueError("item is required"))
+    quantity = order.get("quantity")
+    if not isinstance(quantity, int):
+        errors.append(TypeError("quantity must be an int"))
+    elif quantity < 1:
+        errors.append(ValueError("quantity must be at least 1"))
+    if "@" not in str(order.get("email", "")):
+        errors.append(ValueError("email needs an @"))
+    if errors:
+        raise ExceptionGroup("invalid order", errors)
+
+
+def check_validate_order() -> None:
+    report("5. validate_order", EXERCISES["test_validate_order"], validate_order)
+
+
 def main() -> None:
     check_safe_int()
     check_parse_age()
     check_insufficient_funds()
     check_retry()
+    check_validate_order()
 
 
 if __name__ == "__main__":
