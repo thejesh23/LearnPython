@@ -93,12 +93,47 @@ def merge_demo() -> None:
     print(f"shallow merge loses host: {a | b}")
 
 
+def invert(mapping: dict[str, str]) -> dict[str, list[str]]:
+    """Swap keys and values, keeping every key that shared a value."""
+    result: dict[str, list[str]] = {}
+    for key, value in mapping.items():
+        result.setdefault(value, []).append(key)
+    return result
+
+
+def reshape_demo() -> None:
+    # Counting with get(key, 0): no need to check whether the key exists.
+    votes = ["tea", "coffee", "tea", "water", "tea", "coffee"]
+    tally: dict[str, int] = {}
+    for vote in votes:
+        tally[vote] = tally.get(vote, 0) + 1
+    print(f"tally = {tally}")
+
+    # A plain inversion silently drops keys when values repeat.
+    team = {"ada": "red", "alan": "blue", "grace": "red"}
+    naive = {colour: name for name, colour in team.items()}
+    print(f"naive invert:  {naive}   <- ada is gone")
+    print(f"invert():      {invert(team)}")
+
+    # Grouping records by a field, then summarising each group.
+    sales = [("north", 120), ("south", 80), ("north", 45), ("east", 60)]
+    by_region: dict[str, list[int]] = {}
+    for region, amount in sales:
+        by_region.setdefault(region, []).append(amount)
+    totals = {region: sum(amounts) for region, amounts in by_region.items()}
+    print(f"grouped: {by_region}")
+    print(f"totals:  {totals}")
+    print(f"best region: {max(totals, key=totals.get)}")
+
+
 def main() -> None:
     views_demo()
     print()
     order_demo()
     print()
     merge_demo()
+    print()
+    reshape_demo()
 
 
 if __name__ == "__main__":
