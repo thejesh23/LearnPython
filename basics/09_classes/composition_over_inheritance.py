@@ -54,8 +54,44 @@ def is_a_vs_has_a_demo() -> None:
     print(f"Stack pops {stack.pop()!r}, {len(stack)} left")
 
 
+class EmailNotifier:
+    def notify(self, text: str) -> str:
+        return f"email: {text}"
+
+
+class SmsNotifier:
+    def notify(self, text: str) -> str:
+        return f"sms: {text}"
+
+
+class ShoutingEmailNotifier(EmailNotifier):
+    def notify(self, text: str) -> str:
+        return super().notify(text.upper() + "!")
+
+
+class ShoutingSmsNotifier(SmsNotifier):
+    # The same shouting logic, written a second time. Add a third channel and
+    # a third style and you need nine classes.
+    def notify(self, text: str) -> str:
+        return super().notify(text.upper() + "!")
+
+
+def class_explosion_demo() -> None:
+    notifiers = [
+        EmailNotifier(),
+        SmsNotifier(),
+        ShoutingEmailNotifier(),
+        ShoutingSmsNotifier(),
+    ]
+    for n in notifiers:
+        print(f"{type(n).__name__:22} -> {n.notify('build passed')}")
+    print(f"{len(notifiers)} classes for 2 channels x 2 styles")
+
+
 def main() -> None:
     is_a_vs_has_a_demo()
+    print()
+    class_explosion_demo()
 
 
 if __name__ == "__main__":
