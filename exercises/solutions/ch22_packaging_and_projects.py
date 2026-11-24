@@ -13,6 +13,7 @@ Every line should say [solved]. Your answer does not need to match these
 line by line; if the tests pass, it is a valid solution.
 """
 
+import importlib
 import re
 import runpy
 import tomllib
@@ -89,10 +90,27 @@ def check_read_project() -> None:
     report("3. read_project", EXERCISES["test_read_project"], read_project)
 
 
+def load_entry_point(target: str) -> Any:
+    if target.count(":") != 1:
+        raise ValueError(f"expected 'module:attribute', got {target!r}")
+    module_name, attributes = target.split(":")
+    obj: Any = importlib.import_module(module_name)
+    # "Counter.fromkeys" means: getattr(module, "Counter"), then "fromkeys".
+    for name in attributes.split("."):
+        obj = getattr(obj, name)
+    return obj
+
+
+def check_load_entry_point() -> None:
+    report("4. load_entry_point", EXERCISES["test_load_entry_point"],
+           load_entry_point)
+
+
 def main() -> None:
     check_bump_version()
     check_parse_requirement()
     check_read_project()
+    check_load_entry_point()
 
 
 if __name__ == "__main__":
