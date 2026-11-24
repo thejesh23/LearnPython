@@ -20,7 +20,9 @@ in exercises/solutions/ch21_pythonic_code.py: try first, peek second. The
 lessons for this chapter are in basics/21_pythonic_code/.
 """
 
+import tempfile
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 
@@ -155,10 +157,56 @@ def check_make_multipliers() -> None:
     report("3. make_multipliers", test_make_multipliers, make_multipliers)
 
 
+# --- Exercise 4 -------------------------------------------------------------
+
+def load_port(path: Path, default: int = 8000) -> int:
+    """Read a port number from a one-line text file.
+
+    - No such file: that is normal, return `default`.
+    - The file holds a whole number from 1 to 65535 (spaces and a newline
+      around it are fine): return it as an int.
+    - Anything else is a mistake someone must fix, so raise ValueError:
+      "eighty" (int() raises it for you) or 70000 (raise it yourself).
+
+    "Errors should never pass silently." The tempting version is
+        try:
+            return int(path.read_text())
+        except Exception:
+            return default
+    which hides the typo in the file. Put only the line that can raise
+    FileNotFoundError inside the try, and catch only that.
+    """
+    raise NotImplementedError
+
+
+def test_load_port(impl: Callable[..., int]) -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "port.txt"
+        got = impl(path)
+        assert got == 8000, f"a missing file should give the default 8000, got {got}"
+        got = impl(path, default=5000)
+        assert got == 5000, f"default=5000 with no file should give 5000, got {got}"
+        path.write_text(" 8080\n")
+        got = impl(path)
+        assert got == 8080, f"a file holding ' 8080' should give 8080, got {got!r}"
+        for bad in ("eighty", "", "70000", "0", "-1"):
+            path.write_text(bad)
+            try:
+                got = impl(path)
+            except ValueError:
+                continue
+            raise AssertionError(f"a file holding {bad!r} should raise ValueError")
+
+
+def check_load_port() -> None:
+    report("4. load_port", test_load_port, load_port)
+
+
 def main() -> None:
     check_scoreboard()
     check_remove_short()
     check_make_multipliers()
+    check_load_port()
 
 
 if __name__ == "__main__":
