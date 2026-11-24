@@ -15,7 +15,9 @@ line by line; if the tests pass, it is a valid solution.
 
 import re
 import runpy
+import tomllib
 from pathlib import Path
+from typing import Any
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -68,9 +70,29 @@ def check_parse_requirement() -> None:
            parse_requirement)
 
 
+def read_project(path: Path) -> dict[str, Any]:
+    with path.open("rb") as f:  # tomllib wants bytes, so it can check UTF-8
+        data = tomllib.load(f)
+    project = data.get("project")
+    if project is None or "name" not in project or "version" not in project:
+        raise ValueError(f"{path} has no [project] table with name and version")
+    return {
+        "name": project["name"],
+        "version": project["version"],
+        # Optional keys get an empty default, so callers need no checks.
+        "dependencies": project.get("dependencies", []),
+        "scripts": project.get("scripts", {}),
+    }
+
+
+def check_read_project() -> None:
+    report("3. read_project", EXERCISES["test_read_project"], read_project)
+
+
 def main() -> None:
     check_bump_version()
     check_parse_requirement()
+    check_read_project()
 
 
 if __name__ == "__main__":
