@@ -43,8 +43,38 @@ def check_rectangle() -> None:
     report("1. Rectangle", EXERCISES["test_rectangle"], Rectangle)
 
 
+class BankAccount:
+    def __init__(self, owner: str, balance: float = 0.0) -> None:
+        self.owner = owner
+        self._balance = balance  # leading underscore: internal by convention
+
+    @property
+    def balance(self) -> float:
+        # No @balance.setter, so assigning to .balance raises AttributeError.
+        return self._balance
+
+    def deposit(self, amount: float) -> float:
+        if amount <= 0:
+            raise ValueError(f"deposit must be positive, got {amount}")
+        self._balance += amount
+        return self._balance
+
+    def withdraw(self, amount: float) -> float:
+        if amount <= 0:
+            raise ValueError(f"withdrawal must be positive, got {amount}")
+        if amount > self._balance:
+            raise ValueError(f"cannot withdraw {amount}: balance is {self._balance}")
+        self._balance -= amount
+        return self._balance
+
+
+def check_bank_account() -> None:
+    report("2. BankAccount", EXERCISES["test_bank_account"], BankAccount)
+
+
 def main() -> None:
     check_rectangle()
+    check_bank_account()
 
 
 if __name__ == "__main__":
