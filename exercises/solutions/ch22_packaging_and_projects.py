@@ -14,9 +14,11 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import importlib
+import io
 import re
 import runpy
 import tomllib
+import unittest
 from pathlib import Path
 from typing import Any
 
@@ -106,11 +108,23 @@ def check_load_entry_point() -> None:
            load_entry_point)
 
 
+def run_tests(folder: Path) -> tuple[int, int]:
+    suite = unittest.TestLoader().discover(str(folder))
+    # verbosity=0 and a StringIO stream: run quietly, keep the report text.
+    result = unittest.TextTestRunner(stream=io.StringIO(), verbosity=0).run(suite)
+    return result.testsRun, len(result.failures) + len(result.errors)
+
+
+def check_run_tests() -> None:
+    report("5. run_tests", EXERCISES["test_run_tests"], run_tests)
+
+
 def main() -> None:
     check_bump_version()
     check_parse_requirement()
     check_read_project()
     check_load_entry_point()
+    check_run_tests()
 
 
 if __name__ == "__main__":
