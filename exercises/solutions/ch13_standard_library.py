@@ -15,6 +15,7 @@ line by line; if the tests pass, it is a valid solution.
 
 import runpy
 from collections import Counter
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -36,8 +37,20 @@ def check_top_words() -> None:
     report("1. top_words", EXERCISES["test_top_words"], top_words)
 
 
+def group_by_length(words: list[str]) -> dict[int, list[str]]:
+    groups: defaultdict[int, list[str]] = defaultdict(list)
+    for word in words:
+        groups[len(word)].append(word)  # a missing key starts as []
+    return dict(groups)  # a plain dict: later lookups will not add keys
+
+
+def check_group_by_length() -> None:
+    report("2. group_by_length", EXERCISES["test_group_by_length"], group_by_length)
+
+
 def main() -> None:
     check_top_words()
+    check_group_by_length()
 
 
 if __name__ == "__main__":
