@@ -14,6 +14,7 @@ line by line; if the tests pass, it is a valid solution.
 """
 
 import argparse
+import os
 import runpy
 from collections.abc import Mapping
 from pathlib import Path
@@ -56,9 +57,26 @@ def check_build_parser() -> None:
     report("2. build_parser", EXERCISES["test_build_parser"], build_parser)
 
 
+def find_files(root: Path, suffix: str, skip: set[str]) -> list[str]:
+    found = []
+    for folder, dirs, files in os.walk(root):
+        # Slice assignment changes the list os.walk is using, so it never
+        # descends into the skipped folders at all.
+        dirs[:] = [name for name in dirs if name not in skip]
+        for name in files:
+            if name.endswith(suffix):
+                found.append((Path(folder) / name).relative_to(root).as_posix())
+    return sorted(found)
+
+
+def check_find_files() -> None:
+    report("3. find_files", EXERCISES["test_find_files"], find_files)
+
+
 def main() -> None:
     check_env_settings()
     check_build_parser()
+    check_find_files()
 
 
 if __name__ == "__main__":
