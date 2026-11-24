@@ -26,6 +26,7 @@ not part of the standard library):
 
 import keyword
 import re
+import sys
 
 
 # BEFORE: it works, but every line makes the reader stop and decode it.
@@ -96,10 +97,53 @@ def naming_demo() -> None:
         print(f"  {kind:<9} {name:<14} {check_name(kind, name)}")
 
 
+def import_group(line: str) -> int:
+    """0 standard library, 1 third-party, 2 our own package, 3 relative."""
+    module = line.split()[1]
+    if module.startswith("."):
+        return 3
+    top = module.split(".")[0]
+    if top in sys.stdlib_module_names:  # the full list ships with Python
+        return 0
+    return 2 if top == "myapp" else 1
+
+
+def sort_imports(lines: list[str]) -> list[str]:
+    """Group; inside a group put plain imports first, then sort by module."""
+
+    def key(line: str) -> tuple[int, bool, str]:
+        return import_group(line), line.startswith("from"), line.split()[1]
+
+    result: list[str] = []
+    for line in sorted(lines, key=key):
+        if result and import_group(result[-1]) != import_group(line):
+            result.append("")  # a blank line between groups
+        result.append(line)
+    return result
+
+
+def imports_demo() -> None:
+    messy = [
+        "import requests",
+        "from myapp.models import User",
+        "import os",
+        "from . import helpers",
+        "import json",
+        "from pathlib import Path",
+        "import numpy as np",
+    ]
+    # This is what ruff's "I" rules (isort) do for you automatically.
+    print("sorted imports:")
+    for line in sort_imports(messy):
+        print(f"  {line}" if line else "")
+
+
 def main() -> None:
     before_after_demo()
     print()
     naming_demo()
+    print()
+    imports_demo()
 
 
 if __name__ == "__main__":
