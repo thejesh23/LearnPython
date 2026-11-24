@@ -98,12 +98,33 @@ def check_is_prime() -> None:
     report("5. is_prime", EXERCISES["test_is_prime"], is_prime)
 
 
+def parse_command(text: str) -> str:
+    # Matching on the list of words checks its length and its literal
+    # words in one go, and binds the interesting words to names.
+    match text.split():
+        case ["look"]:
+            return "you look around"
+        case ["go", direction]:
+            return f"you walk {direction}"
+        case ["take", *item] if item:  # the guard rejects a bare "take"
+            return f"you pick up the {' '.join(item)}"
+        case ["quit"] | ["exit"]:
+            return "goodbye"
+        case _:
+            return "I don't understand"
+
+
+def check_parse_command() -> None:
+    report("6. parse_command", EXERCISES["test_parse_command"], parse_command)
+
+
 def main() -> None:
     check_fizzbuzz()
     check_sum_of_multiples()
     check_first_index()
     check_collatz_steps()
     check_is_prime()
+    check_parse_command()
 
 
 if __name__ == "__main__":
