@@ -88,10 +88,45 @@ def lock_demo() -> None:
     # sections short, and never sleep or do slow I/O inside them in real code.
 
 
+class Account:
+    def __init__(self, reentrant: bool) -> None:
+        self.balance = 0
+        self.lock = threading.RLock() if reentrant else threading.Lock()
+
+    def deposit(self, amount: int) -> None:
+        with self.lock:
+            self.balance += amount
+
+    def deposit_twice(self, amount: int) -> bool:
+        with self.lock:
+            # deposit() takes the lock again while we already hold it. A plain
+            # Lock would wait forever for itself (a deadlock), so we use a
+            # timeout here just to show it failing instead of hanging.
+            got_it = self.lock.acquire(timeout=0.1)
+            if got_it:
+                self.lock.release()
+                self.deposit(amount)
+                self.deposit(amount)
+            return got_it
+
+
+def rlock_demo() -> None:
+    plain = Account(reentrant=False)
+    print(f"plain Lock, re-acquired by the same thread: {plain.deposit_twice(5)}")
+
+    # An RLock counts how many times its owner acquired it and is only
+    # released once the owner has released it the same number of times.
+    nested = Account(reentrant=True)
+    ok = nested.deposit_twice(5)
+    print(f"RLock, re-acquired by the same thread: {ok}, balance={nested.balance}")
+
+
 def main() -> None:
     race_demo()
     print()
     lock_demo()
+    print()
+    rlock_demo()
 
 
 if __name__ == "__main__":
