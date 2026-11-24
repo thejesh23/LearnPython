@@ -13,6 +13,7 @@ fiddly loops:
     string.Template  simple $name substitution, safe for user-written templates
 """
 
+import string
 import textwrap
 
 
@@ -96,12 +97,34 @@ def translate_demo() -> None:
     print(f"translate swaps safely: {'L R L'.translate(lr)!r}")
 
 
+def is_valid_username(name: str) -> bool:
+    """Letters, digits and underscore only, 3 to 12 characters."""
+    allowed = set(string.ascii_letters + string.digits + "_")
+    return 3 <= len(name) <= 12 and set(name) <= allowed
+
+
+def string_constants_demo() -> None:
+    print(f"ascii_lowercase = {string.ascii_lowercase}")
+    print(f"ascii_uppercase = {string.ascii_uppercase}")
+    print(f"digits          = {string.digits}")
+    print(f"hexdigits       = {string.hexdigits}")
+    print(f"punctuation     = {string.punctuation}")
+
+    for name in ["ada_99", "no spaces", "x", "Grace"]:
+        print(f"  {name!r:<12} valid? {is_valid_username(name)}")
+
+    # capwords: split on spaces, capitalize each word, join again.
+    print(f"capwords: {string.capwords('the quick  brown fox')}")
+
+
 def main() -> None:
     building_strings_demo()
     print()
     textwrap_demo()
     print()
     translate_demo()
+    print()
+    string_constants_demo()
 
 
 if __name__ == "__main__":
