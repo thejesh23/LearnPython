@@ -19,6 +19,7 @@ so the client can run in the main thread of the same script.
 """
 
 import socket
+import struct
 import threading
 from collections.abc import Callable
 
@@ -98,10 +99,61 @@ def newline_framing_demo() -> None:
     # Limitation: a message can never contain "\n" itself.
 
 
+HEADER = struct.Struct("!I")  # 4-byte unsigned int, network (big-endian) order
+
+
+def recv_exactly(conn: socket.socket, size: int) -> bytes | None:
+    """Read exactly `size` bytes, or return None if the peer closed first."""
+    buffer = b""
+    while len(buffer) < size:
+        chunk = conn.recv(size - len(buffer))  # may return fewer bytes
+        if not chunk:
+            if buffer:
+                raise ConnectionError("connection closed mid-message")
+            return None
+        buffer += chunk
+    return buffer
+
+
+def send_message(conn: socket.socket, body: bytes) -> None:
+    conn.sendall(HEADER.pack(len(body)) + body)
+
+
+def recv_message(conn: socket.socket) -> bytes | None:
+    header = recv_exactly(conn, HEADER.size)
+    if header is None:
+        return None
+    (length,) = HEADER.unpack(header)
+    return recv_exactly(conn, length)
+
+
+def describe(conn: socket.socket) -> None:
+    while (body := recv_message(conn)) is not None:
+        send_message(conn, f"got {len(body)} bytes".encode("utf-8"))
+
+
+def length_prefix_demo() -> None:
+    port, thread = serve_one_client(describe)
+    # Newlines, zero bytes, anything: the length says where the message ends.
+    bodies = [b"plain", b"two\nlines", bytes(range(5)), b"x" * 10_000]
+
+    with socket.create_connection(("127.0.0.1", port), timeout=5) as client:
+        for body in bodies:
+            send_message(client, body)
+            reply = recv_message(client)
+            assert reply is not None
+            print(f"  sent {body[:12]!r:<24} reply: {reply.decode('utf-8')}")
+    # Leaving the with-block closes the client; the server sees EOF and stops.
+    thread.join(timeout=5)
+    print(f"header for 10000: {HEADER.pack(10_000).hex(' ')}")
+
+
 def main() -> None:
     echo_demo()
     print()
     newline_framing_demo()
+    print()
+    length_prefix_demo()
 
 
 if __name__ == "__main__":
