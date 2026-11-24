@@ -13,7 +13,9 @@ remembers how it was called so the test can check.
 Mock the boundary (the network, the clock), not your own logic.
 """
 
+import time
 from unittest.mock import Mock
+from unittest.mock import patch
 
 
 def notify_all(users: list[str], sender) -> int:
@@ -58,10 +60,28 @@ def return_and_side_effect_demo() -> None:
         print(f"finally: {exc}")
 
 
+def greeting() -> str:
+    hour = time.localtime().tm_hour
+    return "Good morning" if hour < 12 else "Good afternoon"
+
+
+def patch_demo() -> None:
+    # The real clock makes greeting() untestable: the answer depends on when
+    # the test runs. patch swaps time.localtime inside the block only.
+    with patch("time.localtime") as fake:
+        fake.return_value.tm_hour = 9
+        print(f"at 09:00: {greeting()}")
+        fake.return_value.tm_hour = 15
+        print(f"at 15:00: {greeting()}")
+    print(f"patch undone, real localtime is back: {time.localtime().tm_year > 2000}")
+
+
 def main() -> None:
     recording_demo()
     print()
     return_and_side_effect_demo()
+    print()
+    patch_demo()
 
 
 if __name__ == "__main__":
