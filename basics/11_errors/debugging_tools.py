@@ -19,7 +19,9 @@ This file never actually opens pdb, because pdb waits for keyboard input.
 import inspect
 import io
 import os
+import sys
 import traceback
+from typing import Any
 
 
 HERE = os.path.dirname(os.path.abspath(__file__)) + os.sep
@@ -92,12 +94,52 @@ def inspect_stack_demo() -> None:
     print(f"  current call chain, innermost first: {chain}")
 
 
+PDB_COMMANDS = {
+    "p expr": "print an expression, e.g. p total",
+    "n": "next: run the current line, step over calls",
+    "s": "step: go into the function called on this line",
+    "c": "continue until the next breakpoint",
+    "l": "list the source around the current line",
+    "w": "where: print the stack, like a traceback",
+    "q": "quit the debugger and the program",
+}
+
+
+def average(numbers: list[float]) -> float:
+    total = sum(numbers)
+    breakpoint()  # in real code: pause here and inspect total and numbers
+    return total / len(numbers)
+
+
+def breakpoint_demo() -> None:
+    # breakpoint() simply calls sys.breakpointhook(), which starts pdb.
+    # Setting PYTHONBREAKPOINT=0 turns every breakpoint() into a no-op.
+    # Here we swap in a harmless hook to show what the debugger would see.
+    def peek(*args: Any, **kwargs: Any) -> None:
+        frame = sys._getframe(1)  # the function that called breakpoint()
+        print(f"  paused in {frame.f_code.co_name}(), locals = {frame.f_locals}")
+
+    print("breakpoint() with a stand-in hook:")
+    original = sys.breakpointhook
+    sys.breakpointhook = peek
+    try:
+        print(f"  average = {average([2.0, 4.0, 9.0])}")
+    finally:
+        sys.breakpointhook = original
+
+    print("  pdb commands you will use most:")
+    for command, meaning in PDB_COMMANDS.items():
+        print(f"    {command:7} {meaning}")
+
+
 def main() -> None:
     read_traceback_demo()
     print()
     traceback_tools_demo()
     print()
     inspect_stack_demo()
+    print()
+    breakpoint_demo()
 
 
 if __name__ == "__main__":
