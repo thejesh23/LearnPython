@@ -59,10 +59,27 @@ def check_make_multipliers() -> None:
            make_multipliers)
 
 
+def load_port(path: Path, default: int = 8000) -> int:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return default  # the one failure that is expected and fine
+    # Outside the try: a bad value raises ValueError for the caller to see.
+    port = int(text)  # int() ignores surrounding whitespace itself
+    if not 1 <= port <= 65535:
+        raise ValueError(f"port must be 1-65535, got {port} in {path}")
+    return port
+
+
+def check_load_port() -> None:
+    report("4. load_port", EXERCISES["test_load_port"], load_port)
+
+
 def main() -> None:
     check_scoreboard()
     check_remove_short()
     check_make_multipliers()
+    check_load_port()
 
 
 if __name__ == "__main__":
