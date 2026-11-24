@@ -32,8 +32,20 @@ def check_format_price() -> None:
     report("1. format_price", EXERCISES["test_format_price"], format_price)
 
 
+def initials(full_name: str) -> str:
+    # split() with no argument drops leading, trailing and repeated spaces,
+    # so the unpacking always sees exactly two words.
+    first, last = full_name.split()
+    return f"{first[0]}.{last[0]}.".upper()
+
+
+def check_initials() -> None:
+    report("2. initials", EXERCISES["test_initials"], initials)
+
+
 def main() -> None:
     check_format_price()
+    check_initials()
 
 
 if __name__ == "__main__":
