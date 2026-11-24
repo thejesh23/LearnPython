@@ -263,12 +263,55 @@ def check_process_queue() -> None:
     report("5. process_queue", test_process_queue, process_queue)
 
 
+# --- Exercise 6 -------------------------------------------------------------
+
+def count_primes(limit: int) -> int:
+    """Given, complete: count the primes below limit (pure CPU work)."""
+    if limit < 3:
+        return 0
+    is_prime = [True] * limit
+    is_prime[0] = is_prime[1] = False
+    for n in range(2, int(limit**0.5) + 1):
+        if is_prime[n]:
+            for multiple in range(n * n, limit, n):
+                is_prime[multiple] = False
+    return sum(is_prime)
+
+
+def primes_in_processes(limits: list[int]) -> list[int]:
+    """Return [count_primes(n) for n in limits], computed in other processes.
+
+    Threads do not speed up pure-Python CPU work (one interpreter lock), but
+    processes do. Use concurrent.futures.ProcessPoolExecutor(max_workers=2)
+    and its map() with the count_primes function above. Worker processes
+    import this file to find count_primes, which is one reason scripts keep
+    their work under `if __name__ == "__main__":`.
+
+    >>> primes_in_processes([10, 100])
+    [4, 25]
+    """
+    raise NotImplementedError
+
+
+def test_primes_in_processes(impl: Callable[[list[int]], list[int]]) -> None:
+    limits = [10, 100, 1000, 50_000, 2]
+    got = impl(limits)
+    expected = [count_primes(n) for n in limits]
+    assert got == expected, f"expected {expected}, got {got}"
+    assert impl([]) == [], "no limits should give []"
+
+
+def check_primes_in_processes() -> None:
+    report("6. primes_in_processes", test_primes_in_processes, primes_in_processes)
+
+
 def main() -> None:
     check_parallel_map()
     check_safe_counter()
     check_run_all()
     check_fastest()
     check_process_queue()
+    check_primes_in_processes()
 
 
 if __name__ == "__main__":
