@@ -15,6 +15,7 @@ line by line; if the tests pass, it is a valid solution.
 import runpy
 from pathlib import Path
 from typing import Literal, cast, get_args
+from typing import overload
 
 
 # Run the exercise file as a module (its main() does not run) to reuse its
@@ -51,9 +52,24 @@ def check_parse_mode() -> None:
     report("2. parse_mode", EXERCISES["test_parse_mode"], parse_mode)
 
 
+# The overloads are for the type checker only; at runtime the last,
+# undecorated definition is the function that actually runs.
+@overload
+def double(value: int) -> int: ...
+@overload
+def double(value: str) -> str: ...
+def double(value: int | str) -> int | str:
+    return value * 2
+
+
+def check_double() -> None:
+    report("3. double with @overload", EXERCISES["test_double"], double)
+
+
 def main() -> None:
     check_first()
     check_parse_mode()
+    check_double()
 
 
 if __name__ == "__main__":
