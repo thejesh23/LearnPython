@@ -17,6 +17,7 @@ You rarely need to write one. When you do, the usual reason is a validation
 rule shared by many attributes, which would otherwise need a property each.
 """
 
+from collections.abc import Callable
 from typing import Any
 
 
@@ -46,8 +47,60 @@ def get_demo() -> None:
     print(f"by hand        -> {descriptor.__get__(r, Robot)}")
 
 
+class my_property:
+    """Enough of the built-in property to show how it works."""
+
+    def __init__(self, fget: Callable[[Any], Any]) -> None:
+        self.fget = fget
+        self.fset: Callable[[Any, Any], None] | None = None
+
+    def setter(self, fset: Callable[[Any, Any], None]) -> "my_property":
+        self.fset = fset
+        return self  # the same descriptor, now with a setter too
+
+    def __get__(self, instance: Any, owner: type) -> Any:
+        if instance is None:
+            return self
+        return self.fget(instance)
+
+    def __set__(self, instance: Any, value: Any) -> None:
+        if self.fset is None:
+            raise AttributeError("read-only attribute")
+        self.fset(instance, value)
+
+
+class Celsius:
+    def __init__(self, degrees: float) -> None:
+        self.degrees = degrees  # goes through the setter below
+
+    @my_property
+    def degrees(self) -> float:
+        return self._degrees
+
+    @degrees.setter
+    def degrees(self, value: float) -> None:
+        if value < -273.15:
+            raise ValueError(f"{value} is below absolute zero")
+        self._degrees = value
+
+
+def property_demo() -> None:
+    c = Celsius(20)
+    c.degrees = 25
+    print(f"my_property works: {c.degrees}")
+    try:
+        c.degrees = -300
+    except ValueError as exc:
+        print(f"ValueError: {exc}")
+    # The real property has the same methods.
+    print(f"property has __get__ and __set__: "
+          f"{hasattr(property, '__get__') and hasattr(property, '__set__')}")
+
+
 def main() -> None:
     get_demo()
+    print()
+    property_demo()
 
 
 if __name__ == "__main__":
