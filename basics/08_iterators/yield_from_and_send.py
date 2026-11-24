@@ -60,8 +60,45 @@ def yield_from_demo() -> None:
     print(f"yield from a string: {list(letters())}")
 
 
+def numbered(lines: list[str]) -> Iterator[str]:
+    """Yield numbered lines, then *return* how many there were."""
+    count = 0
+    for line in lines:
+        count += 1
+        yield f"{count:>2}. {line}"
+    return count
+
+
+def chapters(book: dict[str, list[str]]) -> Iterator[str]:
+    total = 0
+    for name, lines in book.items():
+        yield f"[{name}]"
+        # yield from passes the lines through *and* hands back the return value.
+        count = yield from numbered(lines)
+        total += count
+    yield f"total lines: {total}"
+
+
+def return_value_demo() -> None:
+    # A plain for loop ignores the return value. By hand, it arrives as
+    # the .value of the StopIteration that ends the generator.
+    gen = numbered(["one", "two"])
+    print(next(gen))
+    print(next(gen))
+    try:
+        next(gen)
+    except StopIteration as stop:
+        print(f"StopIteration.value = {stop.value}")
+
+    book = {"intro": ["hello", "welcome"], "body": ["a", "b", "c"]}
+    for line in chapters(book):
+        print(line)
+
+
 def main() -> None:
     yield_from_demo()
+    print()
+    return_value_demo()
 
 
 if __name__ == "__main__":
