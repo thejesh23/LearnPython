@@ -22,6 +22,7 @@ Uses:
     17_os_and_command_line  argparse subcommands, exit codes
 """
 
+import argparse
 import json
 import tempfile
 from dataclasses import asdict
@@ -133,10 +134,59 @@ def persistence_demo() -> None:
             print(f"TodoError: {exc}")
 
 
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="todo", description="A tiny to-do list.")
+    sub = parser.add_subparsers(dest="command", required=True)
+    add = sub.add_parser("add", help="add a task")
+    add.add_argument("title", nargs="+", help="words of the title")
+    show = sub.add_parser("list", help="show tasks")
+    show.add_argument("--all", action="store_true", help="include finished ones")
+    for name, help_text in [("done", "mark a task finished"),
+                            ("remove", "delete a task")]:
+        cmd = sub.add_parser(name, help=help_text)
+        cmd.add_argument("id", type=int)
+    return parser
+
+
+def run(argv: list[str], path: Path) -> int:
+    """Run one command line; return a process exit code (0 means success)."""
+    args = build_parser().parse_args(argv)
+    todos = load(path)
+    try:
+        match args.command:
+            case "add":
+                task = todos.add(" ".join(args.title))
+                print(f"added #{task.id}: {task.title}")
+            case "list":
+                shown = todos.tasks if args.all else todos.pending()
+                for task in shown:
+                    print(format_task(task))
+                print(f"({len(todos.pending())} to do, {len(todos.tasks)} total)")
+            case "done":
+                print(f"finished #{todos.complete(args.id).id}")
+            case "remove":
+                print(f"removed: {todos.remove(args.id).title}")
+    except TodoError as exc:
+        print(f"error: {exc}")
+        return 1
+    save(todos, path)
+    return 0
+
+
+def commands_demo() -> None:
+    print(build_parser().format_usage().strip())
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "todo.json"
+        print(f"exit code {run(['add', 'learn', 'argparse'], path)}")
+        print(f"exit code {run(['done', '7'], path)}")
+
+
 def main() -> None:
     model_demo()
     print()
     persistence_demo()
+    print()
+    commands_demo()
 
 
 if __name__ == "__main__":
