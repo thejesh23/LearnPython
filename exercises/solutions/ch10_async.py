@@ -14,6 +14,7 @@ line by line; if the tests pass, it is a valid solution.
 
 import asyncio
 import runpy
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 
@@ -36,8 +37,21 @@ def check_add_later() -> None:
     report("1. add_later", EXERCISES["test_add_later"], add_later)
 
 
+async def fetch_all(
+    fetch: Callable[[str], Awaitable[str]], names: list[str]
+) -> list[str]:
+    # gather starts every coroutine at once and returns results in argument
+    # order, no matter which finished first.
+    return list(await asyncio.gather(*(fetch(name) for name in names)))
+
+
+def check_fetch_all() -> None:
+    report("2. fetch_all", EXERCISES["test_fetch_all"], fetch_all)
+
+
 def main() -> None:
     check_add_later()
+    check_fetch_all()
 
 
 if __name__ == "__main__":
