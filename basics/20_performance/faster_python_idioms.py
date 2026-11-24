@@ -102,10 +102,35 @@ def local_names_demo() -> None:
     print(f"  worth making the code uglier for: {ratio >= 1.5}")
 
 
+STOP_WORDS = ["a", "an", "and", "the", "of", "to", "in", "is", "it", "on"]
+WORDS = [RNG.choice(STOP_WORDS + ["python", "fast", "code"]) for _ in range(10_000)]
+
+
+def keep_rebuilding_set() -> list[str]:
+    # set(STOP_WORDS) is rebuilt for every single word.
+    return [w for w in WORDS if w not in set(STOP_WORDS)]
+
+
+def build_set_once() -> list[str]:
+    stop = set(STOP_WORDS)  # hoisted out of the loop: built once
+    return [w for w in WORDS if w not in stop]
+
+
+def repeated_work_demo() -> None:
+    print("doing less work:")
+    compare("set built once vs per item", keep_rebuilding_set, build_set_once)
+    # Sorting all 10,000 numbers just to read the smallest is O(n log n)
+    # work for an O(n) question.
+    compare("min() vs sorted()[0]", lambda: sorted(NUMBERS)[0],
+            lambda: min(NUMBERS))
+
+
 def main() -> None:
     builtins_demo()
     print()
     local_names_demo()
+    print()
+    repeated_work_demo()
 
 
 if __name__ == "__main__":
