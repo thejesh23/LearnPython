@@ -91,8 +91,58 @@ def game_state_demo() -> None:
     print(f"won {game.won}, lost {game.lost}, over {game.over}")
 
 
+# One template, with a named field for every body part. Missing parts are
+# filled with spaces so the picture keeps its shape.
+GALLOWS = r"""
+  +---+
+  |   |
+  {head}   |
+ {left_arm}{body}{right_arm}  |
+ {left_leg} {right_leg}  |
+      |
+=========""".strip("\n")
+
+# The order body parts appear in, one per miss, and how each is drawn.
+BODY = {
+    "head": "O",
+    "body": "|",
+    "left_arm": "/",
+    "right_arm": "\\",
+    "left_leg": "/",
+    "right_leg": "\\",
+}
+
+
+def draw(misses: int) -> str:
+    parts = {
+        name: char if i < misses else " "
+        for i, (name, char) in enumerate(BODY.items())
+    }
+    return GALLOWS.format(**parts)
+
+
+def render(game: Hangman) -> str:
+    left = game.max_misses - len(game.misses)
+    return (
+        f"{draw(len(game.misses))}\n"
+        f"word:   {game.masked}\n"
+        f"misses: {' '.join(game.misses) or '-'}  ({left} left)"
+    )
+
+
+def art_demo() -> None:
+    print("== stage 2: drawing the gallows ==")
+    frames = [draw(n).splitlines() for n in (0, 2, 4, 6)]
+    # Print four frames side by side: zip takes one row from each frame.
+    print("    ".join(f"{n} misses " for n in (0, 2, 4, 6)).rstrip())
+    for rows in zip(*frames):
+        print("    ".join(f"{row:<9}" for row in rows).rstrip())
+
+
 def main() -> None:
     game_state_demo()
+    print()
+    art_demo()
 
 
 if __name__ == "__main__":
