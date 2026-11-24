@@ -24,7 +24,10 @@ Uses:
 """
 
 import random
+import re
+from collections.abc import Iterable
 from collections.abc import Iterator
+from dataclasses import dataclass
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -88,8 +91,78 @@ def generate_demo() -> None:
     print(f"other seed, other log: {lines != list(generate_log(5, seed=1))}")
 
 
+# re.VERBOSE lets a long pattern be laid out and commented. In this mode
+# spaces are ignored, so a literal space is written as [ ].
+LINE = re.compile(
+    r"""
+    (?P<ip>\S+) [ ] \S+ [ ] \S+ [ ]          # client address, two unused fields
+    \[ (?P<time>[^\]]+) \] [ ]               # [12/Mar/2024:10:00:03 +0000]
+    " (?P<method>[A-Z]+) [ ] (?P<path>\S+) [ ] [^"]* " [ ]
+    (?P<status>\d{3}) [ ] (?P<size>\d+) [ ]
+    (?P<seconds>\d+\.\d+)
+    $""",
+    re.VERBOSE,
+)
+
+
+@dataclass(frozen=True)
+class LogEntry:
+    ip: str
+    time: datetime
+    method: str
+    path: str
+    status: int
+    size: int
+    seconds: float
+
+
+def parse_line(line: str) -> LogEntry | None:
+    """Return a LogEntry, or None if the line is not in the expected format."""
+    m = LINE.match(line.strip())
+    if m is None:
+        return None
+    return LogEntry(
+        ip=m["ip"],
+        time=datetime.strptime(m["time"], TIME_FORMAT),
+        method=m["method"],
+        path=m["path"],
+        status=int(m["status"]),
+        size=int(m["size"]),
+        seconds=float(m["seconds"]),
+    )
+
+
+def parse_lines(lines: Iterable[str], rejected: list[str]) -> Iterator[LogEntry]:
+    """Parse lazily, collecting bad lines instead of stopping at the first."""
+    for line in lines:
+        if not line.strip():
+            continue
+        entry = parse_line(line)
+        if entry is None:
+            rejected.append(line.rstrip("\n"))
+        else:
+            yield entry
+
+
+def parse_demo() -> None:
+    print("== stage 2: parsing ==")
+    first = next(generate_log(1))
+    entry = parse_line(first)
+    print(f"line:  {first}")
+    print(f"entry: {entry}")
+    if entry:
+        print(f"typed fields: {entry.status + 1 = }, {entry.time.minute = }")
+
+    rejected: list[str] = []
+    lines = [*generate_log(3), "garbage line", '1.2.3.4 - - [bad date] "GET /"']
+    entries = list(parse_lines(lines, rejected))
+    print(f"parsed {len(entries)} entries, rejected {rejected}")
+
+
 def main() -> None:
     generate_demo()
+    print()
+    parse_demo()
 
 
 if __name__ == "__main__":
