@@ -126,6 +126,42 @@ def reshape_demo() -> None:
     print(f"best region: {max(totals, key=totals.get)}")
 
 
+def deep_merge(base: dict, override: dict) -> dict:
+    """Merge override into a copy of base, combining nested dicts too."""
+    merged = dict(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = deep_merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def nested_demo() -> None:
+    config = {
+        "server": {"host": "localhost", "port": 8000},
+        "database": {"name": "app", "pool": {"min": 1, "max": 5}},
+    }
+
+    print(f"config['database']['pool']['max'] = {config['database']['pool']['max']}")
+
+    # A missing level raises KeyError. Chained get() with {} defaults returns
+    # None instead, for data where the section is truly optional.
+    cache_ttl = config.get("cache", {}).get("ttl")
+    print(f"cache ttl (optional section) = {cache_ttl}")
+
+    # Updating one nested value: the inner dict is mutable, so this is direct.
+    config["server"]["port"] = 8080
+    print(f"server now {config['server']}")
+
+    production = {"server": {"host": "example.org"}, "database": {"pool": {"max": 50}}}
+    merged = deep_merge(config, production)
+    print(f"deep_merge server   = {merged['server']}")
+    print(f"deep_merge database = {merged['database']}")
+    # Sections that were not overridden are still shared with config. For a
+    # fully independent copy use copy.deepcopy (see copying_and_references.py).
+
+
 def main() -> None:
     views_demo()
     print()
@@ -134,6 +170,8 @@ def main() -> None:
     merge_demo()
     print()
     reshape_demo()
+    print()
+    nested_demo()
 
 
 if __name__ == "__main__":
