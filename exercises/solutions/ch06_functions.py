@@ -44,9 +44,24 @@ def check_make_greeting() -> None:
     report("2. make_greeting", EXERCISES["test_make_greeting"], make_greeting)
 
 
+def append_to(item: int, items: list[int] | None = None) -> list[int]:
+    # A default is built once, when def runs, so [] there would be one list
+    # shared by every call. None as the default and a fresh list inside
+    # gives each call its own.
+    if items is None:
+        items = []
+    items.append(item)
+    return items
+
+
+def check_append_to() -> None:
+    report("3. append_to", EXERCISES["test_append_to"], append_to)
+
+
 def main() -> None:
     check_average()
     check_make_greeting()
+    check_append_to()
 
 
 if __name__ == "__main__":
