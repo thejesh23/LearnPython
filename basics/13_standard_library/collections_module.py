@@ -12,6 +12,7 @@ Each one removes a few lines of fiddly code, and the bugs that hide in them.
 """
 
 from collections import Counter
+from collections import defaultdict
 
 
 def counter_demo() -> None:
@@ -32,8 +33,30 @@ def counter_demo() -> None:
     print(f"have + need = {have + need}")
 
 
+def defaultdict_demo() -> None:
+    # defaultdict(list) calls list() to make a fresh value the first time a
+    # key is used, so grouping needs no "if key not in d" check.
+    animals = ["cat", "cow", "dog", "duck", "camel"]
+    by_letter: defaultdict[str, list[str]] = defaultdict(list)
+    for name in animals:
+        by_letter[name[0]].append(name)
+    print(f"grouped: {dict(by_letter)}")
+
+    # Any zero-argument callable works as the factory: int gives 0, set gives set().
+    lengths: defaultdict[int, set[str]] = defaultdict(set)
+    for name in animals:
+        lengths[len(name)].add(name)
+    print(f"by length: {dict(sorted(lengths.items()))}")
+
+    # Careful: merely *reading* a missing key creates it.
+    _ = by_letter["z"]
+    print(f"after reading 'z': 'z' in by_letter -> {'z' in by_letter}")
+
+
 def main() -> None:
     counter_demo()
+    print()
+    defaultdict_demo()
 
 
 if __name__ == "__main__":
