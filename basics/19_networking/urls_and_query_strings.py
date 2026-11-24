@@ -23,6 +23,7 @@ from urllib.parse import quote
 from urllib.parse import quote_plus
 from urllib.parse import unquote
 from urllib.parse import urlencode
+from urllib.parse import urljoin
 from urllib.parse import urlsplit
 from urllib.parse import urlunsplit
 
@@ -83,12 +84,28 @@ def query_demo() -> None:
     print(f"limit as int: {limit}")
 
 
+def join_demo() -> None:
+    # A web page links to "img/logo.png" or "../about" or "/login". The
+    # browser resolves each against the page's own URL; urljoin does the same.
+    base = "https://docs.example/guide/intro.html"
+    for link in ("setup.html", "../about", "/login", "?page=2", "#top",
+                 "https://other.example/x"):
+        print(f"{link:>24} -> {urljoin(base, link)}")
+
+    # The classic gotcha: a trailing slash decides whether the last part is a
+    # "directory" (kept) or a "file" (replaced).
+    print(f"base .../v1  + users -> {urljoin('https://api.example/v1', 'users')}")
+    print(f"base .../v1/ + users -> {urljoin('https://api.example/v1/', 'users')}")
+
+
 def main() -> None:
     split_demo()
     print()
     quote_demo()
     print()
     query_demo()
+    print()
+    join_demo()
 
 
 if __name__ == "__main__":
