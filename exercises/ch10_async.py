@@ -140,9 +140,55 @@ def check_fetch_all() -> None:
     report("2. fetch_all", test_fetch_all, fetch_all)
 
 
+# --- Exercise 3 -------------------------------------------------------------
+
+async def with_timeout(
+    make: Callable[[], Awaitable[str]], seconds: float, default: str
+) -> str:
+    """Return `await make()`, or `default` if it takes longer than `seconds`.
+
+    make is a function that creates the coroutine (call it: make()). Use
+    `async with asyncio.timeout(seconds):` or asyncio.wait_for, and catch
+    TimeoutError. Any other error from make() must still reach the caller:
+    only a timeout turns into the default.
+    """
+    raise NotImplementedError
+
+
+def test_with_timeout(impl: Callable[..., Any]) -> None:
+    async def quick() -> str:
+        await asyncio.sleep(0)
+        return "fast"
+
+    async def slow() -> str:
+        await asyncio.sleep(0.5)
+        return "slow"
+
+    async def broken() -> str:
+        raise KeyError("missing")
+
+    result = asyncio.run(impl(quick, 0.5, "default"))
+    assert result == "fast", f"a quick call should return its value, got {result!r}"
+    result = asyncio.run(impl(slow, 0.05, "default"))
+    assert result == "default", (
+        f"a call that times out should give the default, got {result!r}"
+    )
+    try:
+        asyncio.run(impl(broken, 0.5, "default"))
+    except KeyError:
+        pass
+    else:
+        raise AssertionError("errors other than a timeout should not be swallowed")
+
+
+def check_with_timeout() -> None:
+    report("3. with_timeout", test_with_timeout, with_timeout)
+
+
 def main() -> None:
     check_add_later()
     check_fetch_all()
+    check_with_timeout()
 
 
 if __name__ == "__main__":
