@@ -1,0 +1,95 @@
+"""Practice: errors and exceptions (chapter 11).
+
+How to work through this file:
+  1. Read an exercise's docstring, then replace each `raise NotImplementedError`
+     line in it with your own code.
+  2. Run the file:  python exercises/ch11_errors.py
+  3. Every exercise prints one line:
+         [solved]                 all checks passed
+         [not yet] <message>      a check failed; the message says which one
+         [todo] not attempted     the stub still raises NotImplementedError
+  4. Aim for all [solved]. The test_... function under each exercise shows
+     exactly what is checked; read it when a message is unclear, but do not
+     edit it.
+
+The exercises go from easy to a bit challenging. Stuck? Worked solutions are
+in exercises/solutions/ch11_errors.py: try first, peek second. The lessons
+for this chapter are in basics/11_errors/.
+"""
+
+from collections.abc import Callable
+from typing import Any
+
+
+def verdict(error: BaseException) -> str:
+    """Turn the exception a test raised into a short status."""
+    # A stub raises NotImplementedError. Other errors may wrap it, so follow
+    # the chain of causes (and look inside exception groups) before deciding.
+    link: BaseException | None = error
+    for _ in range(20):
+        if link is None:
+            break
+        if isinstance(link, NotImplementedError):
+            return "[todo] not attempted"
+        if isinstance(link, BaseExceptionGroup) and link.subgroup(
+            NotImplementedError
+        ):
+            return "[todo] not attempted"
+        link = link.__cause__ or link.__context__
+    if isinstance(error, AssertionError):
+        return f"[not yet] {str(error) or 'a check failed'}"
+    return f"[not yet] {type(error).__name__}: {error}"
+
+
+def report(title: str, test: Callable[[Any], None], impl: Any) -> None:
+    """Run one test against one implementation and print a one-line status."""
+    try:
+        test(impl)
+        status = "[solved]"
+    except KeyboardInterrupt:
+        raise
+    except BaseException as error:  # never crash: one line per exercise
+        status = verdict(error)
+    print(f"{title:<40} {status}")
+
+
+# --- Exercise 1 -------------------------------------------------------------
+
+def safe_int(text: str, default: int = 0) -> int:
+    """Convert text to an int, or return `default` if it is not a number.
+
+    Use try/except and catch only ValueError. A wrong *type*, such as None,
+    is a bug in the caller and should still raise TypeError.
+
+    >>> safe_int("42"), safe_int(" 7 "), safe_int("abc"), safe_int("x", -1)
+    (42, 7, 0, -1)
+    """
+    raise NotImplementedError
+
+
+def test_safe_int(impl: Callable[..., int]) -> None:
+    cases = [("42", 42), (" 7 ", 7), ("-3", -3), ("abc", 0), ("", 0), ("4.5", 0)]
+    for text, expected in cases:
+        got = impl(text)
+        assert got == expected, f"safe_int({text!r}) should be {expected}, got {got}"
+    assert impl("x", -1) == -1, "safe_int('x', -1) should return the default -1"
+    assert impl("12", -1) == 12, "the default is only for bad input"
+    try:
+        impl(None)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("safe_int(None) should raise TypeError: catch only "
+                             "ValueError")
+
+
+def check_safe_int() -> None:
+    report("1. safe_int", test_safe_int, safe_int)
+
+
+def main() -> None:
+    check_safe_int()
+
+
+if __name__ == "__main__":
+    main()
