@@ -39,8 +39,23 @@ def check_has_duplicates() -> None:
     report("1. has_duplicates", EXERCISES["test_has_duplicates"], has_duplicates)
 
 
+def common_words(first: list[str], second: list[str]) -> list[str]:
+    wanted = set(second)  # one O(n) pass; every lookup after this is O(1)
+    result: list[str] = []
+    for word in first:
+        if word in wanted:
+            result.append(word)
+            wanted.discard(word)  # so a repeated word is not listed twice
+    return result
+
+
+def check_common_words() -> None:
+    report("2. common_words", EXERCISES["test_common_words"], common_words)
+
+
 def main() -> None:
     check_has_duplicates()
+    check_common_words()
 
 
 if __name__ == "__main__":
